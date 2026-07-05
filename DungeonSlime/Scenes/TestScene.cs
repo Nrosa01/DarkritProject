@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using ImGuiNET;
+using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using MonoGameLibrary.Utilities;
+using DungeonSlime.TinyECS;
 
 namespace DungeonSlime.Scenes
 {
@@ -18,6 +20,10 @@ namespace DungeonSlime.Scenes
         Vector2 velocity;
         private float speed = 500f;
 
+        record struct Position(float X, float Y);
+        record struct Velocity(float X, float Y);
+        record struct Fart(int Power);
+
         public override void LoadContent()
         {
             base.LoadContent();
@@ -27,6 +33,46 @@ namespace DungeonSlime.Scenes
             // Create the animated sprite for the slime from the atlas.
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
             slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
+    
+            var registry = new World(100);
+
+            for (var i = 0; i < 20; i++)
+            {
+                Int32 entity = registry.Create();
+                registry.AddComponent<Position>(entity, new Position { X = i * 10, Y = i * 10 });
+                registry.AddComponent<Velocity>(entity, new Velocity { X = 2, Y = 2 });
+
+                if (i % 5 == 0) registry.AddComponent<Fart>(entity, new Fart { Power = 666 });
+            }
+
+            RunPrinterSystem(registry);
+            RunVelocitySystem(registry);
+
+            RunPrinterSystem(registry);
+            RunVelocitySystem(registry);
+        }
+
+        static void RunVelocitySystem(World registry)
+        {
+            var view = registry.View<Velocity, Position>();
+            foreach (var entity in view)
+            {
+                ref Position pos = ref registry.GetComponent<Position>(entity);
+                ref Velocity vel = ref registry.GetComponent<Velocity>(entity);
+                pos.X += vel.X;
+                pos.Y += vel.Y;
+            }
+        }
+
+        static void RunPrinterSystem(World registry)
+        {
+            Console.WriteLine("----- Printer -----");
+            var view = registry.View<Velocity, Position, Fart>();
+            foreach (var entity in view)
+            {
+                var pos = registry.GetComponent<Position>(entity);
+                Console.WriteLine($"entity: {entity}, pos: {pos.X},{pos.Y}");
+            }
         }
 
         public override void Initialize()
