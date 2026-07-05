@@ -1,0 +1,10 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+.vs/
+Content/Assets/fmod/dungeon_slime/.cache/
+Content/Assets/fmod/dungeon_slime/.unsaved/
+Content/Assets/fmod/dungeon_slime/.user/
+Content/Assets/fmod/dungeon_slime/Build
