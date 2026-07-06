@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using ImGuiNET;
@@ -38,10 +38,11 @@ namespace DungeonSlime.Scenes
             // Create the animated sprite for the slime from the atlas.
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
             slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
-    
-            world = new World(5000);
 
-            for (var i = 0; i < 3000; i++)
+            var worldSize = 30_000;
+            world = new World(worldSize);
+
+            for (var i = 0; i < worldSize; i++)
             {
                 var spacing = .2f;
                 var entity = world.Create();
