@@ -25,11 +25,12 @@ public abstract class Scene : IDisposable
     public Scene()
     {
         // Create a content manager for the scene
-        Content = new ContentManager(Core.Content.ServiceProvider);
-
-        // Set the root directory for content to the same as the root directory
-        // for the game's content.
-        Content.RootDirectory = Core.Content.RootDirectory;
+        Content = new(Core.Content.ServiceProvider)
+        {
+            // Set the root directory for content to the same as the root directory
+            // for the game's content.
+            RootDirectory = Core.Content.RootDirectory
+        };
     }
 
     // Finalizer, called when object is cleaned up by garbage collector.
@@ -42,21 +43,16 @@ public abstract class Scene : IDisposable
     /// When overriding this in a derived class, ensure that base.Initialize()
     /// still called as this is when LoadContent is called.
     /// </remarks>
-    public virtual void Initialize()
-    {
-        LoadContent();
-    }
-
-    /// <summary>
-    /// Override to provide logic to load content for the scene.
-    /// </summary>
-    public virtual void LoadContent() { }
+    public abstract void Initialize();
 
     /// <summary>
     /// Unloads scene-specific content.
     /// </summary>
-    public virtual void UnloadContent()
+    public abstract void Deinitialize();
+
+    internal void InternalDeinit()
     {
+        Deinitialize();
         Content.Unload();
     }
 
@@ -103,8 +99,7 @@ public abstract class Scene : IDisposable
 
         if (disposing)
         {
-            UnloadContent();
-            Content.Dispose();
+            InternalDeinit();
         }
         IsDisposed = true;
     }

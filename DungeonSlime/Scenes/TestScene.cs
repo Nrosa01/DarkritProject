@@ -28,9 +28,10 @@ namespace DungeonSlime.Scenes
         record struct Velocity(float X, float Y);
         record struct Fart(int Power);
 
-        public override void LoadContent()
+        public override void Initialize()
         {
-            base.LoadContent();
+            position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
+
             // Create the texture atlas from the XML configuration file.
             TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
@@ -87,12 +88,6 @@ namespace DungeonSlime.Scenes
             }
         }
 
-        public override void Initialize()
-        {
-            base.Initialize();
-            position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
-        }
-
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
@@ -140,6 +135,10 @@ namespace DungeonSlime.Scenes
             slimeAnimation.Draw(Core.SpriteBatch, position);
             RunSquareSystem(world, Core.SpriteBatch);
             Core.SpriteBatch.End();
+        }
+
+        public override void Deinitialize()
+        {
         }
     }
 }

@@ -29,7 +29,7 @@ public class Core : Game
     // The scene that is currently active.
     private static Scene s_activeScene;
 
-    // The next scene to switch to, if there is one.
+    // The next scene to switch to, if there is one.++++++
     private static Scene s_nextScene;
 
     /// <summary>
