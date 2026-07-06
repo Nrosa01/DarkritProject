@@ -43,20 +43,14 @@ public class Game1 : Core
         FrameworkElement.TabKeyCombos.Add(
            new KeyCombo() { PushedKey = Gum.Forms.Input.Keys.Down });
 
-        // The assets created for the UI were done so at 1/4th the size to keep the size of the
-        // texture atlas small.  So we will set the default canvas size to be 1/4th the size of
-        // the game's resolution then tell gum to zoom in by a factor of 4.
-        GumService.Default.CanvasWidth = GraphicsDevice.PresentationParameters.BackBufferWidth / 4.0f;
-        GumService.Default.CanvasHeight = GraphicsDevice.PresentationParameters.BackBufferHeight / 4.0f;
-        GumService.Default.Renderer.Camera.Zoom = 4.0f;
+        GumService.Default.CanvasWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
+        GumService.Default.CanvasHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
+        //GumService.Default.Renderer.Camera.Zoom = 4.0f;
     }
 
     protected override void Initialize()
     {
         base.Initialize();
-
-        // Start playing the background music.
-        Core.FMOD.PlayMusic("event:/theme", start: true, fadeCurrent: true);
 
         // Initialize the Gum UI service
         InitializeGum();

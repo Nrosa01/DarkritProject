@@ -87,20 +87,19 @@ public class Core : Game
 
         // Ensure that multiple cores are not created.
         if (s_instance != null)
-        {
             throw new InvalidOperationException($"Only a single Core instance can be created");
-        }
 
         // Store reference to engine for global member access.
         s_instance = this;
 
         // Create a new graphics device manager.
-        Graphics = new GraphicsDeviceManager(this);
-
-        // Set the graphics defaults.
-        Graphics.PreferredBackBufferWidth = width;
-        Graphics.PreferredBackBufferHeight = height;
-        Graphics.IsFullScreen = fullScreen;
+        Graphics = new(this)
+        {
+            // Set the graphics defaults.
+            PreferredBackBufferWidth = width,
+            PreferredBackBufferHeight = height,
+            IsFullScreen = fullScreen
+        };
 
         // Apply the graphic presentation changes.
         Graphics.ApplyChanges();
@@ -124,7 +123,7 @@ public class Core : Game
 
     protected override void Update(GameTime gameTime)
     {
-        Core.FMOD.Update();
+        FMOD.Update();
 
         // Update the input manager.
         Input.Update(gameTime);
@@ -160,9 +159,7 @@ public class Core : Game
         // Only set the next scene value if it is not the same
         // instance as the currently active scene.
         if (s_activeScene != next)
-        {
             s_nextScene = next;
-        }
     }
 
     private static void TransitionScene()
