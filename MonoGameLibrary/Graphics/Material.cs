@@ -289,7 +289,7 @@ public class Material : IDisposable
     }
 
     [Conditional("DEBUG")]
-    public static void DrawVisibleDebugUi(GameTime gameTime)
+    public static void DrawVisibleDebugUi()
     {
         // first, cull any materials that are not visible, or disposed. 
         var toRemove = new List<Material>();
@@ -306,11 +306,9 @@ public class Material : IDisposable
             s_debugMaterials.Remove(material);
         }
 
-        Core.ImGuiRenderer.BeforeLayout(gameTime);
         foreach (var material in s_debugMaterials)
         {
             material.DrawDebug();
         }
-        Core.ImGuiRenderer.AfterLayout();
     }
 }

@@ -120,6 +120,17 @@ namespace DungeonSlime.Scenes
             position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 
+        public override void DebugDraw(GameTime gameTime)
+        {
+            ImGui.Begin("Slime");
+            System.Numerics.Vector2 v = position.ToNumerics();
+            System.Numerics.Vector2 v2 = velocity.ToNumerics();
+
+            ImGui.DragFloat2("Position", ref v);
+            ImGui.InputFloat2("Velocity", ref v2);
+            ImGui.End();
+        }
+
         public override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
@@ -129,16 +140,6 @@ namespace DungeonSlime.Scenes
             slimeAnimation.Draw(Core.SpriteBatch, position);
             RunSquareSystem(world, Core.SpriteBatch);
             Core.SpriteBatch.End();
-
-            Core.ImGuiRenderer.BeforeLayout(gameTime);
-            ImGui.Begin("Slime");
-            System.Numerics.Vector2 v = position.ToNumerics();
-            System.Numerics.Vector2 v2 = velocity.ToNumerics();
-
-            ImGui.DragFloat2("Position", ref v);
-            ImGui.InputFloat2("Velocity", ref v2);
-            ImGui.End();
-            Core.ImGuiRenderer.AfterLayout();
         }
     }
 }

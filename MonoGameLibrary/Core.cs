@@ -149,7 +149,10 @@ public class Core : Game
         // If there is an active scene, draw it.
         s_activeScene?.Draw(gameTime);
 
-        Material.DrawVisibleDebugUi(gameTime);
+        Core.ImGuiRenderer.BeforeLayout(gameTime);
+        s_activeScene?.DebugDraw(gameTime);
+        Material.DrawVisibleDebugUi();
+        Core.ImGuiRenderer.AfterLayout();
 
         base.Draw(gameTime);
     }

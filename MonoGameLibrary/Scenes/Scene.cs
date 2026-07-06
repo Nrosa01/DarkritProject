@@ -73,6 +73,12 @@ public abstract class Scene : IDisposable
     public virtual void Draw(GameTime gameTime) { }
 
     /// <summary>
+    /// Allows to draw ImGui widgets
+    /// </summary>
+    /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
+    public virtual void DebugDraw(GameTime gameTime) { }
+
+    /// <summary>
     /// Disposes of this scene.
     /// </summary>
     public void Dispose()
