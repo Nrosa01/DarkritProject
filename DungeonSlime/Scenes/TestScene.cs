@@ -9,7 +9,8 @@ using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using MonoGameLibrary.Utilities;
-using DungeonSlime.TinyECS;
+using MonoGameLibrary.TinyECS;
+using Console = MonoGameLibrary.Utilities.Log;
 
 namespace DungeonSlime.Scenes
 {
@@ -34,22 +35,22 @@ namespace DungeonSlime.Scenes
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
             slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
     
-            var registry = new World(100);
+            var world = new World(10);
 
-            for (var i = 0; i < 20; i++)
+            for (var i = 0; i < 3; i++)
             {
-                Int32 entity = registry.Create();
-                registry.AddComponent<Position>(entity, new Position { X = i * 10, Y = i * 10 });
-                registry.AddComponent<Velocity>(entity, new Velocity { X = 2, Y = 2 });
+                var entity = world.Create();
+                world.AddComponent(entity, new Position { X = (i + 1) * 10, Y = (i + 1) * 10 });
+                world.AddComponent(entity, new Velocity { X = 2, Y = 2 });
 
-                if (i % 5 == 0) registry.AddComponent<Fart>(entity, new Fart { Power = 666 });
+                if (i % 2 == 0) world.AddComponent(entity, new Fart { Power = 666 });
             }
 
-            RunPrinterSystem(registry);
-            RunVelocitySystem(registry);
+            RunPrinterSystem(world);
+            RunVelocitySystem(world);
 
-            RunPrinterSystem(registry);
-            RunVelocitySystem(registry);
+            RunPrinterSystem(world);
+            RunVelocitySystem(world);
         }
 
         static void RunVelocitySystem(World registry)
