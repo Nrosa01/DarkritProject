@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using Entity = System.Int32; // I should change this to a generational handle
 
 /// Simple ECS implementation, mainly to understand how it works. Based on: 
@@ -14,14 +15,29 @@ using Entity = System.Int32; // I should change this to a generational handle
 
 namespace MonoGameLibrary.TinyECS;
 
+public static class TypeId
+{
+    private static int _nextId;
+
+    public static int Next()
+    {
+        return Interlocked.Increment(ref _nextId) - 1;
+    }
+}
+
+public static class TypeId<T>
+{
+    public static readonly int Id = TypeId.Next();
+}
+
 public class Registry(int maxEntities)
 {
-    readonly Dictionary<Type, IComponentStore> data = [];
+    readonly Dictionary<int, IComponentStore> data = [];
     Entity nextEntity = 0;
 
     public ComponentStore<T> Assure<T>()
     {
-        var type = typeof(T);
+        var type = TypeId<T>.Id;
         if (data.TryGetValue(type, out var store)) return (ComponentStore<T>)data[type];
 
         var newStore = new ComponentStore<T>(maxEntities);
