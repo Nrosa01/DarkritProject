@@ -14,7 +14,7 @@ using Entity = System.Int32; // I should change this to a generational handle
 
 namespace MonoGameLibrary.TinyECS;
 
-public class World(int maxEntities)
+public class Registry(int maxEntities)
 {
     readonly Dictionary<Type, IComponentStore> data = [];
     Entity nextEntity = 0;

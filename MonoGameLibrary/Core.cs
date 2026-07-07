@@ -23,6 +23,7 @@ public class Core : Game
     #region Stats
     private const int HistorySize = 240;
     private readonly float[] _cpuRenderHistory = new float[HistorySize];
+    private readonly float[] _cpuProcessHistory = new float[HistorySize];
     private int _historyIndex;
 
     public void AddCpuRenderTime(float ms)
@@ -32,8 +33,10 @@ public class Core : Game
     }
 
     private readonly Stopwatch _frameTimer = new();
+    private readonly Stopwatch _processTimer = new();
 
     private float _cpuRenderMs;
+    private float _cpuProcessMs;
     private float _fps;
 
     private readonly float[] _fpsHistory = new float[HistorySize];
@@ -43,14 +46,15 @@ public class Core : Game
     {
         ImGui.Begin("Renderer Stats");
 
-        ImGui.Text($"FPS        : {_fps:0}");
-        ImGui.Text($"Frame Time : {_cpuRenderMs:0.00} ms");
-        ImGui.Text($"Draw Calls : {GraphicsDevice.Metrics.DrawCount}");
-        ImGui.Text($"Sprites    : {GraphicsDevice.Metrics.SpriteCount}");
-        ImGui.Text($"Primitives : {GraphicsDevice.Metrics.PrimitiveCount}");
-        ImGui.Text($"Textures   : {GraphicsDevice.Metrics.TextureCount}");
-        ImGui.Text($"Targets    : {GraphicsDevice.Metrics.TargetCount}");
-        ImGui.Text($"Clears     : {GraphicsDevice.Metrics.ClearCount}");
+        ImGui.Text($"FPS              : {_fps:0}");
+        ImGui.Text($"CPU Compute Time : {_cpuProcessMs:0.00} ms");
+        ImGui.Text($"CPU Render Time  : {_cpuRenderMs:0.00} ms");
+        ImGui.Text($"Draw Calls       : {GraphicsDevice.Metrics.DrawCount}");
+        ImGui.Text($"Sprites          : {GraphicsDevice.Metrics.SpriteCount}");
+        ImGui.Text($"Primitives       : {GraphicsDevice.Metrics.PrimitiveCount}");
+        ImGui.Text($"Textures         : {GraphicsDevice.Metrics.TextureCount}");
+        ImGui.Text($"Targets          : {GraphicsDevice.Metrics.TargetCount}");
+        ImGui.Text($"Clears           : {GraphicsDevice.Metrics.ClearCount}");
 
         ImGui.Separator();
 
@@ -59,7 +63,7 @@ public class Core : Game
             ref _fpsHistory[0],
             _fpsHistory.Length,
             _fpsHistoryIndex,
-            $"{_fps:0.00} ms",
+            $"{_fps:0.00}",
             0,
             60,
             new Vector2(0, 60).ToNumerics());
@@ -70,6 +74,16 @@ public class Core : Game
             _cpuRenderHistory.Length,
             _historyIndex,
             $"{_cpuRenderMs:0.00} ms",
+            0,
+            20,
+            new Vector2(0, 60).ToNumerics());
+
+        ImGui.PlotLines(
+            "CPU Process (ms)",
+            ref _cpuProcessHistory[0],
+            _cpuProcessHistory.Length,
+            _historyIndex,
+            $"{_cpuProcessMs:0.00} ms",
             0,
             20,
             new Vector2(0, 60).ToNumerics());
@@ -197,8 +211,18 @@ public class Core : Game
 
         Content.ReloadChangedAssets();
 
+        _processTimer.Restart();
+        
         // If there is an active scene, update it.
         s_activeScene?.Update(gameTime);
+
+        _processTimer.Stop();
+
+        _cpuProcessMs = (float)_processTimer.Elapsed.TotalMilliseconds;
+        _fps = (float)(1.0 / gameTime.ElapsedGameTime.TotalSeconds);
+
+        _cpuProcessHistory[_historyIndex] = _cpuProcessMs;
+        _historyIndex = (_historyIndex + 1) % HistorySize;
 
         base.Update(gameTime);
     }

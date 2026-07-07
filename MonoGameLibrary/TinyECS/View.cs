@@ -7,14 +7,14 @@ using Entity = System.Int32;
 
 namespace MonoGameLibrary.TinyECS;
 
-public struct View<T>(World World) : IEnumerable<Entity>
+public struct View<T>(Registry World) : IEnumerable<Entity>
 {
     public readonly IEnumerator<Entity> GetEnumerator() => World.Assure<T>().Set.GetEnumerator();
 
     readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-public struct View<T, U>(World World) : IEnumerable<Entity>
+public struct View<T, U>(Registry World) : IEnumerable<Entity>
 {
     public readonly IEnumerator<Entity> GetEnumerator()
     {
@@ -29,7 +29,7 @@ public struct View<T, U>(World World) : IEnumerable<Entity>
     readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-public struct View<T, U, V>(World World) : IEnumerable<Entity>
+public struct View<T, U, V>(Registry World) : IEnumerable<Entity>
 {
     public readonly IEnumerator<Entity> GetEnumerator()
     {
