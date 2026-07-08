@@ -1,4 +1,4 @@
-﻿using DungeonSlime.Scenes;
+﻿using Darkrit.Scenes;
 using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameLibrary;
@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using MonoGameLibrary.Content;
 
 
-namespace DungeonSlime;
+namespace Darkrit;
 
 public class Game1 : Core
 {

@@ -19,7 +19,7 @@ using static System.ComponentModel.Design.ObjectSelectorEditor;
 using Console = MonoGameLibrary.Utilities.Log;
 
 
-namespace DungeonSlime.Scenes
+namespace Darkrit.Scenes
 {
     internal class TestScene : Scene
     {

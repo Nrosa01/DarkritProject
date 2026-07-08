@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary;
 using MonoGameLibrary.Input;
 
-namespace DungeonSlime;
+namespace Darkrit;
 
 /// <summary>
 /// Provides a game-specific input abstraction that maps physical inputs
