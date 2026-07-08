@@ -15,7 +15,6 @@ using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using MonoGameLibrary.TinyECS;
 using MonoGameLibrary.Utilities;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
 using Console = MonoGameLibrary.Utilities.Log;
 
 
@@ -38,13 +37,13 @@ namespace Darkrit.Scenes
         }
 
         static FrentMode frentMode = FrentMode.Inline;
-        static TinyECSMode tinyEcsMode = TinyECSMode.Delegate;
+        static TinyECSMode tinyEcsMode = TinyECSMode.DelegateParallel;
         readonly string[] frentNames = Enum.GetNames<FrentMode>();
         readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
-        static bool paused = false;
-        static bool render = true;
+        static bool paused = true;
+        static bool render = false;
 
-        const int worldSize = 50_000;
+        const int worldSize = 1_000_000;
 
 
         AnimatedSprite slimeAnimation;
