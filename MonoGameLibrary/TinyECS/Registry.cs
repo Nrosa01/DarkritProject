@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Entity = System.Int32; // I should change this to a generational handle
 
 /// Simple ECS implementation, mainly to understand how it works. Based on: 
@@ -76,32 +77,89 @@ public class Registry(int maxEntities)
         where T : struct
         where U : struct;
 
-    public void Query<T, U>(TwoComponents<T, U> action, bool runParallel = false) where T : struct where U : struct
+    public void Query<T, U>(TwoComponents<T, U> action)
+        where T : struct
+        where U : struct
     {
         var store1 = Assure<T>();
         var store2 = Assure<U>();
-        var storeToUse = store1.Count > store2.Count ? store2.Set.Dense : store1.Set.Dense;
-        Func<int, bool> contains;
-        if (store1.Count > store2.Count)
-            contains = store2.Contains;
-        else
-            contains = store1.Contains;
 
-        if (runParallel)
+        if (store1.Count <= store2.Count)
         {
-            storeToUse.AsParallel().ForAll(entity =>
+            var dense = store1.Set.Dense;
+            var count = store1.Count;
+
+            for (int i = 0; i < count; i++)
             {
-                if (!contains(entity)) return;
-                action(ref store1.Get(entity), ref store2.Get(entity));
+                var entity = dense[i];
+
+                if (!store2.TryGetIndex(entity, out var index2))
+                    continue;
+
+                action(
+                    ref store1.GetByIndex(i),
+                    ref store2.GetByIndex(index2));
+            }
+        }
+        else
+        {
+            var dense = store2.Set.Dense;
+            var count = store2.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                var entity = dense[i];
+
+                if (!store1.TryGetIndex(entity, out var index1))
+                    continue;
+
+                action(
+                    ref store1.GetByIndex(index1),
+                    ref store2.GetByIndex(i));
+            }
+        }
+    }
+
+    public void QueryParallel<T, U>(TwoComponents<T, U> action)
+    where T : struct
+    where U : struct
+    {
+        var store1 = Assure<T>();
+        var store2 = Assure<U>();
+
+        if (store1.Count <= store2.Count)
+        {
+            var dense = store1.Set.Dense;
+            var count = store1.Count;
+
+            Parallel.For(0, count, i =>
+            {
+                var entity = dense[i];
+
+                if (!store2.TryGetIndex(entity, out var index2))
+                    return;
+
+                action(
+                    ref store1.GetByIndex(i),
+                    ref store2.GetByIndex(index2));
             });
         }
         else
         {
-            foreach (var entity in storeToUse)
+            var dense = store2.Set.Dense;
+            var count = store2.Count;
+
+            Parallel.For(0, count, i =>
             {
-                if (!contains(entity)) continue;
-                action(ref store1.Get(entity), ref store2.Get(entity));
-            }
+                var entity = dense[i];
+
+                if (!store1.TryGetIndex(entity, out var index1))
+                    return;
+
+                action(
+                    ref store1.GetByIndex(index1),
+                    ref store2.GetByIndex(i));
+            });
         }
     }
 
@@ -110,7 +168,7 @@ public class Registry(int maxEntities)
         where U : struct
         where V : struct;
 
-    public void Query<T, U, V>(ThreeComponents<T, U, V> action, bool runParallel = false)
+    public void Query<T, U, V>(ThreeComponents<T, U, V> action)
         where T : struct
         where U : struct
         where V : struct
@@ -119,55 +177,176 @@ public class Registry(int maxEntities)
         var store2 = Assure<U>();
         var store3 = Assure<V>();
 
-        var storeToUse = store1.Set.Dense;
-        var minCount = store1.Count;
+        var leader = 0;
+        var leaderCount = store1.Count;
 
-        if (store2.Count < minCount)
+        if (store2.Count < leaderCount)
         {
-            minCount = store2.Count;
-            storeToUse = store2.Set.Dense;
+            leader = 1;
+            leaderCount = store2.Count;
         }
 
-        if (store3.Count < minCount)
+        if (store3.Count < leaderCount)
         {
-            storeToUse = store3.Set.Dense;
+            leader = 2;
+            leaderCount = store3.Count;
         }
 
-        if (runParallel)
+        switch (leader)
         {
-            storeToUse.AsParallel().ForAll(entity =>
-            {
-                if (!store1.Contains(entity) ||
-                    !store2.Contains(entity) ||
-                    !store3.Contains(entity))
-                    return;
+            case 0:
+                {
+                    var dense = store1.Set.Dense;
 
-                action(
-                    ref store1.Get(entity),
-                    ref store2.Get(entity),
-                    ref store3.Get(entity));
-            });
-        }
-        else
-        {
-            foreach (var entity in storeToUse)
-            {
-                if (!store1.Contains(entity) ||
-                    !store2.Contains(entity) ||
-                    !store3.Contains(entity))
-                    continue;
+                    for (int i = 0; i < leaderCount; i++)
+                    {
+                        var entity = dense[i];
 
-                action(
-                    ref store1.Get(entity),
-                    ref store2.Get(entity),
-                    ref store3.Get(entity));
-            }
+                        if (!store2.TryGetIndex(entity, out var index2) ||
+                            !store3.TryGetIndex(entity, out var index3))
+                            continue;
+
+                        action(
+                            ref store1.GetByIndex(i),
+                            ref store2.GetByIndex(index2),
+                            ref store3.GetByIndex(index3));
+                    }
+
+                    break;
+                }
+
+            case 1:
+                {
+                    var dense = store2.Set.Dense;
+
+                    for (int i = 0; i < leaderCount; i++)
+                    {
+                        var entity = dense[i];
+
+                        if (!store1.TryGetIndex(entity, out var index1) ||
+                            !store3.TryGetIndex(entity, out var index3))
+                            continue;
+
+                        action(
+                            ref store1.GetByIndex(index1),
+                            ref store2.GetByIndex(i),
+                            ref store3.GetByIndex(index3));
+                    }
+
+                    break;
+                }
+
+            case 2:
+                {
+                    var dense = store3.Set.Dense;
+
+                    for (int i = 0; i < leaderCount; i++)
+                    {
+                        var entity = dense[i];
+
+                        if (!store1.TryGetIndex(entity, out var index1) ||
+                            !store2.TryGetIndex(entity, out var index2))
+                            continue;
+
+                        action(
+                            ref store1.GetByIndex(index1),
+                            ref store2.GetByIndex(index2),
+                            ref store3.GetByIndex(i));
+                    }
+
+                    break;
+                }
         }
     }
 
-    public View<T> View<T>() => new(this);
+    public void QueryParallel<T, U, V>(ThreeComponents<T, U, V> action)
+        where T : struct
+        where U : struct
+        where V : struct
+    {
+        var store1 = Assure<T>();
+        var store2 = Assure<U>();
+        var store3 = Assure<V>();
 
-    public View<T, U> View<T, U>() => new(this);
+        var leader = 0;
+        var leaderCount = store1.Count;
 
-    public View<T, U, V> View<T, U, V>() => new(this);
+        if (store2.Count < leaderCount)
+        {
+            leader = 1;
+            leaderCount = store2.Count;
+        }
+
+        if (store3.Count < leaderCount)
+        {
+            leader = 2;
+            leaderCount = store3.Count;
+        }
+
+        switch (leader)
+        {
+            case 0:
+                {
+                    var dense = store1.Set.Dense;
+
+                    Parallel.For(0, leaderCount, i =>
+                    {
+                        var entity = dense[i];
+
+                        if (!store2.TryGetIndex(entity, out var index2) ||
+                            !store3.TryGetIndex(entity, out var index3))
+                            return;
+
+                        action(
+                            ref store1.GetByIndex(i),
+                            ref store2.GetByIndex(index2),
+                            ref store3.GetByIndex(index3));
+                    });
+
+                    break;
+                }
+
+            case 1:
+                {
+                    var dense = store2.Set.Dense;
+
+                    Parallel.For(0, leaderCount, i =>
+                    {
+                        var entity = dense[i];
+
+                        if (!store1.TryGetIndex(entity, out var index1) ||
+                            !store3.TryGetIndex(entity, out var index3))
+                            return;
+
+                        action(
+                            ref store1.GetByIndex(index1),
+                            ref store2.GetByIndex(i),
+                            ref store3.GetByIndex(index3));
+                    });
+
+                    break;
+                }
+
+            case 2:
+                {
+                    var dense = store3.Set.Dense;
+
+                    Parallel.For(0, leaderCount, i =>
+                    {
+                        var entity = dense[i];
+
+                        if (!store1.TryGetIndex(entity, out var index1) ||
+                            !store2.TryGetIndex(entity, out var index2))
+                            return;
+
+                        action(
+                            ref store1.GetByIndex(index1),
+                            ref store2.GetByIndex(index2),
+                            ref store3.GetByIndex(i));
+                    });
+
+                    break;
+                }
+        }
+    }
 }

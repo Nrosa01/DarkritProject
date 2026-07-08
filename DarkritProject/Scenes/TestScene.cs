@@ -33,7 +33,6 @@ namespace Darkrit.Scenes
         {
             Delegate,
             DelegateParallel,
-            Enumerate
         }
 
         static FrentMode frentMode = FrentMode.Inline;
@@ -171,33 +170,35 @@ namespace Darkrit.Scenes
                 {
                     case TinyECSMode.DelegateParallel:
                     case TinyECSMode.Delegate:
-                        registry.Query((ref Velocity vel, ref Position pos, ref Square square) =>
+
+                        if (!runParallel)
                         {
-                            pos.X += vel.X;
-                            pos.Y += vel.Y;
 
-                            if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                                vel.X *= -1;
+                            registry.Query((ref Velocity vel, ref Position pos, ref Square square) =>
+                            {
+                                pos.X += vel.X;
+                                pos.Y += vel.Y;
 
-                            if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                                vel.Y *= -1;
-                        }, runParallel);
-                        break;
-                    case TinyECSMode.Enumerate:
-                        var view = registry.View<Velocity, Position, Square>();
-                        foreach (var entity in view)
+                                if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
+                                    vel.X *= -1;
+
+                                if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
+                                    vel.Y *= -1;
+                            });
+                        }
+                        else
                         {
-                            ref Position pos = ref registry.GetComponent<Position>(entity);
-                            ref Velocity vel = ref registry.GetComponent<Velocity>(entity);
-                            ref Square square = ref registry.GetComponent<Square>(entity);
-                            pos.X += vel.X;
-                            pos.Y += vel.Y;
+                            registry.QueryParallel((ref Velocity vel, ref Position pos, ref Square square) =>
+                            {
+                                pos.X += vel.X;
+                                pos.Y += vel.Y;
 
-                            if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                                vel.X *= -1;
+                                if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
+                                    vel.X *= -1;
 
-                            if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                                vel.Y *= -1;
+                                if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
+                                    vel.Y *= -1;
+                            });
                         }
                         break;
                 }
@@ -235,19 +236,10 @@ namespace Darkrit.Scenes
                 {
                     case TinyECSMode.Delegate:
                     case TinyECSMode.DelegateParallel: // Graphics can't run in parallel
-                        registry.Query<Position, Square>((ref Position pos, ref Square square) => {
+                        registry.Query<Position, Square>((ref Position pos, ref Square square) =>
+                        {
                             spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
                         });
-                        break;
-                    case TinyECSMode.Enumerate:
-                        var view = registry.View<Position, Square>();
-                        foreach (var entity in view)
-                        {
-                            var pos = registry.GetComponent<Position>(entity);
-                            var square = registry.GetComponent<Square>(entity);
-
-                            spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
-                        }
                         break;
                 }
             }
@@ -287,9 +279,9 @@ namespace Darkrit.Scenes
         {
             ImGui.Begin("Test");
             ImGui.Checkbox("Render", ref render);
-            if(ImGui.Checkbox("Use Frent", ref USE_FREN))
+            if (ImGui.Checkbox("Use Frent", ref USE_FREN))
             {
-                if(!USE_FREN && world == null)
+                if (!USE_FREN && world == null)
                 {
                     world = new MonoGameLibrary.TinyECS.Registry(worldSize);
 
@@ -304,7 +296,7 @@ namespace Darkrit.Scenes
                         if (i % 2 == 0) world.AddComponent(entity, new Fart { Power = 666 });
                     }
                 }
-                else if(frentWorld == null)
+                else if (frentWorld == null)
                 {
                     frentWorld = new();
                     frentWorld.EnsureCapacity(_entityType, worldSize);
