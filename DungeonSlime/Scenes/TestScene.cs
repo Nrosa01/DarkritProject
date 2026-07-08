@@ -30,12 +30,21 @@ namespace DungeonSlime.Scenes
             Delegate, Inline, Parallel, Enumerate
         }
 
+        enum TinyECSMode
+        {
+            Delegate,
+            DelegateParallel,
+            Enumerate
+        }
+
         static FrentMode frentMode = FrentMode.Inline;
+        static TinyECSMode tinyEcsMode = TinyECSMode.Delegate;
         readonly string[] frentNames = Enum.GetNames<FrentMode>();
+        readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
         static bool paused = false;
         static bool render = true;
 
-        const int worldSize = 30_000;
+        const int worldSize = 50_000;
 
 
         AnimatedSprite slimeAnimation;
@@ -158,22 +167,40 @@ namespace DungeonSlime.Scenes
             }
             else
             {
-
-                var view = registry.View<Velocity, Position, Square>();
-                foreach (var entity in view)
+                bool runParallel = tinyEcsMode == TinyECSMode.DelegateParallel;
+                switch (tinyEcsMode)
                 {
-                    ref Position pos = ref registry.GetComponent<Position>(entity);
-                    ref Velocity vel = ref registry.GetComponent<Velocity>(entity);
-                    ref Square square = ref registry.GetComponent<Square>(entity);
-                    pos.X += vel.X;
-                    pos.Y += vel.Y;
+                    case TinyECSMode.DelegateParallel:
+                    case TinyECSMode.Delegate:
+                        registry.Query((ref Velocity vel, ref Position pos, ref Square square) =>
+                        {
+                            pos.X += vel.X;
+                            pos.Y += vel.Y;
 
-                    if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                        vel.X *= -1;
+                            if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
+                                vel.X *= -1;
 
-                    if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                        vel.Y *= -1;
+                            if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
+                                vel.Y *= -1;
+                        }, runParallel);
+                        break;
+                    case TinyECSMode.Enumerate:
+                        var view = registry.View<Velocity, Position, Square>();
+                        foreach (var entity in view)
+                        {
+                            ref Position pos = ref registry.GetComponent<Position>(entity);
+                            ref Velocity vel = ref registry.GetComponent<Velocity>(entity);
+                            ref Square square = ref registry.GetComponent<Square>(entity);
+                            pos.X += vel.X;
+                            pos.Y += vel.Y;
 
+                            if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
+                                vel.X *= -1;
+
+                            if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
+                                vel.Y *= -1;
+                        }
+                        break;
                 }
             }
         }
@@ -204,13 +231,25 @@ namespace DungeonSlime.Scenes
             }
             else
             {
-                var view = registry.View<Position, Square>();
-                foreach (var entity in view)
-                {
-                    var pos = registry.GetComponent<Position>(entity);
-                    var square = registry.GetComponent<Square>(entity);
 
-                    spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                switch (tinyEcsMode)
+                {
+                    case TinyECSMode.Delegate:
+                    case TinyECSMode.DelegateParallel: // Graphics can't run in parallel
+                        registry.Query<Position, Square>((ref Position pos, ref Square square) => {
+                            spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                        });
+                        break;
+                    case TinyECSMode.Enumerate:
+                        var view = registry.View<Position, Square>();
+                        foreach (var entity in view)
+                        {
+                            var pos = registry.GetComponent<Position>(entity);
+                            var square = registry.GetComponent<Square>(entity);
+
+                            spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                        }
+                        break;
                 }
             }
         }
@@ -266,13 +305,36 @@ namespace DungeonSlime.Scenes
                         if (i % 2 == 0) world.AddComponent(entity, new Fart { Power = 666 });
                     }
                 }
+                else if(frentWorld == null)
+                {
+                    frentWorld = new();
+                    frentWorld.EnsureCapacity(_entityType, worldSize);
+
+                    for (int i = 0; i < worldSize; i++)
+                    {
+                        var spacing = .2f;
+
+
+                        var entity = frentWorld.Create(new Position { X = (i + 1) * spacing, Y = (i + 1) * spacing }, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f }, new Square { Size = 10 });
+                        if (i % 2 == 0) entity.Add(new Fart { Power = 666 });
+                    }
+                }
             }
-            
-            
+
+            if (USE_FREN)
+                ImGui.BeginDisabled();
+            int current = (int)tinyEcsMode;
+            if (ImGui.Combo("TinyECSmODE", ref current, tinyNames, tinyNames.Length))
+            {
+                tinyEcsMode = (TinyECSMode)current;
+            }
+            if (USE_FREN)
+                ImGui.EndDisabled();
+
             ImGui.Checkbox("Pause", ref paused);
             if (!USE_FREN)
                 ImGui.BeginDisabled();
-            int current = (int)frentMode;
+            current = (int)frentMode;
             if (ImGui.Combo("FrentMode", ref current, frentNames, frentNames.Length))
             {
                 frentMode = (FrentMode)current;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Entity = System.Int32; // I should change this to a generational handle
 
@@ -70,6 +71,99 @@ public class Registry(int maxEntities)
     }
 
     public void RemoveComponent<T>(Entity entity) => Assure<T>().RemoveIfContains(entity);
+
+    public delegate void TwoComponents<T, U>(ref T first, ref U second)
+        where T : struct
+        where U : struct;
+
+    public void Query<T, U>(TwoComponents<T, U> action, bool runParallel = false) where T : struct where U : struct
+    {
+        var store1 = Assure<T>();
+        var store2 = Assure<U>();
+        var storeToUse = store1.Count > store2.Count ? store2.Set.Dense : store1.Set.Dense;
+        Func<int, bool> contains;
+        if (store1.Count > store2.Count)
+            contains = store2.Contains;
+        else
+            contains = store1.Contains;
+
+        if (runParallel)
+        {
+            storeToUse.AsParallel().ForAll(entity =>
+            {
+                if (!contains(entity)) return;
+                action(ref store1.Get(entity), ref store2.Get(entity));
+            });
+        }
+        else
+        {
+            foreach (var entity in storeToUse)
+            {
+                if (!contains(entity)) continue;
+                action(ref store1.Get(entity), ref store2.Get(entity));
+            }
+        }
+    }
+
+    public delegate void ThreeComponents<T, U, V>(ref T first, ref U second, ref V third)
+        where T : struct
+        where U : struct
+        where V : struct;
+
+    public void Query<T, U, V>(ThreeComponents<T, U, V> action, bool runParallel = false)
+        where T : struct
+        where U : struct
+        where V : struct
+    {
+        var store1 = Assure<T>();
+        var store2 = Assure<U>();
+        var store3 = Assure<V>();
+
+        var storeToUse = store1.Set.Dense;
+        var minCount = store1.Count;
+
+        if (store2.Count < minCount)
+        {
+            minCount = store2.Count;
+            storeToUse = store2.Set.Dense;
+        }
+
+        if (store3.Count < minCount)
+        {
+            storeToUse = store3.Set.Dense;
+        }
+
+        if (runParallel)
+        {
+            storeToUse.AsParallel().ForAll(entity =>
+            {
+                if (!store1.Contains(entity) ||
+                    !store2.Contains(entity) ||
+                    !store3.Contains(entity))
+                    return;
+
+                action(
+                    ref store1.Get(entity),
+                    ref store2.Get(entity),
+                    ref store3.Get(entity));
+            });
+        }
+        else
+        {
+            foreach (var entity in storeToUse)
+            {
+                if (!store1.Contains(entity) ||
+                    !store2.Contains(entity) ||
+                    !store3.Contains(entity))
+                    continue;
+
+                action(
+                    ref store1.Get(entity),
+                    ref store2.Get(entity),
+                    ref store3.Get(entity));
+            }
+        }
+    }
 
     public View<T> View<T>() => new(this);
 

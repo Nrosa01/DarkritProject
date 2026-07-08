@@ -14,6 +14,7 @@ public class SparseSet : IEnumerable<int>
 
     public int Count => size;
 
+    public int[] Dense => dense;
 
     public SparseSet(int capacity)
     {
