@@ -73,21 +73,21 @@ public class Core : Game
             new Vector2(0, 60).ToNumerics());
 
         ImGui.PlotLines(
-            "CPU Frame (ms)",
-            ref _cpuRenderHistory[0],
-            _cpuRenderHistory.Length,
-            _historyIndex,
-            $"{_cpuRenderMs:0.00} ms",
-            0,
-            20,
-            new Vector2(0, 60).ToNumerics());
-
-        ImGui.PlotLines(
             "CPU Process (ms)",
             ref _cpuProcessHistory[0],
             _cpuProcessHistory.Length,
             _historyIndex,
             $"{_cpuProcessMs:0.00} ms",
+            0,
+            20,
+            new Vector2(0, 60).ToNumerics());
+
+        ImGui.PlotLines(
+            "CPU Frame (ms)",
+            ref _cpuRenderHistory[0],
+            _cpuRenderHistory.Length,
+            _historyIndex,
+            $"{_cpuRenderMs:0.00} ms",
             0,
             20,
             new Vector2(0, 60).ToNumerics());
