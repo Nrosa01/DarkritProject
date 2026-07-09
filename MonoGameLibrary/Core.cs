@@ -36,7 +36,11 @@ public class Core : Game
     private readonly Stopwatch _processTimer = new();
 
     private float _cpuRenderMs;
+    private float _cpuRenderAverageMs;
+
     private float _cpuProcessMs;
+    private float _cpuProcessAverageMs;
+    
     private float _fps;
 
     private readonly float[] _fpsHistory = new float[HistorySize];
@@ -47,8 +51,8 @@ public class Core : Game
         ImGui.Begin("Renderer Stats");
 
         ImGui.Text($"FPS              : {_fps:0}");
-        ImGui.Text($"CPU Compute Time : {_cpuProcessMs:0.00} ms");
-        ImGui.Text($"CPU Render Time  : {_cpuRenderMs:0.00} ms");
+        ImGui.Text($"CPU Compute Time : {_cpuProcessAverageMs:0.00} ms");
+        ImGui.Text($"CPU Render Time  : {_cpuRenderAverageMs:0.00} ms");
         ImGui.Text($"Draw Calls       : {GraphicsDevice.Metrics.DrawCount}");
         ImGui.Text($"Sprites          : {GraphicsDevice.Metrics.SpriteCount}");
         ImGui.Text($"Primitives       : {GraphicsDevice.Metrics.PrimitiveCount}");
@@ -224,6 +228,9 @@ public class Core : Game
         _cpuProcessHistory[_historyIndex] = _cpuProcessMs;
         _historyIndex = (_historyIndex + 1) % HistorySize;
 
+        const float alpha = 0.05f;
+        _cpuProcessAverageMs += (_cpuProcessMs - _cpuProcessAverageMs) * alpha;
+
         base.Update(gameTime);
     }
 
@@ -243,6 +250,9 @@ public class Core : Game
 
         _fpsHistory[_fpsHistoryIndex] = _fps;
         _fpsHistoryIndex = (_fpsHistoryIndex + 1) % HistorySize;
+
+        const float alpha = 0.05f;
+        _cpuRenderAverageMs += (_cpuRenderMs - _cpuRenderAverageMs) * alpha;
 
         Core.ImGuiRenderer.BeforeLayout(gameTime);
         s_activeScene?.DebugDraw(gameTime);

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using Frent;
 using Frent.Core;
 using Frent.Systems;
@@ -15,6 +11,11 @@ using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using MonoGameLibrary.TinyECS;
 using MonoGameLibrary.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
 using Console = MonoGameLibrary.Utilities.Log;
 
 
@@ -26,7 +27,7 @@ namespace Darkrit.Scenes
 
         enum FrentMode
         {
-            Delegate, Inline, Parallel, Enumerate
+            Delegate, Inline, Enumerate
         }
 
         enum TinyECSMode
@@ -106,19 +107,23 @@ namespace Darkrit.Scenes
             }
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void UpdateAction(ref Velocity vel, ref Position pos, ref Square square)
+        {
+            pos.X += vel.X;
+            pos.Y += vel.Y;
+
+            if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
+                vel.X *= -1;
+
+            if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
+                vel.Y *= -1;
+        }
+
         struct InlineRun : IAction<Velocity, Position, Square>
         {
-            public readonly void Run(ref Velocity vel, ref Position pos, ref Square square)
-            {
-                pos.X += vel.X;
-                pos.Y += vel.Y;
-
-                if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                    vel.X *= -1;
-
-                if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                    vel.Y *= -1;
-            }
+            public readonly void Run(ref Velocity vel, ref Position pos, ref Square square) => UpdateAction(ref vel, ref pos, ref square);
         }
 
         static void RunVelocitySystem(MonoGameLibrary.TinyECS.Registry registry, Frent.World frentWorld)
@@ -132,74 +137,22 @@ namespace Darkrit.Scenes
                 else if (frentMode == FrentMode.Enumerate)
                 {
                     foreach (var comp in frentWorld.Query<Velocity, Position, Square>().Enumerate<Velocity, Position, Square>())
-                    {
-
-                        comp.Item1.Value.X += comp.Item2.Value.X;
-                        comp.Item1.Value.Y += comp.Item2.Value.Y;
-
-                        if (comp.Item1.Value.X < 0 || comp.Item1.Value.X + comp.Item3.Value.Size > WindowsWidth)
-                            comp.Item2.Value.X *= -1;
-
-                        if (comp.Item1.Value.Y < 0 || comp.Item1.Value.Y + comp.Item3.Value.Size > WindowsHeight)
-                            comp.Item2.Value.Y *= -1;
-                    }
-                }
-                else if (frentMode == FrentMode.Parallel)
-                {
-
+                        UpdateAction(ref comp.Item1.Value, ref comp.Item2.Value, ref comp.Item3.Value);
                 }
                 else
                 {
-                    frentWorld.Query<Velocity, Position, Square>().Delegate((ref Velocity vel, ref Position pos, ref Square square) =>
-                    {
-                        pos.X += vel.X;
-                        pos.Y += vel.Y;
-
-                        if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                            vel.X *= -1;
-
-                        if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                            vel.Y *= -1;
-                    });
+                    frentWorld.Query<Velocity, Position, Square>().Delegate<Velocity, Position, Square>(UpdateAction);
                 }
             }
             else
             {
-                bool runParallel = tinyEcsMode == TinyECSMode.DelegateParallel;
                 switch (tinyEcsMode)
                 {
                     case TinyECSMode.DelegateParallel:
+                        registry.QueryParallel<Velocity, Position, Square>(UpdateAction);
+                        break;
                     case TinyECSMode.Delegate:
-
-                        if (!runParallel)
-                        {
-
-                            registry.Query((ref Velocity vel, ref Position pos, ref Square square) =>
-                            {
-                                pos.X += vel.X;
-                                pos.Y += vel.Y;
-
-                                if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                                    vel.X *= -1;
-
-                                if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                                    vel.Y *= -1;
-                            });
-                        }
-                        else
-                        {
-                            registry.QueryParallel((ref Velocity vel, ref Position pos, ref Square square) =>
-                            {
-                                pos.X += vel.X;
-                                pos.Y += vel.Y;
-
-                                if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                                    vel.X *= -1;
-
-                                if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                                    vel.Y *= -1;
-                            });
-                        }
+                            registry.Query<Velocity, Position, Square>(UpdateAction);
                         break;
                 }
             }
