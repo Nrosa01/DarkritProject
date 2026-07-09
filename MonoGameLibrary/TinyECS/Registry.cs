@@ -35,8 +35,17 @@ public static class TypeId<T>
 public partial class Registry(int maxEntities)
 {
     readonly Dictionary<int, IComponentStore> data = [];
+    readonly Stack<int> deletedEntities = new();
     readonly int[] generations = new int[maxEntities];
     Int32 nextEntity = 0;
+
+    private Int32 NextEntityId()
+    {
+        if (deletedEntities.TryPop(out var result))
+            return result;
+        else
+            return (++nextEntity % maxEntities);
+    }
 
     public ComponentStore<T> Assure<T>()
     {
@@ -50,7 +59,7 @@ public partial class Registry(int maxEntities)
 
     public Entity Create()
     {
-        var next = nextEntity++;
+        var next = NextEntityId();
         return new() { Id = next, Generation = generations[next] };
     }
 
@@ -60,7 +69,8 @@ public partial class Registry(int maxEntities)
 
         foreach (var store in data.Values)
             store.RemoveIfContains(entity.Id);
-        
+
+        deletedEntities.Push(entity.Id);
         return true;
     }
 
