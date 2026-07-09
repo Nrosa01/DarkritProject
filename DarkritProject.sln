@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyFmod", "TinyFmod\TinyFm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkritProject", "DarkritProject\DarkritProject.csproj", "{3EAEC761-D268-86E9-EE50-C6EC7E62703D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuilRender", "GuilRender\GuilRender.csproj", "{F414104E-83C6-57A8-F2CB-7C1DD523CD0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{3EAEC761-D268-86E9-EE50-C6EC7E62703D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EAEC761-D268-86E9-EE50-C6EC7E62703D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EAEC761-D268-86E9-EE50-C6EC7E62703D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F414104E-83C6-57A8-F2CB-7C1DD523CD0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F414104E-83C6-57A8-F2CB-7C1DD523CD0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F414104E-83C6-57A8-F2CB-7C1DD523CD0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F414104E-83C6-57A8-F2CB-7C1DD523CD0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,6 +2,7 @@ using Frent;
 using Frent.Core;
 using Frent.Systems;
 using Frent.Updating;
+using Guilred.Rendering;
 using ImGuiNET;
 using Microsoft.Win32;
 using Microsoft.Xna.Framework;
@@ -23,6 +24,8 @@ namespace Darkrit.Scenes
 {
     internal class TestScene : Scene
     {
+        static GuilBatch batcher;
+
         static bool USE_FREN = false;
 
         enum FrentMode
@@ -42,8 +45,9 @@ namespace Darkrit.Scenes
         readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
         static bool paused = true;
         static bool render = false;
+        static bool useGuildRender = false;
 
-        const int worldSize = 1_000_000;
+        const int worldSize = 10_000;
 
 
         AnimatedSprite slimeAnimation;
@@ -66,6 +70,8 @@ namespace Darkrit.Scenes
 
         public override void Initialize()
         {
+            batcher = new GuilBatch(Core.GraphicsDevice);
+
             position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
 
             // Create the texture atlas from the XML configuration file.
@@ -162,7 +168,10 @@ namespace Darkrit.Scenes
         {
             public readonly void Run(ref Position pos, ref Square square)
             {
-                Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                if(useGuildRender)
+                    batcher.DrawTexture(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                else
+                    Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
             }
         }
 
@@ -178,7 +187,10 @@ namespace Darkrit.Scenes
                 {
                     frentWorld.Query<Position, Square>().Delegate((ref Position pos, ref Square square) =>
                     {
-                        spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                        if (useGuildRender)
+                            batcher.DrawTexture(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                        else
+                            Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
                     });
                 }
             }
@@ -191,7 +203,10 @@ namespace Darkrit.Scenes
                     case TinyECSMode.DelegateParallel: // Graphics can't run in parallel
                         registry.Query<Position, Square>((ref Position pos, ref Square square) =>
                         {
-                            spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                            if (useGuildRender)
+                                batcher.DrawTexture(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                            else
+                                Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
                         });
                         break;
                 }
@@ -232,6 +247,7 @@ namespace Darkrit.Scenes
         {
             ImGui.Begin("Test");
             ImGui.Checkbox("Render", ref render);
+            ImGui.Checkbox("Guild Render", ref useGuildRender);
             if (ImGui.Checkbox("Use Frent", ref USE_FREN))
             {
                 if (!USE_FREN && world == null)
@@ -294,11 +310,22 @@ namespace Darkrit.Scenes
             base.Draw(gameTime);
             Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
-            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            slimeAnimation.Draw(Core.SpriteBatch, position);
+            if(useGuildRender)
+                batcher.Begin();
+            else
+                Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+
             if (render)
                 RunSquareSystem(world, Core.SpriteBatch, frentWorld);
-            Core.SpriteBatch.End();
+
+            if(!useGuildRender)
+                slimeAnimation.Draw(Core.SpriteBatch, position);
+            
+            if(useGuildRender)
+                batcher.End();
+            else
+                Core.SpriteBatch.End();
         }
 
         public override void Deinitialize()
