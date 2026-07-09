@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
-using Entity = System.Int32; // I should change this to a generational handle
 
 /// Simple ECS implementation, mainly to understand how it works. Based on: 
 /// https://gist.github.com/prime31/99c66a4aeb4fc0e75173d5ea80f75a97
@@ -16,6 +14,8 @@ using Entity = System.Int32; // I should change this to a generational handle
 /// https://github.com/itsBuggingMe/Frent
 
 namespace MonoGameLibrary.TinyECS;
+
+public record struct Entity(Int32 Id, Int32 Generation);
 
 public static class TypeId
 {
@@ -35,7 +35,8 @@ public static class TypeId<T>
 public partial class Registry(int maxEntities)
 {
     readonly Dictionary<int, IComponentStore> data = [];
-    Entity nextEntity = 0;
+    readonly int[] generations = new int[maxEntities];
+    Int32 nextEntity = 0;
 
     public ComponentStore<T> Assure<T>()
     {
@@ -47,29 +48,42 @@ public partial class Registry(int maxEntities)
         return newStore;
     }
 
-    public Entity Create() => nextEntity++;
-
-    public void Destroy(Entity entity)
+    public Entity Create()
     {
-        foreach (var store in data.Values)
-            store.RemoveIfContains(entity);
+        var next = nextEntity++;
+        return new() { Id = next, Generation = generations[next] };
     }
 
-    public void AddComponent<T>(Entity entity, T component) => Assure<T>().Add(entity, component);
+    public bool TryDestroy(Entity entity)
+    {
+        if (!Exists(entity)) return false;
 
-    public ref T GetComponent<T>(Entity entity) => ref Assure<T>().Get(entity);
+        foreach (var store in data.Values)
+            store.RemoveIfContains(entity.Id);
+        
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    bool Exists(Entity entity) => generations[entity.Id] == entity.Generation;
+
+    public void AddComponent<T>(Entity entity, T component) => Assure<T>().Add(entity.Id, component);
+
+    public ref T GetComponent<T>(Entity entity) => ref Assure<T>().Get(entity.Id);
 
     public bool TryGetComponent<T>(Entity entity, ref T component)
     {
+        if (!Exists(entity)) return false;
+
         var store = Assure<T>();
-        if (store.Contains(entity))
+        if (store.Contains(entity.Id))
         {
-            component = store.Get(entity);
+            component = store.Get(entity.Id);
             return true;
         }
 
         return false;
     }
 
-    public void RemoveComponent<T>(Entity entity) => Assure<T>().RemoveIfContains(entity);
+    public void RemoveComponent<T>(Entity entity) => Assure<T>().RemoveIfContains(entity.Id);
 }
