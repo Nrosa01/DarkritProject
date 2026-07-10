@@ -1,3 +1,4 @@
+using Darkrit.Graphics.InstancedQuadRenderer;
 using Frent;
 using Frent.Core;
 using Frent.Systems;
@@ -42,8 +43,9 @@ namespace Darkrit.Scenes
         readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
         static bool paused = true;
         static bool render = false;
+        static bool renderInstanced = false;
 
-        const int worldSize = 1_000_000;
+        const int worldSize = 500_000;
 
 
         AnimatedSprite slimeAnimation;
@@ -52,6 +54,8 @@ namespace Darkrit.Scenes
         MonoGameLibrary.TinyECS.Registry world;
         Frent.World frentWorld;
         private float speed = 500f;
+
+        InstancedQuadRenderer instancedQuadRenderer;
 
         static int WindowsWidth = Core.GraphicsDevice.Viewport.Width;
         static int WindowsHeight = Core.GraphicsDevice.Viewport.Height;
@@ -66,6 +70,8 @@ namespace Darkrit.Scenes
 
         public override void Initialize()
         {
+            instancedQuadRenderer = new(Core.GraphicsDevice, Content);
+
             position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
 
             // Create the texture atlas from the XML configuration file.
@@ -98,7 +104,7 @@ namespace Darkrit.Scenes
                 {
                     var spacing = .2f;
                     var entity = world.Create();
-                    world.AddComponent(entity, new Position { X = (i + 1) * spacing, Y = (i + 1) * spacing });
+                    world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight  / 2});
                     world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });
                     world.AddComponent(entity, new Square { Size = 10 });
 
@@ -160,25 +166,40 @@ namespace Darkrit.Scenes
 
         struct DrawInline : IAction<Position, Square>
         {
+            public readonly Action<Texture2D, Rectangle, Rectangle?, Color> drawAction;
+
+            public DrawInline(Action<Texture2D, Rectangle, Rectangle?, Color> drawAction)
+            {
+                this.drawAction = drawAction;
+            }
+
             public readonly void Run(ref Position pos, ref Square square)
             {
-                Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                float r = pos.X - MathF.Floor(pos.X);
+                float g = pos.Y - MathF.Floor(pos.Y);
+
+                var color = new Color(r, g, pos.X);
+                drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
             }
         }
 
-        static void RunSquareSystem(MonoGameLibrary.TinyECS.Registry registry, SpriteBatch spritebatch, Frent.World frentWorld)
+        static void RunSquareSystem(MonoGameLibrary.TinyECS.Registry registry, Action<Texture2D, Rectangle, Rectangle?, Color> drawAction, Frent.World frentWorld)
         {
             if (USE_FREN)
             {
                 if (frentMode == FrentMode.Inline)
                 {
-                    frentWorld.Query<Position, Square>().Inline<DrawInline, Position, Square>(default);
+                    frentWorld.Query<Position, Square>().Inline<DrawInline, Position, Square>(new(drawAction));
                 }
                 else
                 {
                     frentWorld.Query<Position, Square>().Delegate((ref Position pos, ref Square square) =>
                     {
-                        spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                        float r = pos.X - MathF.Floor(pos.X);
+                        float g = pos.Y - MathF.Floor(pos.Y);
+
+                        var color = new Color(r, g, pos.X);
+                        drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
                     });
                 }
             }
@@ -191,7 +212,11 @@ namespace Darkrit.Scenes
                     case TinyECSMode.DelegateParallel: // Graphics can't run in parallel
                         registry.Query<Position, Square>((ref Position pos, ref Square square) =>
                         {
-                            spritebatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, Color.Wheat);
+                            float r = pos.X - MathF.Floor(pos.X);
+                            float g = pos.Y - MathF.Floor(pos.Y);
+
+                            var color = new Color(r, g, pos.X);
+                            drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
                         });
                         break;
                 }
@@ -232,6 +257,8 @@ namespace Darkrit.Scenes
         {
             ImGui.Begin("Test");
             ImGui.Checkbox("Render", ref render);
+            if (render)
+                ImGui.Checkbox("RenderInstanced", ref renderInstanced);
             if (ImGui.Checkbox("Use Frent", ref USE_FREN))
             {
                 if (!USE_FREN && world == null)
@@ -294,11 +321,13 @@ namespace Darkrit.Scenes
             base.Draw(gameTime);
             Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
+            instancedQuadRenderer.Begin();
             Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
             slimeAnimation.Draw(Core.SpriteBatch, position);
             if (render)
-                RunSquareSystem(world, Core.SpriteBatch, frentWorld);
+                RunSquareSystem(world, renderInstanced ? instancedQuadRenderer.Draw : Core.SpriteBatch.Draw, frentWorld);
             Core.SpriteBatch.End();
+            instancedQuadRenderer.End();
         }
 
         public override void Deinitialize()

@@ -50,7 +50,7 @@ public class Core : Game
     {
         ImGui.Begin("Renderer Stats");
 
-        ImGui.Text($"FPS              : {_fps:0}");
+        ImGui.Text($"FPS              : {_fps:0.0}");
         ImGui.Text($"CPU Compute Time : {_cpuProcessAverageMs:0.00} ms");
         ImGui.Text($"CPU Render Time  : {_cpuRenderAverageMs:0.00} ms");
         ImGui.Text($"Draw Calls       : {GraphicsDevice.Metrics.DrawCount}");
