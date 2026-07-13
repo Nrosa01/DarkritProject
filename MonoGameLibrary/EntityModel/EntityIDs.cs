@@ -1,4 +1,10 @@
-﻿using System;
+﻿// MonoGame - Copyright (C) MonoGame Foundation, Inc
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+// The following code was adapted from: https://github.com/BobbyAnguelov/Esoterica/blob/main/Code/Engine/Entity/EntityIDs.h
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -19,9 +25,9 @@ namespace Darkrit.EntityModel
         }
     }
 
-    public struct EntityWorldID : IEquatable<EntityWorldID>
+    public readonly struct EntityWorldID : IEquatable<EntityWorldID>
     {
-        public ulong Value { get; internal set; }
+        public readonly ulong Value;
 
         public EntityWorldID(ulong value)
         {
@@ -31,14 +37,13 @@ namespace Darkrit.EntityModel
 
         public static EntityWorldID Generate() => new(IdGenerator<EntityWorldID>.Next());
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => Value = 0;
-
-        public readonly bool Equals(EntityWorldID other) => Value == other.Value;
-
         public readonly bool IsValid => Value != 0;
-
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool Equals(EntityWorldID other) => Value == other.Value;
+        
         public static bool operator ==(EntityWorldID a, EntityWorldID b) => a.Value == b.Value;
+
         public static bool operator !=(EntityWorldID a, EntityWorldID b) => a.Value != b.Value;
 
         public readonly override int GetHashCode() => Value.GetHashCode();
@@ -46,9 +51,9 @@ namespace Darkrit.EntityModel
         public readonly override bool Equals(object obj) => obj is EntityWorldID ID && Equals(ID);
     }
 
-    public struct EntityID : IEquatable<EntityID>
+    public readonly struct EntityID : IEquatable<EntityID>
     {
-        public ulong Value { get; internal set; }
+        public readonly ulong Value;
 
         public EntityID(ulong value)
         {
@@ -59,13 +64,12 @@ namespace Darkrit.EntityModel
         public static EntityID Generate() => new(IdGenerator<EntityID>.Next());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => Value = 0;
-
         public readonly bool Equals(EntityID other) => Value == other.Value;
-
+        
         public readonly bool IsValid => Value != 0;
 
         public static bool operator ==(EntityID a, EntityID b) => a.Value == b.Value;
+
         public static bool operator !=(EntityID a, EntityID b) => a.Value != b.Value;
 
         public readonly override int GetHashCode() => Value.GetHashCode();
@@ -73,9 +77,9 @@ namespace Darkrit.EntityModel
         public readonly override bool Equals(object obj) => obj is EntityID ID && Equals(ID);
     }
 
-    public struct ComponentID : IEquatable<ComponentID>
+    public readonly struct ComponentID : IEquatable<ComponentID>
     {
-        public ulong Value { get; internal set; }
+        public readonly ulong Value;
 
         public ComponentID(ulong value)
         {
@@ -85,12 +89,10 @@ namespace Darkrit.EntityModel
 
         public static ComponentID Generate() => new(IdGenerator<ComponentID>.Next());
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => Value = 0;
-
-        public readonly bool Equals(ComponentID other) => Value == other.Value;
-
         public readonly bool IsValid => Value != 0;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]        
+        public readonly bool Equals(ComponentID other) => Value == other.Value;
 
         public static bool operator ==(ComponentID a, ComponentID b) => a.Value == b.Value;
         public static bool operator !=(ComponentID a, ComponentID b) => a.Value != b.Value;

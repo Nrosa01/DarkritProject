@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
+// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
 
 /// Simple ECS implementation, mainly to understand how it works. Based on: 
 /// https://gist.github.com/prime31/99c66a4aeb4fc0e75173d5ea80f75a97
@@ -12,6 +11,11 @@ using System.Threading;
 /// https://austinmorlan.com/posts/entity_component_system/
 /// https://github.com/skypjack/entt
 /// https://github.com/itsBuggingMe/Frent
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace MonoGameLibrary.TinyECS;
 
