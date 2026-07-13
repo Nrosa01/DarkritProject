@@ -9,7 +9,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace Darkrit.EntityModel
+namespace Darkrit.Base
 {
     public readonly struct StringID : IEquatable<StringID>
     {

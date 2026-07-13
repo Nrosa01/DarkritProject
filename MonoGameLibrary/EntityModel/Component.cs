@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Darkrit.Base;
 
 namespace Darkrit.EntityModel
 {
@@ -13,6 +14,8 @@ namespace Darkrit.EntityModel
         protected ComponentID componentID = ComponentID.Generate();
 
         public EntityID EntityID { get;  protected set; }
+
+        public readonly StringID NameID;
 
         protected Status status = Status.Unloaded;
 

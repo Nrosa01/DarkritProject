@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Darkrit.EntityModel
+namespace Darkrit.Base
 {
     public static class Hash
     {
