@@ -132,7 +132,7 @@ public class Core : Game
     /// <summary>
     /// Gets a reference to the input management system.
     /// </summary>
-    public static Input.Input Input { get; private set; }
+    public static Darkrit.Input.Input Input { get; private set; }
 
     public static FmodStudio FMOD { get; private set; }
 
@@ -195,7 +195,7 @@ public class Core : Game
         IsMouseVisible = true;
 
         // Create a new input manager.
-        Input = new Input.Input();
+        Input = new Darkrit.Input.Input();
     }
 
     protected override void Update(GameTime gameTime)
@@ -205,7 +205,7 @@ public class Core : Game
         // Update the input manager.
         Input.Update(gameTime);
 
-        if (ExitOnEscape && Input.Keyboard.WasKeyJustPressed(Keys.Escape))
+        if (ExitOnEscape && Input.WasKeyJustPressed(Keys.Escape))
             Exit();
 
         // if there is a next scene waiting to be switch to, then transition

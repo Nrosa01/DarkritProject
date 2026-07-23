@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Darkrit.Input.Providers;
 
-namespace Darkrit.Input
+namespace Darkrit.Input;
+
+public interface IInputBinding
 {
-    public interface IInputBinding
-    {
-        public bool Pressed();
-        public bool Released() => !Pressed();
-        public bool PressedThisFrame();
-        public bool ReleasedThisFrame();
-    }
+    internal IInputProvider provider { set; }
+
+    public bool Pressed();
+    public bool Released() => !Pressed();
+    public bool PressedThisFrame();
+    public bool ReleasedThisFrame();
+    float GetValue();
 }

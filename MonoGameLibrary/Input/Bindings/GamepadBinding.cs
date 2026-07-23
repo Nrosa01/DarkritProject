@@ -1,16 +1,34 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿using Darkrit.Input.Providers;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Darkrit.Input.Bindings
+namespace Darkrit.Input.Bindings;
+
+/// <summary>
+/// Bindings for Gamepad buttons and axis
+/// </summary>
+public class GamepadBinding : IInputBinding
 {
-    public class GamepadBinding(Buttons button, MonoGameLibrary.Input.Input input) : IInputBinding
-    {
-        public bool Pressed() => input.GamePads[0].IsButtonDown(button);
+    IInputBinding _inputBinding;
 
-        public bool PressedThisFrame() => input.GamePads[0].WasButtonJustPressed(button);
+    IInputProvider IInputBinding.provider { set => _inputBinding.provider = value; }
+    public GamepadBinding(PlayerIndex playerIndex, GamepadAxis axis, float deadZone = 0.2f) 
+        => _inputBinding = new GamepadAxisBinding(playerIndex, axis, deadZone);
 
-        public bool ReleasedThisFrame() => input.GamePads[0].WasButtonJustReleased(button);
-    }
+    public GamepadBinding(GamepadAxis axis, float deadZone = 0.2f) => _inputBinding = new GamepadAxisBinding(axis, deadZone);
+
+    public GamepadBinding(PlayerIndex playerIndex, Buttons button) => _inputBinding = new GamepadButtonBinding(playerIndex, button);
+
+    public GamepadBinding(Buttons button) => _inputBinding = new GamepadButtonBinding(button);
+
+    public float GetValue() => _inputBinding.GetValue();
+
+    public bool Pressed() => _inputBinding.Pressed();
+
+    public bool PressedThisFrame() => _inputBinding.PressedThisFrame();
+
+    public bool ReleasedThisFrame() => _inputBinding.ReleasedThisFrame();
 }

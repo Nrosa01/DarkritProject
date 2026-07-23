@@ -1,17 +1,21 @@
-﻿using Microsoft.Xna.Framework.Input;
-using MonoGameLibrary.Input;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Darkrit.Input.Providers;
+using Microsoft.Xna.Framework.Input;
 
-namespace Darkrit.Input.Bindings
+namespace Darkrit.Input.Bindings;
+
+/// <summary>
+/// Bindings for keyboard keys
+/// </summary>
+/// <param name="key"></param>
+/// <param name="provider"></param>
+public class KeyboardBinding(Keys key) : IInputBinding
 {
-    public class KeyboardBinding(Keys key, MonoGameLibrary.Input.Input inputHelper) : IInputBinding
-    {
-        public bool Pressed() => inputHelper.Keyboard.IsKeyDown(key);
+    IInputProvider provider;
 
-        public bool PressedThisFrame() => inputHelper.Keyboard.WasKeyJustPressed(key);
+    IInputProvider IInputBinding.provider { set => provider = value; }
 
-        public bool ReleasedThisFrame() => inputHelper.Keyboard.WasKeyJustReleased(key);
-    }
+    public bool Pressed() => provider.IsKeyDown(key);
+    public bool PressedThisFrame() => provider.WasKeyJustPressed(key);
+    public bool ReleasedThisFrame() => provider.WasKeyJustReleased(key);
+    public float GetValue() => Pressed() ? 1f : 0f;
 }

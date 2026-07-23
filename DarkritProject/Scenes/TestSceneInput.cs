@@ -8,7 +8,7 @@ using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using MonoGameLibrary.Utilities;
 using Key = Microsoft.Xna.Framework.Input.Keys;
-
+using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 
 namespace Darkrit.Scenes
 {
@@ -38,10 +38,33 @@ namespace Darkrit.Scenes
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
             slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
 
-            moveUp = new([new KeyboardBinding(Key.Up, Core.Input), new KeyboardBinding(Key.W, Core.Input)]);
-            moveDown = new([new KeyboardBinding(Key.Down, Core.Input), new KeyboardBinding(Key.S, Core.Input)]);
-            moveLeft = new([new KeyboardBinding(Key.Left, Core.Input), new KeyboardBinding(Key.A, Core.Input)]);
-            moveRight = new([new KeyboardBinding(Key.Right, Core.Input), new KeyboardBinding(Key.D, Core.Input)]);
+            moveUp = Core.Input.CreateAction("Move Up").AddBindings([
+                new KeyboardBinding(Key.Up),
+                new KeyboardBinding(Key.W),
+                new GamepadBinding(GamepadButton.DPadUp),
+                new GamepadBinding(GamepadButton.LeftThumbstickUp),
+            ]);
+
+            moveDown = Core.Input.CreateAction("Move Down").AddBindings([
+                new KeyboardBinding(Key.Down),
+                new KeyboardBinding(Key.S),
+                new GamepadBinding(GamepadButton.DPadDown),
+                new GamepadBinding(GamepadButton.LeftThumbstickDown),
+            ]);
+
+            moveLeft = Core.Input.CreateAction("Move Left").AddBindings([
+                new KeyboardBinding(Key.Left),
+                new KeyboardBinding(Key.A),
+                new GamepadBinding(GamepadButton.DPadLeft),
+                new GamepadBinding(GamepadButton.LeftThumbstickLeft),
+            ]);
+
+            moveRight = Core.Input.CreateAction("Move Right").AddBindings([
+                new KeyboardBinding(Key.Right),
+                new KeyboardBinding(Key.D),
+                new GamepadBinding(GamepadButton.DPadRight),
+                new GamepadBinding(GamepadButton.LeftThumbstickRight),
+            ]);
         }
 
         public override void Update(GameTime gameTime)
@@ -56,16 +79,16 @@ namespace Darkrit.Scenes
 
         private void HandleInput(GameTime gameTime)
         {
-            if (moveUp.Pressed())
+            if (moveUp.IsPressed)
                 velocity.Y = -1;
-            else if (moveDown.Pressed())
+            else if (moveDown.IsPressed)
                 velocity.Y = 1;
             else
                 velocity.Y = 0;
 
-            if (moveLeft.Pressed())
+            if (moveLeft.IsPressed)
                 velocity.X = -1;
-            else if (moveRight.Pressed())
+            else if (moveRight.IsPressed)
                 velocity.X = 1;
             else
                 velocity.X = 0;

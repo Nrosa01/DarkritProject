@@ -3,14 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Darkrit.Input.Bindings
+using Darkrit.Input.Providers;
+
+namespace Darkrit.Input.Bindings;
+
+/// <summary>
+/// Bindings for mouse buttons
+/// </summary>
+public class MouseBinding(MouseButton button) : IInputBinding
 {
-    public class MouseBinding(MouseButton button, MonoGameLibrary.Input.Input input) : IInputBinding
-    {
-        public bool Pressed() => input.Mouse.IsButtonDown(button);
+    IInputProvider provider;
+    IInputProvider IInputBinding.provider { set => provider = value; }
+    public bool Pressed() => provider.IsMouseButtonDown(button);
+    public bool Released() => provider.IsMouseButtonUp(button);
+    public bool PressedThisFrame() => provider.WasMouseButtonJustPressed(button);
+    public bool ReleasedThisFrame() => provider.WasMouseButtonJustReleased(button);
 
-        public bool PressedThisFrame() => input.Mouse.WasButtonJustPressed(button);
-
-        public bool ReleasedThisFrame() => input.Mouse.WasButtonJustReleased(button);
-    }
+    public float GetValue() => Pressed() ? 1f : 0f;
 }
