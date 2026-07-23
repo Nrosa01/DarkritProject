@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 
 namespace MonoGameLibrary.Input;
-public class InputManager
+public class Input
 {
     /// <summary>
     /// Gets the state information of keyboard input.
@@ -21,7 +21,7 @@ public class InputManager
     /// <summary>
     /// Creates a new InputManager.
     /// </summary>
-    public InputManager()
+    public Input()
     {
         Keyboard = new KeyboardInfo();
         Mouse = new MouseInfo();

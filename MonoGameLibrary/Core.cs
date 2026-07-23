@@ -132,7 +132,7 @@ public class Core : Game
     /// <summary>
     /// Gets a reference to the input management system.
     /// </summary>
-    public static InputManager Input { get; private set; }
+    public static Input.Input Input { get; private set; }
 
     public static FmodStudio FMOD { get; private set; }
 
@@ -160,7 +160,7 @@ public class Core : Game
     /// <param name="fullScreen">Indicates if the game should start in fullscreen mode.</param>
     public Core(string title, int width, int height, bool fullScreen)
     {
-        ContentManagerExtensions.StartContentWatcherTask();
+        //ContentManagerExtensions.StartContentWatcherTask();
 
         // Ensure that multiple cores are not created.
         if (s_instance != null)
@@ -195,7 +195,7 @@ public class Core : Game
         IsMouseVisible = true;
 
         // Create a new input manager.
-        Input = new InputManager();
+        Input = new Input.Input();
     }
 
     protected override void Update(GameTime gameTime)

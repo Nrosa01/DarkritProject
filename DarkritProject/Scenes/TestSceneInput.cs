@@ -1,23 +1,13 @@
-using Darkrit.Graphics.InstancedQuadRenderer;
-using Frent;
-using Frent.Core;
-using Frent.Systems;
-using Frent.Updating;
+using Darkrit.Input;
+using Darkrit.Input.Bindings;
 using ImGuiNET;
-using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
-using MonoGameLibrary.TinyECS;
 using MonoGameLibrary.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Console = MonoGameLibrary.Utilities.Log;
+using Key = Microsoft.Xna.Framework.Input.Keys;
 
 
 namespace Darkrit.Scenes
@@ -31,6 +21,10 @@ namespace Darkrit.Scenes
         Vector2 position;
         Vector2 velocity;
         private float speed = 500f;
+        InputAction moveUp;
+        InputAction moveDown;
+        InputAction moveLeft;
+        InputAction moveRight;
 
         public override void Initialize()
         {
@@ -39,9 +33,15 @@ namespace Darkrit.Scenes
             // Create the texture atlas from the XML configuration file.
             TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
+
             // Create the animated sprite for the slime from the atlas.
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
             slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
+
+            moveUp = new([new KeyboardBinding(Key.Up, Core.Input), new KeyboardBinding(Key.W, Core.Input)]);
+            moveDown = new([new KeyboardBinding(Key.Down, Core.Input), new KeyboardBinding(Key.S, Core.Input)]);
+            moveLeft = new([new KeyboardBinding(Key.Left, Core.Input), new KeyboardBinding(Key.A, Core.Input)]);
+            moveRight = new([new KeyboardBinding(Key.Right, Core.Input), new KeyboardBinding(Key.D, Core.Input)]);
         }
 
         public override void Update(GameTime gameTime)
@@ -56,16 +56,16 @@ namespace Darkrit.Scenes
 
         private void HandleInput(GameTime gameTime)
         {
-            if (GameController.MoveUp())
+            if (moveUp.Pressed())
                 velocity.Y = -1;
-            else if (GameController.MoveDown())
+            else if (moveDown.Pressed())
                 velocity.Y = 1;
             else
                 velocity.Y = 0;
 
-            if (GameController.MoveLeft())
+            if (moveLeft.Pressed())
                 velocity.X = -1;
-            else if (GameController.MoveRight())
+            else if (moveRight.Pressed())
                 velocity.X = 1;
             else
                 velocity.X = 0;
