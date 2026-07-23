@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content", "Content\Content.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyFmod", "TinyFmod\TinyFmod.csproj", "{24DDBBA8-EFAC-C81D-20E7-36AC240CF43E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkritProject", "DarkritProject\DarkritProject.csproj", "{3EAEC761-D268-86E9-EE50-C6EC7E62703D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkritGame", "DarkritProject\DarkritGame.csproj", "{3EAEC761-D268-86E9-EE50-C6EC7E62703D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DakritTests", "DakritLibraryTests\DakritTests.csproj", "{953652FF-2262-400C-ABD5-6B74AD918540}"
 EndProject

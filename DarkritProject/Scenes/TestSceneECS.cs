@@ -22,7 +22,7 @@ using Console = MonoGameLibrary.Utilities.Log;
 
 namespace Darkrit.Scenes
 {
-    internal class TestScene : Scene
+    internal class TestSceneECS : Scene
     {
         static bool USE_FREN = false;
 
