@@ -1,13 +1,11 @@
+using Darkrit.Graphics;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using Darkrit.Graphics;
 
 namespace Darkrit.Content;
 
@@ -43,7 +41,7 @@ public static class ContentManagerExtensions
     internal static Lock assetsListLock = new();
     internal static void AddAssetToWatch(IHotReloadableAsset asset)
     {
-        if(watchedAssets.TryGetValue(asset.AssetName, out var list))
+        if (watchedAssets.TryGetValue(asset.AssetName, out var list))
             list.Add(asset);
         else
             watchedAssets.Add(asset.AssetName, [asset]);
@@ -119,8 +117,9 @@ public static class ContentManagerExtensions
 
     private static void OnAssetChanged(object sender, FileSystemEventArgs e)
     {
-        lock(assetsListLock) {
-            if(assetsToReload.Add(Path.ChangeExtension(e.Name, null)))
+        lock (assetsListLock)
+        {
+            if (assetsToReload.Add(Path.ChangeExtension(e.Name, null)))
                 Debug.WriteLine($"Path is {e.Name}, Full Path is {e.FullPath}, Relative Path is {Path.GetRelativePath(Core.Content.RootDirectory, Core.Content.RootDirectory)}");
         }
     }
@@ -139,7 +138,7 @@ public static class ContentManagerExtensions
             {
                 foreach (var assetName in assetsToReload)
                 {
-                    if(watchedAssets.TryGetValue(assetName, out var ireloadablelist))
+                    if (watchedAssets.TryGetValue(assetName, out var ireloadablelist))
                     {
                         foreach (var reloadable in ireloadablelist)
                             reloadable.Reload();

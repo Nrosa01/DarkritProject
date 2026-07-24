@@ -1,4 +1,5 @@
 ﻿namespace Darkrit.InputSystem;
+
 public enum MouseButton
 {
     Left,

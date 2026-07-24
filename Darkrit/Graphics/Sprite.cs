@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Darkrit.Graphics;
+
 public class Sprite
 {
     /// <summary>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Darkrit.InputSystem.Providers;
+﻿using Darkrit.InputSystem.Providers;
 
 namespace Darkrit.InputSystem;
 

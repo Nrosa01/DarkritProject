@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace Darkrit.Graphics;
+
 public class Animation
 {
     /// <summary>

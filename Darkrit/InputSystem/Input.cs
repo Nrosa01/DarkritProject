@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using Darkrit.InputSystem.Bindings;
+﻿using Darkrit.InputSystem.Bindings;
 using Darkrit.InputSystem.Providers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Darkrit.InputSystem;
+using System.Diagnostics;
 
 namespace Darkrit.InputSystem;
 
@@ -114,7 +113,7 @@ public class Input(IInputProvider provider) : IInputProvider
         Vector2 result = new(x, y);
         if (result.LengthSquared() > 1f)
             result.Normalize();
-        
+
         return result;
     }
 

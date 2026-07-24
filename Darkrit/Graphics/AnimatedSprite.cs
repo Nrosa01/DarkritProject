@@ -1,7 +1,8 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Darkrit.Graphics;
+
 public class AnimatedSprite : Sprite
 {
     private int _currentFrame;
@@ -46,7 +47,7 @@ public class AnimatedSprite : Sprite
         _elapsed += gameTime.ElapsedGameTime;
 
         if (_elapsed < _animation.Delay) return;
-        
+
         _elapsed -= _animation.Delay;
         _currentFrame++;
 

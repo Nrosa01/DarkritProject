@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem;
+
 public class MouseInfo
 {
     /// <summary>
@@ -165,7 +166,7 @@ public class MouseInfo
                 return false;
         }
     }
-    
+
     /// <summary>
     /// Sets the current position of the mouse cursor in screen space and updates the CurrentState with the new position.
     /// </summary>

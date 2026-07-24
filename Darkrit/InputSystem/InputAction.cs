@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Darkrit.InputSystem.Providers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Darkrit.InputSystem.Providers;
 
 namespace Darkrit.InputSystem;
 
@@ -19,18 +19,18 @@ public class InputAction(string name, IInputProvider provider)
     public InputAction AddBinding(IInputBinding binding)
     {
         _bindings.Add(binding);
-        
+
         binding.provider = provider;
-        
+
         return this;
     }
     public InputAction AddBindings(IEnumerable<IInputBinding> bindings)
     {
         _bindings.AddRange(bindings);
-        
+
         foreach (var binding in bindings)
             binding.provider = provider;
-        
+
         return this;
     }
     public void ClearBindings() => _bindings.Clear();

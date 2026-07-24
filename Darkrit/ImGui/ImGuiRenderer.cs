@@ -190,7 +190,7 @@ namespace ImGuiNET.SampleProgram.XNA
         protected virtual void UpdateInput()
         {
             if (!_game.IsActive) return;
-            
+
             var io = ImGui.GetIO();
 
             var mouse = Mouse.GetState();
@@ -390,7 +390,7 @@ namespace ImGuiNET.SampleProgram.XNA
                 {
                     ImDrawCmdPtr drawCmd = cmdList.CmdBuffer[cmdi];
 
-                    if (drawCmd.ElemCount == 0) 
+                    if (drawCmd.ElemCount == 0)
                     {
                         continue;
                     }

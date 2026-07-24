@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
-using Microsoft.Xna.Framework.Content;
-using Darkrit.Utilities;
+﻿using Microsoft.Xna.Framework.Content;
+using System;
 
 namespace Darkrit.Content;
 
@@ -28,7 +26,7 @@ public class WatchedAsset<T> : IHotReloadableAsset, IDisposable
     /// The name of the <see cref="Asset"/>. This is the name used to load the asset from disk. 
     /// </summary>
     public string AssetName { get; init; }
-    
+
     /// <summary>  
     /// The <see cref="ContentManager"/> instance that loaded the asset.  
     /// </summary> 
@@ -36,7 +34,7 @@ public class WatchedAsset<T> : IHotReloadableAsset, IDisposable
 
     public void Reload()
     {
-        if(Owner.TryRefresh(this, out var oldAsset))
+        if (Owner.TryRefresh(this, out var oldAsset))
             AssetChanged?.Invoke(oldAsset);
     }
 
@@ -53,5 +51,5 @@ public class WatchedAsset<T> : IHotReloadableAsset, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public static implicit operator T(WatchedAsset<T> wachedAsset) => wachedAsset.Asset;    
+    public static implicit operator T(WatchedAsset<T> wachedAsset) => wachedAsset.Asset;
 }

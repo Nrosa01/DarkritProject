@@ -1,8 +1,9 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Darkrit.InputSystem;
+
 public class GamePadInfo
 {
     private TimeSpan _vibrationTimeRemaining = TimeSpan.Zero;

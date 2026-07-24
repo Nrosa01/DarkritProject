@@ -21,7 +21,7 @@ public class InputMap
 
         if (!_actions.ContainsKey(name))
             _actions[name] = action;
-        
+
         return action;
     }
 

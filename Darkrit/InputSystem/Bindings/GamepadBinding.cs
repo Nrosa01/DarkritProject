@@ -1,9 +1,6 @@
 ﻿using Darkrit.InputSystem.Providers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Darkrit.InputSystem.Bindings;
 
@@ -15,7 +12,7 @@ public class GamepadBinding : IInputBinding
     IInputBinding _inputBinding;
 
     IInputProvider IInputBinding.provider { set => _inputBinding.provider = value; }
-    public GamepadBinding(PlayerIndex playerIndex, GamepadAxis axis, float deadZone = 0.2f) 
+    public GamepadBinding(PlayerIndex playerIndex, GamepadAxis axis, float deadZone = 0.2f)
         => _inputBinding = new GamepadAxisBinding(playerIndex, axis, deadZone);
 
     public GamepadBinding(GamepadAxis axis, float deadZone = 0.2f) => _inputBinding = new GamepadAxisBinding(axis, deadZone);

@@ -1,22 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+using Darkrit.Content;
+using Darkrit.Graphics;
+using Darkrit.InputSystem;
+using Darkrit.Scenes;
+using Darkrit.Utilities;
 using ImGuiNET;
 using ImGuiNET.SampleProgram.XNA;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Darkrit.Content;
-using Darkrit.Graphics;
-using Darkrit.InputSystem;
-using Darkrit.Scenes;
-using Darkrit.Utilities;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using TinyFmod;
 
 namespace Darkrit;
+
 public class Core : Game
 {
 
@@ -40,7 +40,7 @@ public class Core : Game
 
     private float _cpuProcessMs;
     private float _cpuProcessAverageMs;
-    
+
     private float _fps;
 
     private readonly float[] _fpsHistory = new float[HistorySize];
@@ -216,7 +216,7 @@ public class Core : Game
         Content.ReloadChangedAssets();
 
         _processTimer.Restart();
-        
+
         // If there is an active scene, update it.
         s_activeScene?.Update(gameTime);
 

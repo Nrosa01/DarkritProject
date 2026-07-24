@@ -4,9 +4,9 @@
 
 // The following code was adapted from: https://github.com/BobbyAnguelov/Esoterica/blob/main/Code/Engine/Entity/EntityComponent.h
 
-using System.Diagnostics;
 using Darkrit.Base;
 using Microsoft.Xna.Framework.Content;
+using System.Diagnostics;
 
 namespace Darkrit.EntityModel
 {
@@ -25,7 +25,7 @@ namespace Darkrit.EntityModel
         protected ComponentID componentID = ComponentID.Generate();
 
         // The ID of the entity that owns this component
-        public EntityID EntityID { get;  protected set; }
+        public EntityID EntityID { get; protected set; }
 
         // The name of the component
         public StringID NameID { get; protected set; }

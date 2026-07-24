@@ -1,23 +1,13 @@
+using Darkrit.Graphics;
 using Darkrit.Graphics.InstancedQuadRenderer;
 using Frent;
 using Frent.Core;
 using Frent.Systems;
-using Frent.Updating;
 using ImGuiNET;
-using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Darkrit;
-using Darkrit.Graphics;
-using Darkrit.Scenes;
-using Darkrit.TinyECS;
-using Darkrit.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Console = Darkrit.Utilities.Log;
 
 
 namespace Darkrit.Scenes
@@ -93,7 +83,7 @@ namespace Darkrit.Scenes
                 {
                     var spacing = .2f;
                     var entity = world.Create();
-                    world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight  / 2});
+                    world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight / 2 });
                     world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });
                     world.AddComponent(entity, new Square { Size = 10 });
 
@@ -147,7 +137,7 @@ namespace Darkrit.Scenes
                         registry.QueryParallel<Velocity, Position, Square>(UpdateAction);
                         break;
                     case TinyECSMode.Delegate:
-                            registry.Query<Velocity, Position, Square>(UpdateAction);
+                        registry.Query<Velocity, Position, Square>(UpdateAction);
                         break;
                 }
             }

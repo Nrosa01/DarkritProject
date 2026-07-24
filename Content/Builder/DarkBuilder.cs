@@ -7,7 +7,6 @@
 /// For more details regarding the Content Builder, see the MonoGame documentation: <tbc.>
 /// </remarks>
 
-using System.Diagnostics;
 using Content.Builder;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using MonoGame.Framework.Content.Pipeline.Builder;

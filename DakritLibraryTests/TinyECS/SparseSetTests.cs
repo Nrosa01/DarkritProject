@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Darkrit.TinyECS;
+﻿using Darkrit.TinyECS;
 
 namespace DakritTests.TinyECS
 {
@@ -16,7 +13,7 @@ namespace DakritTests.TinyECS
         }
 
         [Fact]
-        public void Constructor_InitializesEmptySet() 
+        public void Constructor_InitializesEmptySet()
         {
             Assert.Equal(0, set.Count);
             Assert.Empty(set);

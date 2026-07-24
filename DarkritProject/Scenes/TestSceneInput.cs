@@ -1,12 +1,12 @@
+using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
+using Darkrit.Utilities;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Darkrit.Graphics;
-using Darkrit.Utilities;
-using Key = Microsoft.Xna.Framework.Input.Keys;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
+using Key = Microsoft.Xna.Framework.Input.Keys;
 
 namespace Darkrit.Scenes
 {
@@ -63,7 +63,7 @@ namespace Darkrit.Scenes
                 new GamepadBinding(GamepadButton.DPadRight),
                 new GamepadBinding(GamepadButton.LeftThumbstickRight),
             ]);
-            
+
             float value = Input.GetAxis(moveLeft, moveRight);
             Vector2 ve2Value = Input.GetVector(moveLeft, moveRight, moveDown, moveUp);
         }

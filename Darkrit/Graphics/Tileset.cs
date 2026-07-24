@@ -1,4 +1,5 @@
 ﻿namespace Darkrit.Graphics;
+
 public class Tileset
 {
     private readonly TextureRegion[] _tiles;
@@ -53,7 +54,7 @@ public class Tileset
             _tiles[i] = new TextureRegion(textureRegion.Texture, textureRegion.SourceRectangle.X + x, textureRegion.SourceRectangle.Y + y, tileWidth, tileHeight);
         }
     }
-    
+
     /// <summary>
     /// Gets the texture region for the tile from this tileset at the given index.
     /// </summary>

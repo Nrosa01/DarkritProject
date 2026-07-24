@@ -1,7 +1,7 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace Darkrit.Graphics.InstancedQuadRenderer;
 
@@ -185,9 +185,9 @@ public class InstancedQuadRenderer
             // MonoGame and make it public, I want that field
             // https://github.com/MonoGame/MonoGame/blob/develop/MonoGame.Framework/Graphics/Texture2D.cs
             sourceUv = new Vector4(
-                src.X      / (float)texture.Width,
-                src.Y      / (float)texture.Height,
-                src.Width  / (float)texture.Width,
+                src.X / (float)texture.Width,
+                src.Y / (float)texture.Height,
+                src.Width / (float)texture.Width,
                 src.Height / (float)texture.Height);
         }
         else

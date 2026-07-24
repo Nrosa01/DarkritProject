@@ -1,7 +1,6 @@
 ﻿using Darkrit.InputSystem.Bindings;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Darkrit.InputSystem;
 
 namespace Darkrit.InputSystem.Providers;
 

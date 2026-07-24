@@ -1,9 +1,9 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Darkrit;
 
-public readonly struct Circle : IEquatable<Circle> 
+public readonly struct Circle : IEquatable<Circle>
 {
     private static readonly Circle s_empty = new Circle();
 
@@ -56,7 +56,7 @@ public readonly struct Circle : IEquatable<Circle>
     /// Gets the x-coordinate of the rightmost point on this circle.
     /// </summary>
     public readonly int Right => X + Radius;
-    
+
     /// <summary>
     /// Creates a new circle with the specified position and radius.
     /// </summary>
@@ -116,7 +116,7 @@ public readonly struct Circle : IEquatable<Circle>
     /// <returns>The hash code for this circle as a 32-bit signed integer.</returns>
     public override readonly int GetHashCode() => HashCode.Combine(X, Y, Radius);
 
-    
+
     /// <summary>
     /// Returns a value that indicates if the circle on the left hand side of the equality operator is equal to the
     /// circle on the right hand side of the equality operator.

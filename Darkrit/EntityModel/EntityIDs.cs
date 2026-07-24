@@ -5,10 +5,8 @@
 // The following code was adapted from: https://github.com/BobbyAnguelov/Esoterica/blob/main/Code/Engine/Entity/EntityIDs.h
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 
 namespace Darkrit.EntityModel
@@ -38,10 +36,10 @@ namespace Darkrit.EntityModel
         public static EntityWorldID Generate() => new(IdGenerator<EntityWorldID>.Next());
 
         public readonly bool IsValid => Value != 0;
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Equals(EntityWorldID other) => Value == other.Value;
-        
+
         public static bool operator ==(EntityWorldID a, EntityWorldID b) => a.Value == b.Value;
 
         public static bool operator !=(EntityWorldID a, EntityWorldID b) => a.Value != b.Value;
@@ -65,7 +63,7 @@ namespace Darkrit.EntityModel
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Equals(EntityID other) => Value == other.Value;
-        
+
         public readonly bool IsValid => Value != 0;
 
         public static bool operator ==(EntityID a, EntityID b) => a.Value == b.Value;
@@ -90,8 +88,8 @@ namespace Darkrit.EntityModel
         public static ComponentID Generate() => new(IdGenerator<ComponentID>.Next());
 
         public readonly bool IsValid => Value != 0;
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Equals(ComponentID other) => Value == other.Value;
 
         public static bool operator ==(ComponentID a, ComponentID b) => a.Value == b.Value;
