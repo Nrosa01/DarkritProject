@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Input;
 
-namespace Darkrit.Input;
+namespace Darkrit.InputSystem;
 public class KeyboardInfo
 {
     /// <summary>

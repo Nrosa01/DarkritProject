@@ -1,9 +1,9 @@
-﻿using Darkrit.Input.Providers;
+﻿using Darkrit.InputSystem.Providers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
 
-namespace Darkrit.Input.Bindings
+namespace Darkrit.InputSystem.Bindings
 {
     /// <summary>
     /// Gamepad Axis enum representation

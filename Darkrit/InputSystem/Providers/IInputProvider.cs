@@ -1,9 +1,9 @@
-﻿using Darkrit.Input.Bindings;
+﻿using Darkrit.InputSystem.Bindings;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Darkrit.Input;
+using Darkrit.InputSystem;
 
-namespace Darkrit.Input.Providers;
+namespace Darkrit.InputSystem.Providers;
 
 public interface IInputProvider
 {

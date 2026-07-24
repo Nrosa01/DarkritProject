@@ -1,8 +1,8 @@
-﻿using Darkrit.Input.Providers;
+﻿using Darkrit.InputSystem.Providers;
 using System.Collections.Generic;
 
 
-namespace Darkrit.Input;
+namespace Darkrit.InputSystem;
 
 /// <summary>
 /// Storage for InputActions

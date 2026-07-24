@@ -1,11 +1,11 @@
-﻿using Darkrit.Input;
+﻿using Darkrit.InputSystem;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Darkrit.Input.Providers;
+using Darkrit.InputSystem.Providers;
 
-namespace Darkrit.Input.Bindings;
+namespace Darkrit.InputSystem.Bindings;
 
 /// <summary>
 /// Bindings for mouse buttons

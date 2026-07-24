@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Darkrit.Input;
 using System.Collections.Generic;
 
-namespace Darkrit.Input.Recording;
+namespace Darkrit.InputSystem.Recording;
 
 public class FrameInputSnapshot
 {

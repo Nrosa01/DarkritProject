@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Darkrit.Content;
 using Darkrit.Graphics;
-using Darkrit.Input;
+using Darkrit.InputSystem;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
 using TinyFmod;
@@ -132,7 +132,7 @@ public class Core : Game
     /// <summary>
     /// Gets a reference to the input management system.
     /// </summary>
-    public static Darkrit.Input.Input Input { get; private set; }
+    public static Darkrit.InputSystem.Input Input { get; private set; }
 
     public static FmodStudio FMOD { get; private set; }
 
@@ -195,7 +195,7 @@ public class Core : Game
         IsMouseVisible = true;
 
         // Create a new input manager.
-        Input = new Darkrit.Input.Input();
+        Input = new Darkrit.InputSystem.Input();
     }
 
     protected override void Update(GameTime gameTime)

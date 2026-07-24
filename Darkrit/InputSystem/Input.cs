@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
-using Darkrit.Input.Bindings;
-using Darkrit.Input.Providers;
+using Darkrit.InputSystem.Bindings;
+using Darkrit.InputSystem.Providers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Darkrit.Input;
+using Darkrit.InputSystem;
 
-namespace Darkrit.Input;
+namespace Darkrit.InputSystem;
 
 /// <summary>
 /// Main input system. Offers a unified API to check keyboard, mouse
@@ -15,7 +15,7 @@ namespace Darkrit.Input;
 /// Creates a new Input instance that uses a certain provider
 /// </remarks>
 /// <param name="provider">Input provider to use.</param>
-public class Input(IInputProvider provider)
+public class Input(IInputProvider provider) : IInputProvider
 {
     private IInputProvider _provider = provider;
     private InputMap _actionMap = new();

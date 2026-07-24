@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace Darkrit.Input;
+namespace Darkrit.InputSystem;
 public class MouseInfo
 {
     /// <summary>

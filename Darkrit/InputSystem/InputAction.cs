@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Darkrit.Input.Providers;
+using Darkrit.InputSystem.Providers;
 
-namespace Darkrit.Input;
+namespace Darkrit.InputSystem;
 
 /// <summary>
 /// Represents an input action with one or more bindings

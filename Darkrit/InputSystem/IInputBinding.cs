@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Darkrit.Input.Providers;
+using Darkrit.InputSystem.Providers;
 
-namespace Darkrit.Input;
+namespace Darkrit.InputSystem;
 
 public interface IInputBinding
 {
