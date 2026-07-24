@@ -3,12 +3,13 @@ using Darkrit.Input.Bindings;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
-using MonoGameLibrary.Scenes;
-using MonoGameLibrary.Utilities;
+using Darkrit;
+using Darkrit.Graphics;
+using Darkrit.Scenes;
+using Darkrit.Utilities;
 using Key = Microsoft.Xna.Framework.Input.Keys;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
+using InputSystem = Darkrit.Input.Input;
 
 namespace Darkrit.Scenes
 {
@@ -65,6 +66,9 @@ namespace Darkrit.Scenes
                 new GamepadBinding(GamepadButton.DPadRight),
                 new GamepadBinding(GamepadButton.LeftThumbstickRight),
             ]);
+
+            float value = InputSystem.GetAxis(moveLeft, moveRight);
+            Vector2 ve2Value = InputSystem.GetVector(moveLeft, moveRight, moveDown, moveUp);
         }
 
         public override void Update(GameTime gameTime)

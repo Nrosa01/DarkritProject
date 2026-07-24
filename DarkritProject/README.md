@@ -8,4 +8,4 @@ Simple 2D Engine to make games. Development started recently so there won't be t
 - Simple InstancedQuadRenderer, really limited at the moment
 - Input system
 	- Allows to define multiple bindings per action
-	- Allows to record and replay input. It assumes fixed tick simulation for multiplayer determinism
+	- [NOT IMPLEMENTED YET] Allows to record and replay input. It assumes fixed tick simulation for multiplayer determinism

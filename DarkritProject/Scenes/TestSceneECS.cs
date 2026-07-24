@@ -7,17 +7,17 @@ using ImGuiNET;
 using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
-using MonoGameLibrary.Scenes;
-using MonoGameLibrary.TinyECS;
-using MonoGameLibrary.Utilities;
+using Darkrit;
+using Darkrit.Graphics;
+using Darkrit.Scenes;
+using Darkrit.TinyECS;
+using Darkrit.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Console = MonoGameLibrary.Utilities.Log;
+using Console = Darkrit.Utilities.Log;
 
 
 namespace Darkrit.Scenes
@@ -48,7 +48,7 @@ namespace Darkrit.Scenes
         const int worldSize = 500_000;
 
 
-        MonoGameLibrary.TinyECS.Registry world;
+        Darkrit.TinyECS.Registry world;
         Frent.World frentWorld;
 
         InstancedQuadRenderer instancedQuadRenderer;
@@ -87,7 +87,7 @@ namespace Darkrit.Scenes
             }
             else
             {
-                world = new MonoGameLibrary.TinyECS.Registry(worldSize);
+                world = new Darkrit.TinyECS.Registry(worldSize);
 
                 for (var i = 0; i < worldSize; i++)
                 {
@@ -121,7 +121,7 @@ namespace Darkrit.Scenes
             public readonly void Run(ref Velocity vel, ref Position pos, ref Square square) => UpdateAction(ref vel, ref pos, ref square);
         }
 
-        static void RunVelocitySystem(MonoGameLibrary.TinyECS.Registry registry, Frent.World frentWorld)
+        static void RunVelocitySystem(Darkrit.TinyECS.Registry registry, Frent.World frentWorld)
         {
             if (USE_FREN)
             {
@@ -172,7 +172,7 @@ namespace Darkrit.Scenes
             }
         }
 
-        static void RunSquareSystem(MonoGameLibrary.TinyECS.Registry registry, Action<Texture2D, Rectangle, Rectangle?, Color> drawAction, Frent.World frentWorld)
+        static void RunSquareSystem(Darkrit.TinyECS.Registry registry, Action<Texture2D, Rectangle, Rectangle?, Color> drawAction, Frent.World frentWorld)
         {
             if (USE_FREN)
             {
@@ -231,7 +231,7 @@ namespace Darkrit.Scenes
             {
                 if (!USE_FREN && world == null)
                 {
-                    world = new MonoGameLibrary.TinyECS.Registry(worldSize);
+                    world = new Darkrit.TinyECS.Registry(worldSize);
 
                     for (var i = 0; i < worldSize; i++)
                     {

@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.7.11903.348
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darkrit", "MonoGameLibrary\Darkrit.csproj", "{1771D9FE-F261-409A-B3B1-62BB4EEC21CE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content", "Content\Content.csproj", "{4B7D5F82-4003-401C-BECB-1A15535FD24A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyFmod", "TinyFmod\TinyFmod.csproj", "{24DDBBA8-EFAC-C81D-20E7-36AC240CF43E}"
@@ -13,16 +11,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkritGame", "DarkritProje
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DakritTests", "DakritLibraryTests\DakritTests.csproj", "{953652FF-2262-400C-ABD5-6B74AD918540}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darkrit", "Darkrit\Darkrit.csproj", "{86E45AF0-17FF-8B18-A7FA-094025C1A593}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1771D9FE-F261-409A-B3B1-62BB4EEC21CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1771D9FE-F261-409A-B3B1-62BB4EEC21CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1771D9FE-F261-409A-B3B1-62BB4EEC21CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1771D9FE-F261-409A-B3B1-62BB4EEC21CE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4B7D5F82-4003-401C-BECB-1A15535FD24A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4B7D5F82-4003-401C-BECB-1A15535FD24A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B7D5F82-4003-401C-BECB-1A15535FD24A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +35,10 @@ Global
 		{953652FF-2262-400C-ABD5-6B74AD918540}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{953652FF-2262-400C-ABD5-6B74AD918540}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{953652FF-2262-400C-ABD5-6B74AD918540}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86E45AF0-17FF-8B18-A7FA-094025C1A593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86E45AF0-17FF-8B18-A7FA-094025C1A593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86E45AF0-17FF-8B18-A7FA-094025C1A593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86E45AF0-17FF-8B18-A7FA-094025C1A593}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

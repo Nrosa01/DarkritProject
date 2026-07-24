@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using MonoGameLibrary.TinyECS;
+using Darkrit.TinyECS;
 
 namespace DakritTests.TinyECS
 {

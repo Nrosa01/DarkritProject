@@ -1,10 +1,10 @@
 ﻿using Darkrit.Scenes;
 using Gum.Forms;
 using Gum.Forms.Controls;
-using MonoGameLibrary;
+using Darkrit;
 using MonoGameGum;
 using Microsoft.Xna.Framework;
-using MonoGameLibrary.Content;
+using Darkrit.Content;
 
 
 namespace Darkrit;
