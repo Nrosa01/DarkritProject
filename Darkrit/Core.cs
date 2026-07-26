@@ -151,6 +151,9 @@ public class Core : Game
     /// </summary>
     public static bool ExitOnEscape { get; set; }
 
+    private RenderTarget2D _sceneTarget;
+    private IntPtr _sceneTextureId;
+
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -237,8 +240,18 @@ public class Core : Game
     protected override void Draw(GameTime gameTime)
     {
         _frameTimer.Restart();
-        // If there is an active scene, draw it.
+
+        Core.ImGuiRenderer.BeforeLayout(gameTime);
+        GraphicsDevice.Clear(Color.CornflowerBlue);
         s_activeScene?.Draw(gameTime);
+        RenderWithDocking(() =>
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            s_activeScene?.Draw(gameTime);
+            s_activeScene?.DebugDraw(gameTime);
+        }, gameTime);
+        Material.DrawVisibleDebugUi();
+        Core.ImGuiRenderer.AfterLayout();
 
         _frameTimer.Stop();
 
@@ -254,13 +267,26 @@ public class Core : Game
         const float alpha = 0.05f;
         _cpuRenderAverageMs += (_cpuRenderMs - _cpuRenderAverageMs) * alpha;
 
-        Core.ImGuiRenderer.BeforeLayout(gameTime);
-        s_activeScene?.DebugDraw(gameTime);
-        Material.DrawVisibleDebugUi();
-        DrawStats();
-        Core.ImGuiRenderer.AfterLayout();
-
         base.Draw(gameTime);
+    }
+
+    private void RenderWithDocking(Action renderAction, GameTime gameTime)
+    {
+        ImGui.DockSpaceOverViewport();
+        GraphicsDevice.SetRenderTarget(_sceneTarget);
+        renderAction?.Invoke();
+
+        GraphicsDevice.SetRenderTarget(null);
+
+        ImGui.Begin("Scene");
+
+        Vector2 size = ImGui.GetContentRegionAvail();
+
+        ImGui.Image(_sceneTextureId, size.ToSystemVector2());
+
+        ImGui.End();
+
+        DrawStats();
     }
 
     public static void ChangeScene(Scene next)
@@ -325,8 +351,21 @@ public class Core : Game
 
         // Optional: Scale text and widgets for easier readability.
         var io = ImGui.GetIO();
+
+        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
         io.FontGlobalScale = 1.75f;
         ImGui.GetStyle().ScaleAllSizes(1.5f);
 
+        _sceneTarget = new RenderTarget2D(
+            GraphicsDevice,
+            1280,
+            720,
+            false,
+            SurfaceFormat.Color,
+            DepthFormat.Depth24);
+
+        _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
     }
 }
