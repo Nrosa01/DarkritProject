@@ -154,6 +154,12 @@ public class Core : Game
     private RenderTarget2D _sceneTarget;
     private IntPtr _sceneTextureId;
 
+    private Point _pendingViewportSize;
+    private float _resizeDelay;
+    private bool _hasPendingResize;
+    private const float ResizeDelaySeconds = 0.01f;
+
+
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -273,33 +279,65 @@ public class Core : Game
     private void RenderWithDocking(Action renderAction, GameTime gameTime)
     {
         ImGui.DockSpaceOverViewport();
+
+        ImGui.Begin("Scene");
+
+        Vector2 viewportSize = ImGui.GetContentRegionAvail();
+
+        UpdateViewportResize(viewportSize, gameTime);
+
+        ImGui.Image(_sceneTextureId, viewportSize.ToSystemVector2());
+
+        ImGui.End();
+
         GraphicsDevice.SetRenderTarget(_sceneTarget);
+
         renderAction?.Invoke();
 
         GraphicsDevice.SetRenderTarget(null);
 
-        ImGui.Begin("Scene");
+        DrawStats();
+    }
 
-        Vector2 size = ImGui.GetContentRegionAvail();
+    private void UpdateViewportResize(Vector2 viewportSize, GameTime gameTime)
+    {
+        var size = new Point(
+            SMath.Max(1, (int)viewportSize.X),
+            SMath.Max(1, (int)viewportSize.Y));
 
-        if (_sceneTarget.Width != (int)size.X ||
-            _sceneTarget.Height != (int)size.Y)
+        if (size != _pendingViewportSize)
         {
-            _sceneTarget.Dispose();
-
-            _sceneTarget = new RenderTarget2D(
-                GraphicsDevice,
-                (int)size.X,
-                (int)size.Y);
-
-            _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
+            _pendingViewportSize = size;
+            _resizeDelay = ResizeDelaySeconds;
+            _hasPendingResize = true;
         }
 
-        ImGui.Image(_sceneTextureId, size.ToSystemVector2());
+        if (!_hasPendingResize)
+            return;
 
-        ImGui.End();
+        _resizeDelay -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        DrawStats();
+        if (_resizeDelay <= 0 &&
+            (_sceneTarget.Width != size.X || _sceneTarget.Height != size.Y))
+        {
+            ResizeSceneTarget(_pendingViewportSize);
+            _hasPendingResize = false;
+        }
+    }
+
+    private void ResizeSceneTarget(Point size)
+    {
+        Core.ImGuiRenderer.UnbindTexture(_sceneTextureId);
+
+
+        _sceneTarget.Dispose();
+
+        _sceneTarget = new RenderTarget2D(
+            GraphicsDevice,
+            size.X,
+            size.Y);
+
+        _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
     }
 
     public static void ChangeScene(Scene next)
