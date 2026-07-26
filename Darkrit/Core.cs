@@ -282,6 +282,19 @@ public class Core : Game
 
         Vector2 size = ImGui.GetContentRegionAvail();
 
+        if (_sceneTarget.Width != (int)size.X ||
+            _sceneTarget.Height != (int)size.Y)
+        {
+            _sceneTarget.Dispose();
+
+            _sceneTarget = new RenderTarget2D(
+                GraphicsDevice,
+                (int)size.X,
+                (int)size.Y);
+
+            _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
+        }
+
         ImGui.Image(_sceneTextureId, size.ToSystemVector2());
 
         ImGui.End();
