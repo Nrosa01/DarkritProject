@@ -1,4 +1,5 @@
 using Darkrit.Content;
+using Darkrit.DevTools.Logger;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.Scenes;
@@ -19,6 +20,9 @@ namespace Darkrit;
 
 public class Core : Game
 {
+
+    // Loggers
+    ImGuiLogger ImGuiLogger { get; set; }
 
     #region Stats
     private const int HistorySize = 240;
@@ -205,6 +209,9 @@ public class Core : Game
 
         // Create a new input manager.
         Input = new Darkrit.InputSystem.Input();
+
+        ImGuiLogger = new();
+        Log.AddLogger(ImGuiLogger);
     }
 
     protected override void Update(GameTime gameTime)

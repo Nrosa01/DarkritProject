@@ -1,3 +1,4 @@
+using Darkrit.DevTools.Logger;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
@@ -81,14 +82,23 @@ namespace Darkrit.Scenes
         private void HandleInput(GameTime gameTime)
         {
             if (moveUp.IsPressed)
+            {
                 velocity.Y = -1;
+                Log.Info("Move up pressed");
+            }
             else if (moveDown.IsPressed)
+            {
                 velocity.Y = 1;
+                Log.Debug("Move Down Pressed");
+            }
             else
                 velocity.Y = 0;
 
             if (moveLeft.IsPressed)
+            {
                 velocity.X = -1;
+                Log.Warning("Pressed left");
+            }
             else if (moveRight.IsPressed)
                 velocity.X = 1;
             else
