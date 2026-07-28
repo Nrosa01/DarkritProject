@@ -12,6 +12,11 @@ namespace Darkrit.DataStructures
         private int _start;
         private int _size;
 
+        public RingBuffer(int capacity, T[] items) : this(capacity)
+        {
+
+        }
+
         public void PushFront(T item)
         {
             _end = _end % _buffer.Length;
