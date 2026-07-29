@@ -100,7 +100,10 @@ namespace Darkrit.Scenes
                 Log.Warning("Pressed left");
             }
             else if (moveRight.IsPressed)
+            {
                 velocity.X = 1;
+                Log.Trace("Pressed right");
+            }
             else
                 velocity.X = 0;
 

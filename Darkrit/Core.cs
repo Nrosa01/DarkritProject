@@ -1,5 +1,6 @@
 using Darkrit.Content;
 using Darkrit.DevTools.Logger;
+using Darkrit.DevTools.Logger.Renderers;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.Scenes;
@@ -22,7 +23,7 @@ public class Core : Game
 {
 
     // Loggers
-    ImGuiLogger ImGuiLogger { get; set; }
+    ImGuiLoggerConsole ImGuiLoggerConsole { get; set; }
 
     #region Stats
     private const int HistorySize = 240;
@@ -163,6 +164,10 @@ public class Core : Game
     private bool _hasPendingResize;
     private const float ResizeDelaySeconds = 0.01f;
 
+    private bool _imGuiRequestedKeyInput = false;
+    private bool _imGuiRequestedMouseInput = false;
+    private bool _viewportHovered = false;
+    private bool _viewportFocused = false;
 
     /// <summary>
     /// Creates a new Core instance.
@@ -197,6 +202,10 @@ public class Core : Game
         // Set the window title.
         Window.Title = title;
 
+#if PUBLISHED
+#else
+        Window.AllowUserResizing = true;
+#endif
         // Set the core's content manager to a reference of the base Game's
         // content manager.
         Content = base.Content;
@@ -210,13 +219,19 @@ public class Core : Game
         // Create a new input manager.
         Input = new Darkrit.InputSystem.Input();
 
-        ImGuiLogger = new();
-        Log.AddLogger(ImGuiLogger);
+        var imguiLogger = new ImGuiLogger();
+        ImGuiLoggerConsole = new(imguiLogger);
+        Log.AddLogger(imguiLogger);
     }
 
     protected override void Update(GameTime gameTime)
     {
         FMOD.Update();
+
+        if (_viewportFocused || _viewportHovered)
+            Input.Enable();
+        else
+            Input.Disable();
 
         // Update the input manager.
         Input.Update(gameTime);
@@ -249,6 +264,12 @@ public class Core : Game
 
         base.Update(gameTime);
     }
+    
+    internal void EditorDraw(GameTime gameTime)
+    {
+        s_activeScene?.DebugDraw(gameTime);
+        ImGuiLoggerConsole.Draw(gameTime);
+    }
 
     protected override void Draw(GameTime gameTime)
     {
@@ -261,9 +282,13 @@ public class Core : Game
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             s_activeScene?.Draw(gameTime);
-            s_activeScene?.DebugDraw(gameTime);
+            EditorDraw(gameTime);
         }, gameTime);
         Material.DrawVisibleDebugUi();
+
+        _imGuiRequestedKeyInput =  ImGui.GetIO().WantCaptureKeyboard;
+        _imGuiRequestedMouseInput = ImGui.GetIO().WantCaptureMouse;
+
         Core.ImGuiRenderer.AfterLayout();
 
         _frameTimer.Stop();
@@ -294,6 +319,9 @@ public class Core : Game
         UpdateViewportResize(viewportSize, gameTime);
 
         ImGui.Image(_sceneTextureId, viewportSize.ToSystemVector2());
+
+        _viewportHovered = ImGui.IsWindowHovered();
+        _viewportFocused = ImGui.IsWindowFocused();
 
         ImGui.End();
 

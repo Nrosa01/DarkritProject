@@ -145,11 +145,11 @@ namespace Darkrit.DataStructures
         /// Element at the front of the buffer. Equivalent to this[0]
         /// </summary>
         /// <returns>The value of the element of type T at the front of the buffer</returns>
-        public T Front()
+        public ref T Front()
         {
             ThrowIfEmpty();
 
-            return _buffer[_start];
+            return ref _buffer[_start];
         }
 
 
@@ -158,11 +158,11 @@ namespace Darkrit.DataStructures
         /// Element at the front of the buffer. Equivalent to this[Size - 1]
         /// </summary>
         /// <returns>The value of the element of type T at the end of the buffer</returns>
-        public T Back()
+        public ref T Back()
         {
             ThrowIfEmpty();
 
-            return _buffer[(_end != 0 ? _end : Capacity) - 1];
+            return ref _buffer[(_end != 0 ? _end : Capacity) - 1];
         }
 
         private void ThrowIfEmpty()

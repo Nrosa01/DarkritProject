@@ -16,8 +16,14 @@ namespace Darkrit.InputSystem;
 /// <param name="provider">Input provider to use.</param>
 public class Input(IInputProvider provider) : IInputProvider
 {
-    private IInputProvider _provider = provider;
+    private IInputProvider _currentProvider = provider;
+    private IInputProvider _mainProvider = provider;
+    private NullInputProvider _nullInput = new();
     private InputMap _actionMap = new();
+
+    public void Disable() => _currentProvider = _nullInput;
+
+    public void Enable() => _currentProvider = _mainProvider;
 
     /// <summary>
     /// Action map that maps string names to bindings
@@ -27,61 +33,58 @@ public class Input(IInputProvider provider) : IInputProvider
     /// <summary>
     /// Current hardware provider
     /// </summary>
-    public IInputProvider Provider => _provider;
+    public IInputProvider Provider => _currentProvider;
 
     /// <summary>
     /// Creates a new instance using the physics input provider by default
     /// </summary>
     public Input() : this(new PhysicalInputProvider()) { }
 
-    public InputAction CreateAction(string actionName) => _actionMap.AddAction(actionName, _provider);
+    public InputAction CreateAction(string actionName) => _actionMap.AddAction(actionName, _mainProvider);
 
     /// <summary>
     /// Changes the input provider in runtime.
     /// This is mainly thought for using a ReplayInputProvider
     /// </summary>
-    public void SetProvider(IInputProvider newProvider) => _provider = newProvider;
+    public void SetProvider(IInputProvider newProvider) => _mainProvider = newProvider;
 
     /// <summary>
     /// Updates all input states.
     /// Must be called once per frame.
     /// </summary>
-    public void Update(GameTime gameTime)
-    {
-        _provider.Update(gameTime);
-    }
+    public void Update(GameTime gameTime) => _currentProvider.Update(gameTime);
 
     // ===== Direct access methods for when you're lazy or prototyping =====
 
     // TODO: It's a chore, but I should add stupid xml doc for these helpers
 
     // Keyboard
-    public bool IsKeyDown(Keys key) => _provider.IsKeyDown(key);
-    public bool IsKeyUp(Keys key) => _provider.IsKeyUp(key);
-    public bool WasKeyJustPressed(Keys key) => _provider.WasKeyJustPressed(key);
-    public bool WasKeyJustReleased(Keys key) => _provider.WasKeyJustReleased(key);
-    public Keys[] GetPressedKeys() => _provider.GetPressedKeys();
+    public bool IsKeyDown(Keys key) => _currentProvider.IsKeyDown(key);
+    public bool IsKeyUp(Keys key) => _currentProvider.IsKeyUp(key);
+    public bool WasKeyJustPressed(Keys key) => _currentProvider.WasKeyJustPressed(key);
+    public bool WasKeyJustReleased(Keys key) => _currentProvider.WasKeyJustReleased(key);
+    public Keys[] GetPressedKeys() => _currentProvider.GetPressedKeys();
 
     // Mouse
-    public Point GetMousePosition() => _provider.GetMousePosition();
-    public int GetMouseScrollWheelValue() => _provider.GetMouseScrollWheelValue();
-    public bool IsMouseButtonDown(MouseButton button) => _provider.IsMouseButtonDown(button);
-    public bool IsMouseButtonUp(MouseButton button) => _provider.IsMouseButtonUp(button);
-    public bool WasMouseButtonJustPressed(MouseButton button) => _provider.WasMouseButtonJustPressed(button);
-    public bool WasMouseButtonJustReleased(MouseButton button) => _provider.WasMouseButtonJustReleased(button);
-    public Point GetMousePositionDelta() => _provider.GetMousePositionDelta();
+    public Point GetMousePosition() => _currentProvider.GetMousePosition();
+    public int GetMouseScrollWheelValue() => _currentProvider.GetMouseScrollWheelValue();
+    public bool IsMouseButtonDown(MouseButton button) => _currentProvider.IsMouseButtonDown(button);
+    public bool IsMouseButtonUp(MouseButton button) => _currentProvider.IsMouseButtonUp(button);
+    public bool WasMouseButtonJustPressed(MouseButton button) => _currentProvider.WasMouseButtonJustPressed(button);
+    public bool WasMouseButtonJustReleased(MouseButton button) => _currentProvider.WasMouseButtonJustReleased(button);
+    public Point GetMousePositionDelta() => _currentProvider.GetMousePositionDelta();
 
     // Gamepad
-    public bool IsGamepadConnected(PlayerIndex playerIndex) => _provider.IsGamepadConnected(playerIndex);
-    public bool IsGamepadButtonDown(PlayerIndex playerIndex, Buttons button) => _provider.IsGamepadButtonDown(playerIndex, button);
-    public bool IsGamepadButtonUp(PlayerIndex playerIndex, Buttons button) => _provider.IsGamepadButtonUp(playerIndex, button);
-    public bool WasGamepadButtonJustPressed(PlayerIndex playerIndex, Buttons button) => _provider.WasGamepadButtonJustPressed(playerIndex, button);
-    public bool WasGamepadButtonJustReleased(PlayerIndex playerIndex, Buttons button) => _provider.WasGamepadButtonJustReleased(playerIndex, button);
-    public Vector2 GetGamepadLeftStick(PlayerIndex playerIndex) => _provider.GetGamepadLeftStick(playerIndex);
-    public Vector2 GetGamepadRightStick(PlayerIndex playerIndex) => _provider.GetGamepadRightStick(playerIndex);
-    public float GetGamepadLeftTrigger(PlayerIndex playerIndex) => _provider.GetGamepadLeftTrigger(playerIndex);
-    public float GetGamepadRightTrigger(PlayerIndex playerIndex) => _provider.GetGamepadRightTrigger(playerIndex);
-    public float GetGamepadAxis(PlayerIndex playerIndex, GamepadAxis axis) => _provider.GetGamepadAxis(playerIndex, axis);
+    public bool IsGamepadConnected(PlayerIndex playerIndex) => _currentProvider.IsGamepadConnected(playerIndex);
+    public bool IsGamepadButtonDown(PlayerIndex playerIndex, Buttons button) => _currentProvider.IsGamepadButtonDown(playerIndex, button);
+    public bool IsGamepadButtonUp(PlayerIndex playerIndex, Buttons button) => _currentProvider.IsGamepadButtonUp(playerIndex, button);
+    public bool WasGamepadButtonJustPressed(PlayerIndex playerIndex, Buttons button) => _currentProvider.WasGamepadButtonJustPressed(playerIndex, button);
+    public bool WasGamepadButtonJustReleased(PlayerIndex playerIndex, Buttons button) => _currentProvider.WasGamepadButtonJustReleased(playerIndex, button);
+    public Vector2 GetGamepadLeftStick(PlayerIndex playerIndex) => _currentProvider.GetGamepadLeftStick(playerIndex);
+    public Vector2 GetGamepadRightStick(PlayerIndex playerIndex) => _currentProvider.GetGamepadRightStick(playerIndex);
+    public float GetGamepadLeftTrigger(PlayerIndex playerIndex) => _currentProvider.GetGamepadLeftTrigger(playerIndex);
+    public float GetGamepadRightTrigger(PlayerIndex playerIndex) => _currentProvider.GetGamepadRightTrigger(playerIndex);
+    public float GetGamepadAxis(PlayerIndex playerIndex, GamepadAxis axis) => _currentProvider.GetGamepadAxis(playerIndex, axis);
 
     // ===== Utils inspired from Godot Input system =====
 
