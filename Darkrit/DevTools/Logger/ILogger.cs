@@ -8,7 +8,7 @@ namespace Darkrit.DevTools.Logger
 
     public interface ILogger
     {
-        internal void Log(string message, LogLevel logLevel);
+        public void Log(string message, LogLevel logLevel);
         public void Trace(string message) => Log(message, LogLevel.Trace);
         public void Debug(string message) => Log(message, LogLevel.Debug);
         public void Info(string message) => Log(message, LogLevel.Info);

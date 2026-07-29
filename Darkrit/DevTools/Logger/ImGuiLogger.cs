@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Darkrit.DataStructures;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Darkrit.DevTools.Logger
 {

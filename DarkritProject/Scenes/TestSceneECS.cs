@@ -81,7 +81,6 @@ namespace Darkrit.Scenes
 
                 for (var i = 0; i < worldSize; i++)
                 {
-                    var spacing = .2f;
                     var entity = world.Create();
                     world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight / 2 });
                     world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });

@@ -167,13 +167,17 @@ namespace DakritFacts.DataStructures
             Assert.Equal(4, buffer.Back());
         }
 
-        [Fact]
-        public void RingBuffer_BackOfBufferOverflowByOne_CorrectItem()
+        [Theory]
+        [InlineData(3)]
+        [InlineData(5)]
+        [InlineData(6)]
+        public void RingBuffer_BackOfBufferOverflowByOne_CorrectItem(int value)
         {
             var buffer = new RingBuffer<int>(5, [0, 1, 2, 3, 4]);
-            buffer.PushBack(42);
-            Assert.Equal([1, 2, 3, 4, 42], buffer.ToArray());
-            Assert.Equal(42, buffer.Back());
+            buffer.PushBack(value);
+            var newBuffer = buffer.ToArray();
+            Assert.Equal([1, 2, 3, 4, value], [.. buffer]);
+            Assert.Equal(value, buffer.Back());
         }
 
         [Fact]
