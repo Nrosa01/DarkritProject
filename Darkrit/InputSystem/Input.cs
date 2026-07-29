@@ -21,8 +21,15 @@ public class Input(IInputProvider provider) : IInputProvider
     private NullInputProvider _nullInput = new();
     private InputMap _actionMap = new();
 
+    /// <summary>
+    /// Disables the provider. Internally it sets the <see cref="_currentProvider"/> to a null provider
+    /// that returns default values for everything
+    /// </summary>
     public void Disable() => _currentProvider = _nullInput;
 
+    /// <summary>
+    /// Enables the provider you set via the constructor or the <see cref="SetProvider(IInputProvider)"/> call
+    /// </summary>
     public void Enable() => _currentProvider = _mainProvider;
 
     /// <summary>
