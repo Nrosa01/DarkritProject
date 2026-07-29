@@ -205,7 +205,7 @@ namespace DakritFacts.DataStructures
             buffer.PopBack();
 
             Assert.Equal(4, buffer.Size);
-            Assert.Equal([0, 1, 2, 3], buffer.ToArray());
+            Assert.Equal([0, 1, 2, 3], [.. buffer]);
         }
 
         [Fact]
@@ -291,15 +291,11 @@ namespace DakritFacts.DataStructures
 
             buffer.Clear();
             for (int i = 0; i < 5; i++)
-            {
                 buffer.PushBack(i);
-            }
 
             Assert.Equal(0, buffer.Front());
             for (int i = 0; i < 5; i++)
-            {
                 Assert.Equal(i, buffer[i]);
-            }
         }
     }
 }
