@@ -3,7 +3,7 @@ using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
 using Darkrit.Utilities;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;

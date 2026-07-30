@@ -19,7 +19,7 @@ public interface IHotReloadableAsset
 public static class ContentManagerExtensions
 {
     internal static FileSystemWatcher assetsWatcher = null;
-    internal static Process? _hotReloadProcess;
+    internal static Process _hotReloadProcess;
 
     private static void KillHotReload()
     {

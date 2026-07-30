@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using System.Diagnostics;
 
 namespace Darkrit.DevTools.Logger.Renderers

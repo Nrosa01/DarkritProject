@@ -7,8 +7,8 @@ using Darkrit.ImGuiUtils.Themes;
 using Darkrit.InputSystem;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
-using ImGuiNET;
-using ImGuiNET.SampleProgram.XNA;
+using ExampleMonoGame;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -160,7 +160,7 @@ public class Core : Game
     public static bool ExitOnEscape { get; set; }
 
     private RenderTarget2D _sceneTarget;
-    private IntPtr _sceneTextureId;
+    private ImTextureRef _sceneTextureId;
 
     private Point _pendingViewportSize;
     private float _resizeDelay;
@@ -466,11 +466,13 @@ public class Core : Game
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
-        io.FontGlobalScale = 1.25f;
-        io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 16);
+        //io.FontGlobalScale = 1.25f;
+        unsafe
+        {
+           io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 20);
+        }
         //io.Fonts.AddFontFromFileTTF("Content/fonts/FiraCode-Regular.ttf", 16);
         ImGui.GetStyle().ScaleAllSizes(1.25f);
-        ImGuiRenderer.RebuildFontAtlas();
 
         PurpleComfyTheme.SetupImGuiStyle();
 

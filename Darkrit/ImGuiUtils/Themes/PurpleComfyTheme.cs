@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+using Hexa.NET.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -11,7 +11,7 @@ namespace Darkrit.ImGuiUtils.Themes
         public static void SetupImGuiStyle()
         {
             // Purple Comfy styleRegularLunar from ImThemes
-            var style = ImGuiNET.ImGui.GetStyle();
+            var style = ImGui.GetStyle();
 
             style.Alpha = 1.0f;
             style.DisabledAlpha = 0.1f;
@@ -39,7 +39,6 @@ namespace Darkrit.ImGuiUtils.Themes
             style.GrabRounding = 5.0f;
             style.TabRounding = 10.0f;
             style.TabBorderSize = 0.0f;
-            style.TabMinWidthForCloseButton = 0.0f;
             style.ColorButtonPosition = ImGuiDir.Right;
             style.ButtonTextAlign = new Vector2(0.5f, 0.5f);
             style.SelectableTextAlign = new Vector2(0.0f, 0.0f);
