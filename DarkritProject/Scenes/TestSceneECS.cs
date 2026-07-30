@@ -31,11 +31,11 @@ namespace Darkrit.Scenes
         static TinyECSMode tinyEcsMode = TinyECSMode.DelegateParallel;
         readonly string[] frentNames = Enum.GetNames<FrentMode>();
         readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
-        static bool paused = true;
-        static bool render = false;
-        static bool renderInstanced = false;
+        static bool paused = false;
+        static bool render = true;
+        static bool renderInstanced = true;
 
-        const int worldSize = 500_000;
+        const int worldSize = 10_000;
 
 
         Darkrit.TinyECS.Registry world;

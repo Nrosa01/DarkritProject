@@ -1,7 +1,9 @@
+using Darkrit.Base;
 using Darkrit.Content;
 using Darkrit.DevTools.Logger;
 using Darkrit.DevTools.Logger.Renderers;
 using Darkrit.Graphics;
+using Darkrit.ImGuiUtils.Themes;
 using Darkrit.InputSystem;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
@@ -12,6 +14,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -164,8 +167,7 @@ public class Core : Game
     private bool _hasPendingResize;
     private const float ResizeDelaySeconds = 0.01f;
 
-    private bool _imGuiRequestedKeyInput = false;
-    private bool _imGuiRequestedMouseInput = false;
+    private bool _showEditor = true;
     private bool _viewportHovered = false;
     private bool _viewportFocused = false;
 
@@ -228,10 +230,15 @@ public class Core : Game
     {
         FMOD.Update();
 
-        if (_viewportFocused || _viewportHovered)
-            Input.Enable();
-        else
+        Input.Enable();
+
+        if (Input.WasKeyJustPressed(Keys.F11))
+            _showEditor = !_showEditor;
+
+        if (!_viewportFocused && !_viewportHovered)
             Input.Disable();
+
+
 
         // Update the input manager.
         Input.Update(gameTime);
@@ -264,32 +271,50 @@ public class Core : Game
 
         base.Update(gameTime);
     }
-    
+
+    readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
+
     internal void EditorDraw(GameTime gameTime)
     {
         s_activeScene?.DebugDraw(gameTime);
         ImGuiLoggerConsole.Draw(gameTime);
+
+        ImGui.Begin("Scene Switcher");
+
+        foreach (var sceneType in _sceneTypes)
+        {
+            if (ImGui.Button(sceneType.Name))
+                ChangeScene((Scene)Activator.CreateInstance(sceneType));
+        }
+
+        ImGui.End();
     }
 
     protected override void Draw(GameTime gameTime)
     {
         _frameTimer.Restart();
 
-        Core.ImGuiRenderer.BeforeLayout(gameTime);
+        ImGuiRenderer.BeforeLayout(gameTime);
         GraphicsDevice.Clear(Color.CornflowerBlue);
         s_activeScene?.Draw(gameTime);
-        RenderWithDocking(() =>
+    
+        if(_showEditor)
+        {
+            RenderWithDocking(() =>
+            {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+                s_activeScene?.Draw(gameTime);
+                EditorDraw(gameTime);
+                Material.DrawVisibleDebugUi();
+            }, gameTime);
+        }
+        else
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            s_activeScene?.Draw(gameTime);
-            EditorDraw(gameTime);
-        }, gameTime);
-        Material.DrawVisibleDebugUi();
+                s_activeScene?.Draw(gameTime);
+        }
 
-        _imGuiRequestedKeyInput =  ImGui.GetIO().WantCaptureKeyboard;
-        _imGuiRequestedMouseInput = ImGui.GetIO().WantCaptureMouse;
-
-        Core.ImGuiRenderer.AfterLayout();
+        ImGuiRenderer.AfterLayout();
 
         _frameTimer.Stop();
 
@@ -443,6 +468,8 @@ public class Core : Game
 
         io.FontGlobalScale = 1.75f;
         ImGui.GetStyle().ScaleAllSizes(1.5f);
+
+        PurpleComfyTheme.SetupImGuiStyle();
 
         _sceneTarget = new RenderTarget2D(
             GraphicsDevice,
