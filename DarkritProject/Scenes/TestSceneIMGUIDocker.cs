@@ -1,7 +1,9 @@
+using System.IO;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
 using Darkrit.Utilities;
+using FontStashSharp;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -23,6 +25,7 @@ namespace Darkrit.Scenes
         InputAction moveDown;
         InputAction moveLeft;
         InputAction moveRight;
+        FontSystem _fontSystem;
 
         public override void Initialize()
         {
@@ -31,6 +34,8 @@ namespace Darkrit.Scenes
             // Create the texture atlas from the XML configuration file.
             TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
+            _fontSystem = new FontSystem();
+            _fontSystem.AddFont(File.ReadAllBytes(Path.Combine(Content.RootDirectory, @"fonts/FiraCode-Regular.ttf")));
 
             // Create the animated sprite for the slime from the atlas.
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
@@ -80,21 +85,10 @@ namespace Darkrit.Scenes
 
         private void HandleInput(GameTime gameTime)
         {
-            if (moveUp.IsPressed)
-                velocity.Y = -1;
-            else if (moveDown.IsPressed)
-                velocity.Y = 1;
-            else
-                velocity.Y = 0;
+            if(!Core.Input.IsEnabled)
+                return;
 
-            if (moveLeft.IsPressed)
-                velocity.X = -1;
-            else if (moveRight.IsPressed)
-                velocity.X = 1;
-            else
-                velocity.X = 0;
-
-            position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            position = Core.Input.GetMousePosition().ToVector2() - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
         }
 
         public override void DebugDraw(GameTime gameTime)
@@ -115,6 +109,7 @@ namespace Darkrit.Scenes
 
             Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
             slimeAnimation.Draw(Core.SpriteBatch, position);
+            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(-50, -30), Color.White);
             Core.SpriteBatch.End();
         }
 

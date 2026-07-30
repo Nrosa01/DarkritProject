@@ -32,6 +32,8 @@ public class Input(IInputProvider provider) : IInputProvider
     /// </summary>
     public void Enable() => _currentProvider = _mainProvider;
 
+    public bool IsEnabled => _currentProvider != _nullInput;
+
     /// <summary>
     /// Action map that maps string names to bindings
     /// </summary>
