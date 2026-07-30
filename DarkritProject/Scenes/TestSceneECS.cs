@@ -3,7 +3,7 @@ using Darkrit.Graphics.InstancedQuadRenderer;
 using Frent;
 using Frent.Core;
 using Frent.Systems;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;

@@ -1,29 +1,22 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Hexa.NET.ImGui;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace ImGuiNET.SampleProgram.XNA
+namespace ExampleMonoGame;
+
+public static class DrawVertDeclaration
 {
-    public static class DrawVertDeclaration
+    public static readonly VertexDeclaration Declaration;
+
+    public static readonly int Size;
+
+    static unsafe DrawVertDeclaration()
     {
-        public static readonly VertexDeclaration Declaration;
+        Size = sizeof(ImDrawVert);
 
-        public static readonly int Size;
+        VertexElement position = new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0);
+        VertexElement uv = new VertexElement(8, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0);
+        VertexElement color = new VertexElement(16, VertexElementFormat.Color, VertexElementUsage.Color, 0);
 
-        static DrawVertDeclaration()
-        {
-            unsafe { Size = sizeof(ImDrawVert); }
-
-            Declaration = new VertexDeclaration(
-                Size,
-
-                // Position
-                new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0),
-
-                // UV
-                new VertexElement(8, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
-
-                // Color
-                new VertexElement(16, VertexElementFormat.Color, VertexElementUsage.Color, 0)
-            );
-        }
+        Declaration = new VertexDeclaration(Size, position, uv, color);
     }
 }

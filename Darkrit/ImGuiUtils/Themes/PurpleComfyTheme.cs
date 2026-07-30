@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -11,7 +11,7 @@ namespace Darkrit.ImGuiUtils.Themes
         public static void SetupImGuiStyle()
         {
             // Purple Comfy styleRegularLunar from ImThemes
-            var style = ImGuiNET.ImGui.GetStyle();
+            var style = ImGui.GetStyle();
 
             style.Alpha = 1.0f;
             style.DisabledAlpha = 0.1f;
@@ -39,7 +39,6 @@ namespace Darkrit.ImGuiUtils.Themes
             style.GrabRounding = 5.0f;
             style.TabRounding = 5.0f;
             style.TabBorderSize = 0.0f;
-            style.TabMinWidthForCloseButton = 0.0f;
             style.ColorButtonPosition = ImGuiDir.Right;
             style.ButtonTextAlign = new Vector2(0.5f, 0.5f);
             style.SelectableTextAlign = new Vector2(0.0f, 0.0f);
@@ -79,9 +78,9 @@ namespace Darkrit.ImGuiUtils.Themes
             style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
             style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
             style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
-            //style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
-            //style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.0f, 0.4509804f, 1.0f, 0.0f);
-            //style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.13333334f, 0.25882354f, 0.42352942f, 0.0f);
+            style.Colors[(int)ImGuiCol.TabSelected] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
+            style.Colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.0f, 0.4509804f, 1.0f, 0.0f);
+            style.Colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.13333334f, 0.25882354f, 0.42352942f, 0.0f);
             style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(0.29411766f, 0.29411766f, 0.29411766f, 1.0f);
             style.Colors[(int)ImGuiCol.PlotLinesHovered] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
             style.Colors[(int)ImGuiCol.PlotHistogram] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
@@ -93,7 +92,8 @@ namespace Darkrit.ImGuiUtils.Themes
             style.Colors[(int)ImGuiCol.TableRowBgAlt] = new Vector4(1.0f, 1.0f, 1.0f, 0.03433478f);
             style.Colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(0.5019608f, 0.3019608f, 1.0f, 0.54901963f);
             style.Colors[(int)ImGuiCol.DragDropTarget] = new Vector4(1.0f, 1.0f, 0.0f, 0.9f);
-            //style.Colors[(int)ImGuiCol.NavHighlight] = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+            style.Colors[(int)ImGuiCol.NavCursor] = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+            style.Colors[24] = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
             style.Colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.0f, 1.0f, 1.0f, 0.7f);
             style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(0.8f, 0.8f, 0.8f, 0.2f);
             style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.8f, 0.8f, 0.8f, 0.35f);
