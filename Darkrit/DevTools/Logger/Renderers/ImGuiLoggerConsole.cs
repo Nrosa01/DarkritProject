@@ -42,7 +42,7 @@ namespace Darkrit.DevTools.Logger.Renderers
 
             ImGui.SameLine();
 
-            ImGui.Checkbox("Collapse repeaed", ref collapseRepeated);
+            ImGui.Checkbox("Collapse repeated", ref collapseRepeated);
             logger.CollapseRepeated = collapseRepeated;
 
             ImGui.Dummy(new Vector2(5, 0).ToNumerics());

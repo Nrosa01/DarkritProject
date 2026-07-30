@@ -231,6 +231,7 @@ public class Core : Game
         FMOD.Update();
 
         Input.Enable();
+        Input.Update(gameTime);
 
         if (Input.WasKeyJustPressed(Keys.F11))
             _showEditor = !_showEditor;
@@ -458,7 +459,6 @@ public class Core : Game
 
         // Create the ImGui renderer.
         ImGuiRenderer = new ImGuiRenderer(this);
-        ImGuiRenderer.RebuildFontAtlas();
 
         // Optional: Scale text and widgets for easier readability.
         var io = ImGui.GetIO();
@@ -466,8 +466,11 @@ public class Core : Game
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
-        io.FontGlobalScale = 1.75f;
-        ImGui.GetStyle().ScaleAllSizes(1.5f);
+        io.FontGlobalScale = 1.25f;
+        io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 16);
+        //io.Fonts.AddFontFromFileTTF("Content/fonts/FiraCode-Regular.ttf", 16);
+        ImGui.GetStyle().ScaleAllSizes(1.25f);
+        ImGuiRenderer.RebuildFontAtlas();
 
         PurpleComfyTheme.SetupImGuiStyle();
 
