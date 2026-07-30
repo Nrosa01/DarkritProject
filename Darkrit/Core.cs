@@ -159,6 +159,8 @@ public class Core : Game
     /// </summary>
     public static bool ExitOnEscape { get; set; }
 
+    public static Viewport Viewport { get; private set;  }
+
     private RenderTarget2D _sceneTarget;
     private ImTextureRef _sceneTextureId;
 
@@ -298,8 +300,8 @@ public class Core : Game
         ImGuiRenderer.BeforeLayout(gameTime);
         GraphicsDevice.Clear(Color.CornflowerBlue);
         s_activeScene?.Draw(gameTime);
-    
-        if(_showEditor)
+
+        if (_showEditor)
         {
             RenderWithDocking(() =>
             {
@@ -312,7 +314,8 @@ public class Core : Game
         else
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-                s_activeScene?.Draw(gameTime);
+            s_activeScene?.Draw(gameTime);
+            Viewport = GraphicsDevice.Viewport;
         }
 
         ImGuiRenderer.AfterLayout();
@@ -334,13 +337,35 @@ public class Core : Game
         base.Draw(gameTime);
     }
 
+
+    public static Vector2 ScreenToViewport(Vector2 screen, Viewport viewport)
+    {
+        return new Vector2(
+            screen.X - viewport.X,
+            screen.Y - viewport.Y);
+    }
+
+    public static Vector2 ViewportToNdc(Vector2 viewportPos, Viewport viewport)
+    {
+        return new Vector2(
+            viewportPos.X / viewport.Width * 2f - 1f,
+            1f - viewportPos.Y / viewport.Height * 2f);
+    }
+
     private void RenderWithDocking(Action renderAction, GameTime gameTime)
     {
         ImGui.DockSpaceOverViewport();
 
         ImGui.Begin("Scene");
 
+        Vector2 viewportPos = ImGui.GetCursorScreenPos();
         Vector2 viewportSize = ImGui.GetContentRegionAvail();
+
+        Viewport = new(
+            (int)viewportPos.X,
+            (int)viewportPos.Y,
+            (int)viewportSize.X,
+            (int)viewportSize.Y);
 
         UpdateViewportResize(viewportSize, gameTime);
 

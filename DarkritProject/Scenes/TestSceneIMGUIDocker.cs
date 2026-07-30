@@ -1,4 +1,5 @@
 using System.IO;
+using Darkrit.DevTools.Logger;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
@@ -26,10 +27,11 @@ namespace Darkrit.Scenes
         InputAction moveLeft;
         InputAction moveRight;
         FontSystem _fontSystem;
+        Camera camera = new();
 
         public override void Initialize()
         {
-            position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
+            //position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
 
             // Create the texture atlas from the XML configuration file.
             TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
@@ -88,7 +90,31 @@ namespace Darkrit.Scenes
             if(!Core.Input.IsEnabled)
                 return;
 
-            position = Core.Input.GetMousePosition().ToVector2() - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
+            if (moveUp.IsPressed)
+            {
+                velocity.Y = 1;
+            }
+            else if (moveDown.IsPressed)
+            {
+                velocity.Y = -1;
+            }
+            else
+                velocity.Y = 0;
+
+            if (moveLeft.IsPressed)
+            {
+                velocity.X = -1;
+            }
+            else if (moveRight.IsPressed)
+            {
+                velocity.X = 1;
+            }
+            else
+                velocity.X = 0;
+
+            position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            //position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
         }
 
         public override void DebugDraw(GameTime gameTime)
@@ -98,6 +124,8 @@ namespace Darkrit.Scenes
             ImGui.Checkbox("Pause", ref paused);
 
             ImGui.End();
+
+            camera.EditorDraw();
         }
 
         public override void Draw(GameTime gameTime)
@@ -107,7 +135,7 @@ namespace Darkrit.Scenes
 
             if (!render) return;
 
-            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport));
             slimeAnimation.Draw(Core.SpriteBatch, position);
             Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(-50, -30), Color.White);
             Core.SpriteBatch.End();
