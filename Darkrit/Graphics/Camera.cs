@@ -15,7 +15,7 @@ namespace Darkrit.Graphics
 
         public float Rotation { get; set; } = 0f;
 
-        public Vector2 Zoom { get; set; } = Vector2.One;
+        public float Zoom { get; set; } = 1.0f;
 
         public void EditorDraw()
         {
@@ -43,9 +43,9 @@ namespace Darkrit.Graphics
             ImGui.SliderFloat("##rotation", ref rotation, 0f, 360.0f);
             Rotation = float.DegreesToRadians(rotation);
 
-            float zoom = Zoom.X;
+            float zoom = Zoom;
             ImGui.SliderFloat("##scale", ref zoom, 0.1f, 5.0f);
-            Zoom = Vector2.One * zoom;
+            Zoom = zoom;
 
             ImGui.End();
         }
@@ -54,8 +54,8 @@ namespace Darkrit.Graphics
         {
             return
                 Matrix.CreateTranslation(-Position.X, -Position.Y, 0) *
-                Matrix.CreateRotationZ(-Rotation) *
-                Matrix.CreateScale(Zoom.X, Zoom.Y, 1) *
+                Matrix.CreateRotationZ(Rotation) *
+                Matrix.CreateScale(Zoom, -Zoom, 1) *
                 Matrix.CreateTranslation(
                     viewport.Width * 0.5f,
                     viewport.Height * 0.5f,
