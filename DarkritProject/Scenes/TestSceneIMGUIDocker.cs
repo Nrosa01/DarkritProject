@@ -45,10 +45,10 @@ namespace Darkrit.Scenes
             // Create the animated sprite for the slime from the atlas.
             
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
-            slimeAnimation.Scale = new Vector2(2.0f, 2.0f);
+            slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
             sprite = new Sprite(slimeAnimation.Animation.Frames[0])
             {
-                Scale = Vector2.One * 2
+                Scale = Vector2.One * 4
             };
 
             moveUp = Core.Input.CreateAction("Move Up").AddBindings([
@@ -143,10 +143,7 @@ namespace Darkrit.Scenes
 
             if (!render) return;
 
-            position = Vector2.Zero;
-            Core.SpriteBatch.Begin( samplerState: SamplerState.PointClamp,
-                                    transformMatrix: camera.GetViewMatrix(Core.Viewport),
-                                    rasterizerState: RasterizerState.CullNone);
+            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
             slimeAnimation.Draw(Core.SpriteBatch, position);
             //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
             Core.SpriteBatch.Draw(Core.Pixel, Vector2.Zero, Color.Red);
