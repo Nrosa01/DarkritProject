@@ -241,7 +241,7 @@ public class Core : Game
         if (Input.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
             ImGui.SetWindowFocus();
 
-        if (!_viewportFocused)
+        if (!_viewportFocused && _showEditor)
             Input.Disable();
 
 
@@ -343,7 +343,7 @@ public class Core : Game
     {
         ImGui.DockSpaceOverViewport();
 
-        ImGui.Begin("Scene");
+        ImGui.Begin("Viewport");
 
         Vector2 viewportPos = ImGui.GetCursorScreenPos();
         Vector2 viewportSize = ImGui.GetContentRegionAvail();
