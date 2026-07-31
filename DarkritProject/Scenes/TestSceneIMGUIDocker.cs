@@ -147,7 +147,7 @@ namespace Darkrit.Scenes
             slimeAnimation.Draw(Core.SpriteBatch, position);
             //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
             Core.SpriteBatch.Draw(Core.Pixel, Vector2.Zero, Color.Red);
-            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(0, 0), Color.White, scale: new Vector2(1, -1));
+            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(0, -30), Color.White);
             Core.SpriteBatch.End();
         }
 

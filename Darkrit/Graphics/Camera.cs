@@ -55,7 +55,7 @@ namespace Darkrit.Graphics
             return
                 Matrix.CreateTranslation(-Position.X, Position.Y, 0) *
                 Matrix.CreateRotationZ(Rotation) *
-                Matrix.CreateScale(Zoom, -Zoom, 1) *
+                Matrix.CreateScale(Zoom, Zoom, 1) *
                 Matrix.CreateTranslation(
                     viewport.Width * 0.5f,
                     viewport.Height * 0.5f,

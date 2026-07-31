@@ -127,7 +127,7 @@ public class TextureRegion
             rotation,
             origin,
             scale,
-            SpriteEffects.FlipVertically,
+            effects,
             layerDepth
         );
     }
