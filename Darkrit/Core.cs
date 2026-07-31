@@ -238,9 +238,11 @@ public class Core : Game
         if (Input.WasKeyJustPressed(Keys.F11))
             _showEditor = !_showEditor;
 
-        if (!_viewportFocused && !_viewportHovered)
-            Input.Disable();
+        if (Input.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
+            ImGui.SetWindowFocus();
 
+        if (!_viewportFocused)
+            Input.Disable();
 
 
         // Update the input manager.
