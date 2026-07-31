@@ -135,9 +135,11 @@ namespace Darkrit.Scenes
 
             if (!render) return;
 
-            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
+            Core.SpriteBatch.Begin( samplerState: SamplerState.PointClamp,
+                                    transformMatrix: camera.GetViewMatrix(Core.Viewport),
+                                    rasterizerState: RasterizerState.CullNone);
             slimeAnimation.Draw(Core.SpriteBatch, position);
-            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(-50, -30), Color.White);
+            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(-50, +30), Color.White, scale: new Vector2(1, -1));
             Core.SpriteBatch.End();
         }
 

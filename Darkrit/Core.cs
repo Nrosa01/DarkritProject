@@ -337,21 +337,6 @@ public class Core : Game
         base.Draw(gameTime);
     }
 
-
-    public static Vector2 ScreenToViewport(Vector2 screen, Viewport viewport)
-    {
-        return new Vector2(
-            screen.X - viewport.X,
-            screen.Y - viewport.Y);
-    }
-
-    public static Vector2 ViewportToNdc(Vector2 viewportPos, Viewport viewport)
-    {
-        return new Vector2(
-            viewportPos.X / viewport.Width * 2f - 1f,
-            1f - viewportPos.Y / viewport.Height * 2f);
-    }
-
     private void RenderWithDocking(Action renderAction, GameTime gameTime)
     {
         ImGui.DockSpaceOverViewport();
@@ -474,6 +459,9 @@ public class Core : Game
         // Set the core's graphics device to a reference of the base Game's
         // graphics device.
         GraphicsDevice = base.GraphicsDevice;
+
+        //GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+        //GraphicsDevice.RasterizerState = RasterizerState.CullNone;
 
         // Create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
