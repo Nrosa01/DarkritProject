@@ -125,7 +125,7 @@ public class TextureRegion
             SourceRectangle,
             color,
             rotation,
-            origin,
+            origin with { Y = Height - origin.Y },
             scale,
             SpriteEffects.FlipVertically,
             layerDepth

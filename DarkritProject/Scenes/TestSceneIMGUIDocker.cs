@@ -1,4 +1,3 @@
-using System.IO;
 using Darkrit.DevTools.Logger;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
@@ -8,8 +7,11 @@ using FontStashSharp;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using RenderingLibrary.Graphics;
+using System.IO;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 using Key = Microsoft.Xna.Framework.Input.Keys;
+using Sprite = Darkrit.Graphics.Sprite;
 
 namespace Darkrit.Scenes
 {
@@ -19,6 +21,7 @@ namespace Darkrit.Scenes
         static bool render = true;
 
         AnimatedSprite slimeAnimation;
+        Sprite sprite;
         Vector2 position;
         Vector2 velocity;
         private float speed = 500f;
@@ -40,8 +43,13 @@ namespace Darkrit.Scenes
             _fontSystem.AddFont(File.ReadAllBytes(Path.Combine(Content.RootDirectory, @"fonts/FiraCode-Regular.ttf")));
 
             // Create the animated sprite for the slime from the atlas.
+            
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
-            slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
+            slimeAnimation.Scale = new Vector2(2.0f, 2.0f);
+            sprite = new Sprite(slimeAnimation.Animation.Frames[0])
+            {
+                Scale = Vector2.One * 2
+            };
 
             moveUp = Core.Input.CreateAction("Move Up").AddBindings([
                 new KeyboardBinding(Key.Up),
@@ -135,11 +143,14 @@ namespace Darkrit.Scenes
 
             if (!render) return;
 
+            position = Vector2.Zero;
             Core.SpriteBatch.Begin( samplerState: SamplerState.PointClamp,
                                     transformMatrix: camera.GetViewMatrix(Core.Viewport),
                                     rasterizerState: RasterizerState.CullNone);
             slimeAnimation.Draw(Core.SpriteBatch, position);
-            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(-50, +30), Color.White, scale: new Vector2(1, -1));
+            //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
+            Core.SpriteBatch.Draw(Core.Pixel, Vector2.Zero, Color.Red);
+            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(0, 0), Color.White, scale: new Vector2(1, -1));
             Core.SpriteBatch.End();
         }
 
