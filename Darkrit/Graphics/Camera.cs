@@ -53,7 +53,7 @@ namespace Darkrit.Graphics
         public Matrix GetViewMatrix(Viewport viewport)
         {
             return
-                Matrix.CreateTranslation(-Position.X, -Position.Y, 0) *
+                Matrix.CreateTranslation(-Position.X, Position.Y, 0) *
                 Matrix.CreateRotationZ(Rotation) *
                 Matrix.CreateScale(Zoom, -Zoom, 1) *
                 Matrix.CreateTranslation(
