@@ -3,7 +3,7 @@ using Darkrit.Graphics.InstancedQuadRenderer;
 using Frent;
 using Frent.Core;
 using Frent.Systems;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -31,11 +31,11 @@ namespace Darkrit.Scenes
         static TinyECSMode tinyEcsMode = TinyECSMode.DelegateParallel;
         readonly string[] frentNames = Enum.GetNames<FrentMode>();
         readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
-        static bool paused = true;
-        static bool render = false;
-        static bool renderInstanced = false;
+        static bool paused = false;
+        static bool render = true;
+        static bool renderInstanced = true;
 
-        const int worldSize = 500_000;
+        const int worldSize = 10_000;
 
 
         Darkrit.TinyECS.Registry world;
@@ -81,7 +81,6 @@ namespace Darkrit.Scenes
 
                 for (var i = 0; i < worldSize; i++)
                 {
-                    var spacing = .2f;
                     var entity = world.Create();
                     world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight / 2 });
                     world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });

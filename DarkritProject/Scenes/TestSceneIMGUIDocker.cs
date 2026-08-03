@@ -3,20 +3,25 @@ using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
 using Darkrit.Utilities;
+using FontStashSharp;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using RenderingLibrary.Graphics;
+using System.IO;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 using Key = Microsoft.Xna.Framework.Input.Keys;
+using Sprite = Darkrit.Graphics.Sprite;
 
 namespace Darkrit.Scenes
 {
-    internal class TestSceneInput : Scene
+    internal class TestSceneIMGUIDocker : Scene
     {
         static bool paused = false;
         static bool render = true;
 
         AnimatedSprite slimeAnimation;
+        Sprite sprite;
         Vector2 position;
         Vector2 velocity;
         private float speed = 500f;
@@ -24,18 +29,27 @@ namespace Darkrit.Scenes
         InputAction moveDown;
         InputAction moveLeft;
         InputAction moveRight;
+        FontSystem _fontSystem;
+        Camera camera = new();
 
         public override void Initialize()
         {
-            position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
+            //position = new Vector2(Core.GraphicsDevice.Viewport.Width * 0.5f, Core.GraphicsDevice.Viewport.Height * 0.5f);
 
             // Create the texture atlas from the XML configuration file.
             TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
+            _fontSystem = new FontSystem();
+            _fontSystem.AddFont(File.ReadAllBytes(Path.Combine(Content.RootDirectory, @"fonts/FiraCode-Regular.ttf")));
 
             // Create the animated sprite for the slime from the atlas.
+            
             slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
             slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
+            sprite = new Sprite(slimeAnimation.Animation.Frames[0])
+            {
+                Scale = Vector2.One * 4
+            };
 
             moveUp = Core.Input.CreateAction("Move Up").AddBindings([
                 new KeyboardBinding(Key.Up),
@@ -81,15 +95,16 @@ namespace Darkrit.Scenes
 
         private void HandleInput(GameTime gameTime)
         {
+            if(!Core.Input.IsEnabled)
+                return;
+
             if (moveUp.IsPressed)
             {
-                velocity.Y = -1;
-                Log.Info("Move up pressed");
+                velocity.Y = 1;
             }
             else if (moveDown.IsPressed)
             {
-                velocity.Y = 1;
-                Log.Debug("Move Down Pressed");
+                velocity.Y = -1;
             }
             else
                 velocity.Y = 0;
@@ -97,17 +112,17 @@ namespace Darkrit.Scenes
             if (moveLeft.IsPressed)
             {
                 velocity.X = -1;
-                Log.Warning("Pressed left");
             }
             else if (moveRight.IsPressed)
             {
                 velocity.X = 1;
-                Log.Trace("Pressed right");
             }
             else
                 velocity.X = 0;
 
             position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
         }
 
         public override void DebugDraw(GameTime gameTime)
@@ -117,6 +132,8 @@ namespace Darkrit.Scenes
             ImGui.Checkbox("Pause", ref paused);
 
             ImGui.End();
+
+            camera.EditorDraw();
         }
 
         public override void Draw(GameTime gameTime)
@@ -126,8 +143,11 @@ namespace Darkrit.Scenes
 
             if (!render) return;
 
-            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
             slimeAnimation.Draw(Core.SpriteBatch, position);
+            //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
+            Core.SpriteBatch.Draw(Core.Pixel, Vector2.Zero, Color.Red);
+            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(0, -30), Color.White);
             Core.SpriteBatch.End();
         }
 

@@ -1,15 +1,20 @@
+using Darkrit.Base;
 using Darkrit.Content;
+using Darkrit.DevTools.Logger;
+using Darkrit.DevTools.Logger.Renderers;
 using Darkrit.Graphics;
+using Darkrit.ImGuiUtils.Themes;
 using Darkrit.InputSystem;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
-using ImGuiNET;
-using ImGuiNET.SampleProgram.XNA;
+using ExampleMonoGame;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -19,6 +24,9 @@ namespace Darkrit;
 
 public class Core : Game
 {
+
+    // Loggers
+    ImGuiLoggerConsole ImGuiLoggerConsole { get; set; }
 
     #region Stats
     private const int HistorySize = 240;
@@ -151,6 +159,20 @@ public class Core : Game
     /// </summary>
     public static bool ExitOnEscape { get; set; }
 
+    public static Viewport Viewport { get; private set;  }
+
+    private RenderTarget2D _sceneTarget;
+    private ImTextureRef _sceneTextureId;
+
+    private Point _pendingViewportSize;
+    private float _resizeDelay;
+    private bool _hasPendingResize;
+    private const float ResizeDelaySeconds = 0.01f;
+
+    private bool _showEditor = true;
+    private bool _viewportHovered = false;
+    private bool _viewportFocused = false;
+
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -184,6 +206,10 @@ public class Core : Game
         // Set the window title.
         Window.Title = title;
 
+#if PUBLISHED
+#else
+        Window.AllowUserResizing = true;
+#endif
         // Set the core's content manager to a reference of the base Game's
         // content manager.
         Content = base.Content;
@@ -196,11 +222,28 @@ public class Core : Game
 
         // Create a new input manager.
         Input = new Darkrit.InputSystem.Input();
+
+        var imguiLogger = new ImGuiLogger();
+        ImGuiLoggerConsole = new(imguiLogger);
+        Log.AddLogger(imguiLogger);
     }
 
     protected override void Update(GameTime gameTime)
     {
         FMOD.Update();
+
+        Input.Enable();
+        Input.Update(gameTime);
+
+        if (Input.WasKeyJustPressed(Keys.F11))
+            _showEditor = !_showEditor;
+
+        if (Input.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
+            ImGui.SetWindowFocus();
+
+        if (!_viewportFocused && _showEditor)
+            Input.Disable();
+
 
         // Update the input manager.
         Input.Update(gameTime);
@@ -234,11 +277,50 @@ public class Core : Game
         base.Update(gameTime);
     }
 
+    readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
+
+    internal void EditorDraw(GameTime gameTime)
+    {
+        s_activeScene?.DebugDraw(gameTime);
+        ImGuiLoggerConsole.Draw(gameTime);
+
+        ImGui.Begin("Scene Switcher");
+
+        foreach (var sceneType in _sceneTypes)
+        {
+            if (ImGui.Button(sceneType.Name))
+                ChangeScene((Scene)Activator.CreateInstance(sceneType));
+        }
+
+        ImGui.End();
+    }
+
     protected override void Draw(GameTime gameTime)
     {
         _frameTimer.Restart();
-        // If there is an active scene, draw it.
+
+        ImGuiRenderer.BeforeLayout(gameTime);
+        GraphicsDevice.Clear(Color.CornflowerBlue);
         s_activeScene?.Draw(gameTime);
+
+        if (_showEditor)
+        {
+            RenderWithDocking(() =>
+            {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+                s_activeScene?.Draw(gameTime);
+                EditorDraw(gameTime);
+                Material.DrawVisibleDebugUi();
+            }, gameTime);
+        }
+        else
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            s_activeScene?.Draw(gameTime);
+            Viewport = GraphicsDevice.Viewport;
+        }
+
+        ImGuiRenderer.AfterLayout();
 
         _frameTimer.Stop();
 
@@ -254,13 +336,81 @@ public class Core : Game
         const float alpha = 0.05f;
         _cpuRenderAverageMs += (_cpuRenderMs - _cpuRenderAverageMs) * alpha;
 
-        Core.ImGuiRenderer.BeforeLayout(gameTime);
-        s_activeScene?.DebugDraw(gameTime);
-        Material.DrawVisibleDebugUi();
-        DrawStats();
-        Core.ImGuiRenderer.AfterLayout();
-
         base.Draw(gameTime);
+    }
+
+    private void RenderWithDocking(Action renderAction, GameTime gameTime)
+    {
+        ImGui.DockSpaceOverViewport();
+
+        ImGui.Begin("Viewport");
+
+        Vector2 viewportPos = ImGui.GetCursorScreenPos();
+        Vector2 viewportSize = ImGui.GetContentRegionAvail();
+
+        Viewport = new(
+            (int)viewportPos.X,
+            (int)viewportPos.Y,
+            (int)viewportSize.X,
+            (int)viewportSize.Y);
+
+        UpdateViewportResize(viewportSize, gameTime);
+
+        ImGui.Image(_sceneTextureId, viewportSize.ToSystemVector2());
+
+        _viewportHovered = ImGui.IsWindowHovered();
+        _viewportFocused = ImGui.IsWindowFocused();
+
+        ImGui.End();
+
+        GraphicsDevice.SetRenderTarget(_sceneTarget);
+
+        renderAction?.Invoke();
+
+        GraphicsDevice.SetRenderTarget(null);
+
+        DrawStats();
+    }
+
+    private void UpdateViewportResize(Vector2 viewportSize, GameTime gameTime)
+    {
+        var size = new Point(
+            SMath.Max(1, (int)viewportSize.X),
+            SMath.Max(1, (int)viewportSize.Y));
+
+        if (size != _pendingViewportSize)
+        {
+            _pendingViewportSize = size;
+            _resizeDelay = ResizeDelaySeconds;
+            _hasPendingResize = true;
+        }
+
+        if (!_hasPendingResize)
+            return;
+
+        _resizeDelay -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        if (_resizeDelay <= 0 &&
+            (_sceneTarget.Width != size.X || _sceneTarget.Height != size.Y))
+        {
+            ResizeSceneTarget(_pendingViewportSize);
+            _hasPendingResize = false;
+        }
+    }
+
+    private void ResizeSceneTarget(Point size)
+    {
+        Core.ImGuiRenderer.UnbindTexture(_sceneTextureId);
+
+
+        _sceneTarget.Dispose();
+
+        _sceneTarget = new RenderTarget2D(
+            GraphicsDevice,
+            size.X,
+            size.Y);
+
+        _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
     }
 
     public static void ChangeScene(Scene next)
@@ -312,6 +462,9 @@ public class Core : Game
         // graphics device.
         GraphicsDevice = base.GraphicsDevice;
 
+        //GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+        //GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+
         // Create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -321,12 +474,31 @@ public class Core : Game
 
         // Create the ImGui renderer.
         ImGuiRenderer = new ImGuiRenderer(this);
-        ImGuiRenderer.RebuildFontAtlas();
 
         // Optional: Scale text and widgets for easier readability.
         var io = ImGui.GetIO();
-        io.FontGlobalScale = 1.75f;
-        ImGui.GetStyle().ScaleAllSizes(1.5f);
 
+        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
+        //io.FontGlobalScale = 1.25f;
+        unsafe
+        {
+           io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 20);
+        }
+        //io.Fonts.AddFontFromFileTTF("Content/fonts/FiraCode-Regular.ttf", 16);
+        ImGui.GetStyle().ScaleAllSizes(1.25f);
+
+        PurpleComfyTheme.SetupImGuiStyle();
+
+        _sceneTarget = new RenderTarget2D(
+            GraphicsDevice,
+            1280,
+            720,
+            false,
+            SurfaceFormat.Color,
+            DepthFormat.Depth24);
+
+        _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
     }
 }
