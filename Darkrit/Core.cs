@@ -169,9 +169,30 @@ public class Core : Game
     private bool _hasPendingResize;
     private const float ResizeDelaySeconds = 0.01f;
 
-    private bool _showEditor = true;
-    private bool _viewportHovered = false;
-    private bool _viewportFocused = false;
+    private static bool _showEditor = true;
+    private static bool _viewportFocused = false;
+    private static bool IsGameNotFocused => !_viewportFocused && _showEditor;
+
+    public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
+
+    // this will be the FixedUpdate frequency, we set it to 30 FPS
+    private float fixedUpdateDelta = (int)(1000 / (float)PHYSICS_TICKS_PER_SECOND);
+
+    // helper variables for the fixed update
+    private float previousT = 0;
+    private float accumulator = 0.0f;
+    private float maxFrameTime = 250;
+
+    // Elapsed time here will be fake, set to fixedUpdateDelta
+    // A difference instance from the normal game time is not really needed
+    // but I prefer diong the separation
+    private GameTime physicsGameTime = new();
+
+
+    // this value stores how far we are in the current frame. For example, when the 
+    // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
+    // next upcoming frame.
+    public static float FixedUpdateAlpha { get; private set; }  = 0;
 
     /// <summary>
     /// Creates a new Core instance.
@@ -228,6 +249,39 @@ public class Core : Game
         Log.AddLogger(imguiLogger);
     }
 
+    protected void FixedUpdate(GameTime gameTime)
+    {
+        if (previousT == 0)
+        {
+            previousT = (float)gameTime.TotalGameTime.TotalMilliseconds;
+        }
+
+        float now = (float)gameTime.TotalGameTime.TotalMilliseconds;
+        float frameTime = now - previousT;
+        if (frameTime > maxFrameTime)
+        {
+            frameTime = maxFrameTime;
+        }
+
+        previousT = now;
+
+        accumulator += frameTime;
+
+        while (accumulator >= fixedUpdateDelta)
+        {
+            physicsGameTime.TotalGameTime = gameTime.TotalGameTime;
+            physicsGameTime.IsRunningSlowly = gameTime.IsRunningSlowly;
+            physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(fixedUpdateDelta);
+            s_activeScene?.FixedUpdate(physicsGameTime);
+            accumulator -= fixedUpdateDelta;
+        }
+
+        // this value stores how far we are in the current frame. For example, when the 
+        // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
+        // next upcoming frame.
+        FixedUpdateAlpha = (accumulator / fixedUpdateDelta);
+    }
+
     protected override void Update(GameTime gameTime)
     {
         FMOD.Update();
@@ -241,7 +295,7 @@ public class Core : Game
         if (Input.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
             ImGui.SetWindowFocus();
 
-        if (!_viewportFocused && _showEditor)
+        if (IsGameNotFocused)
             Input.Disable();
 
 
@@ -262,6 +316,8 @@ public class Core : Game
 
         // If there is an active scene, update it.
         s_activeScene?.Update(gameTime);
+
+        FixedUpdate(gameTime);
 
         _processTimer.Stop();
 
@@ -358,7 +414,6 @@ public class Core : Game
 
         ImGui.Image(_sceneTextureId, viewportSize.ToSystemVector2());
 
-        _viewportHovered = ImGui.IsWindowHovered();
         _viewportFocused = ImGui.IsWindowFocused();
 
         ImGui.End();

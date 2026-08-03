@@ -9,9 +9,9 @@ namespace Darkrit.InputSystem.Bindings;
 /// </summary>
 internal class GamepadButtonBinding(PlayerIndex playerIndex, Buttons button) : IInputBinding
 {
-    IInputProvider provider;
+    ISerializableInputProvider provider;
 
-    IInputProvider IInputBinding.provider { set => provider = value; }
+    ISerializableInputProvider IInputBinding.provider { set => provider = value; }
 
     public GamepadButtonBinding(Buttons button)
         : this(PlayerIndex.One, button) { }

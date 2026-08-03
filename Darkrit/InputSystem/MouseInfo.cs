@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Darkrit.InputSystem.ReplaySystem;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem;
@@ -185,5 +186,20 @@ public class MouseInfo
             CurrentState.XButton1,
             CurrentState.XButton2
         );
+    }
+
+    internal MouseFrame CaptureFrame()
+    {
+        Point p = CurrentState.Position;
+        return new MouseFrame
+        {
+            Left = CurrentState.LeftButton == ButtonState.Pressed,
+            Right = CurrentState.RightButton == ButtonState.Pressed,
+            Middle = CurrentState.MiddleButton == ButtonState.Pressed,
+            Position = new(p.X, p.Y),
+            Wheel = CurrentState.ScrollWheelValue,
+            X1 = CurrentState.XButton1 == ButtonState.Pressed,
+            X2 = CurrentState.XButton2 == ButtonState.Pressed
+        };
     }
 }

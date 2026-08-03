@@ -1,4 +1,5 @@
 ﻿using Darkrit.InputSystem.Bindings;
+using Darkrit.InputSystem.ReplaySystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -7,7 +8,7 @@ namespace Darkrit.InputSystem.Providers;
 /// <summary>
 /// Input provider that reads input data from hardware devices.
 /// </summary>
-public class PhysicalInputProvider : IInputProvider
+public class PhysicalInputProvider : ISerializableInputProvider
 {
     private readonly KeyboardInfo _keyboard;
     private readonly MouseInfo _mouse;
@@ -70,5 +71,15 @@ public class PhysicalInputProvider : IInputProvider
             GamepadAxis.RightTrigger => gp.RightTrigger,
             _ => 0f
         };
+    }
+
+    InputFrame ISerializableInputProvider.CaptureFrame()
+    {
+        return new InputFrame
+        {
+            GamePads = [_gamePads[0].CaptureFrame()], // For now, just one gamepad, I probably won't need more
+            Mouse = _mouse.CaptureFrame(),
+            Keyboard = _keyboard.CaptureFrame()
+        }; 
     }
 }

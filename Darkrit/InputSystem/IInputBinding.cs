@@ -4,7 +4,7 @@ namespace Darkrit.InputSystem;
 
 public interface IInputBinding
 {
-    internal IInputProvider provider { set; }
+    internal ISerializableInputProvider provider { set; }
 
     public bool Pressed();
     public bool Released() => !Pressed();

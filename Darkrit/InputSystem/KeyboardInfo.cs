@@ -1,9 +1,13 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿using System;
+using Darkrit.InputSystem.ReplaySystem;
+using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem;
 
 public class KeyboardInfo
 {
+    internal readonly Keys[] Keys = new Keys[256];
+
     /// <summary>
     /// Gets the state of keyboard input during the previous update cycle.
     /// </summary>
@@ -70,5 +74,20 @@ public class KeyboardInfo
     public bool WasKeyJustReleased(Keys key)
     {
         return CurrentState.IsKeyUp(key) && PreviousState.IsKeyDown(key);
+    }
+
+    private static readonly Keys[] AllKeys = Enum.GetValues<Keys>();
+
+    internal KeyboardFrame CaptureFrame()
+    {
+        KeyboardFrame frame = default;
+
+        foreach (Keys key in AllKeys)
+        {
+            if (CurrentState.IsKeyDown(key))
+                frame.Set(key);
+        }
+
+        return frame;
     }
 }

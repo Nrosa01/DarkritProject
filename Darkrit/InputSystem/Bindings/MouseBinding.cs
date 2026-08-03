@@ -7,8 +7,8 @@ namespace Darkrit.InputSystem.Bindings;
 /// </summary>
 public class MouseBinding(MouseButton button) : IInputBinding
 {
-    IInputProvider provider;
-    IInputProvider IInputBinding.provider { set => provider = value; }
+    ISerializableInputProvider provider;
+    ISerializableInputProvider IInputBinding.provider { set => provider = value; }
     public bool Pressed() => provider.IsMouseButtonDown(button);
     public bool Released() => provider.IsMouseButtonUp(button);
     public bool PressedThisFrame() => provider.WasMouseButtonJustPressed(button);

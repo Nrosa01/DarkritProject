@@ -7,7 +7,7 @@ namespace Darkrit.InputSystem.Providers;
 /// <summary>
 /// Input provider that returns false or default values. Useful for ignoring all inputs.
 /// </summary>
-public class NullInputProvider : IInputProvider
+public class NullInputProvider : ISerializableInputProvider
 {
     public void Update(GameTime gameTime)
     {
