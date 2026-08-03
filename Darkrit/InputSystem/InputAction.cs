@@ -9,7 +9,7 @@ namespace Darkrit.InputSystem;
 /// Represents an input action with one or more bindings
 /// It currently works making an OR of all bindings, Compound modes will be added soon
 /// </summary>
-public class InputAction(string name, ISerializableInputProvider provider)
+public class InputAction(string name, IInputProvider provider)
 {
     private readonly List<IInputBinding> _bindings = [];
 

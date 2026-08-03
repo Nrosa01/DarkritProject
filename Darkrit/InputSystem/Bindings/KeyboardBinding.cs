@@ -10,9 +10,9 @@ namespace Darkrit.InputSystem.Bindings;
 /// <param name="provider"></param>
 public class KeyboardBinding(Keys key) : IInputBinding
 {
-    ISerializableInputProvider provider;
+    IInputProvider provider;
 
-    ISerializableInputProvider IInputBinding.provider { set => provider = value; }
+    IInputProvider IInputBinding.provider { set => provider = value; }
 
     public bool Pressed() => provider.IsKeyDown(key);
     public bool PressedThisFrame() => provider.WasKeyJustPressed(key);

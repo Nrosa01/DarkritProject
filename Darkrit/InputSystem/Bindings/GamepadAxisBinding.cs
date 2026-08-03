@@ -29,9 +29,9 @@ namespace Darkrit.InputSystem.Bindings
         GamepadAxis axis,
         float deadZone = 0.2f) : IInputBinding
     {
-        ISerializableInputProvider provider;
+        IInputProvider provider;
 
-        ISerializableInputProvider IInputBinding.provider { set => provider = value; }
+        IInputProvider IInputBinding.provider { set => provider = value; }
 
         // Simplified constructor for when there is only one player
         public GamepadAxisBinding(GamepadAxis axis, float deadZone = 0.2f)
