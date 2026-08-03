@@ -15,7 +15,7 @@ public class InputMap
     /// <summary>
     /// Adds a new action to the map
     /// </summary>
-    public InputAction AddAction(string name, IInputProvider provider)
+    public InputAction AddAction(string name, ISerializableInputProvider provider)
     {
         var action = new InputAction(name, provider);
 

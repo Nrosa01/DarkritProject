@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Darkrit.InputSystem.ReplaySystem;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
 
@@ -127,4 +128,17 @@ public class GamePadInfo
     /// Stops the vibration of all motors for this gamepad.
     /// </summary>
     public void StopVibration() => GamePad.SetVibration(PlayerIndex, 0.0f, 0.0f);
+
+    internal GamePadFrame CaptureFrame()
+    {
+        return new GamePadFrame
+        {
+            Buttons = (GamePadButtons)CurrentState.Buttons.Buttons,
+            Connected = CurrentState.IsConnected,
+            LeftStick = CurrentState.ThumbSticks.Left.ToNumerics(),
+            RightStick = CurrentState.ThumbSticks.Right.ToNumerics(),
+            LeftTrigger = CurrentState.Triggers.Left,
+            RightTrigger = CurrentState.Triggers.Right
+        };
+    }
 }

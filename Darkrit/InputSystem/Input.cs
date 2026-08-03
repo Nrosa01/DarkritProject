@@ -14,10 +14,10 @@ namespace Darkrit.InputSystem;
 /// Creates a new Input instance that uses a certain provider
 /// </remarks>
 /// <param name="provider">Input provider to use.</param>
-public class Input(IInputProvider provider) : IInputProvider
+public class Input(ISerializableInputProvider provider) : ISerializableInputProvider
 {
-    private IInputProvider _currentProvider = provider;
-    private IInputProvider _mainProvider = provider;
+    private ISerializableInputProvider _currentProvider = provider;
+    private ISerializableInputProvider _mainProvider = provider;
     private NullInputProvider _nullInput = new();
     private InputMap _actionMap = new();
 
@@ -28,7 +28,7 @@ public class Input(IInputProvider provider) : IInputProvider
     public void Disable() => _currentProvider = _nullInput;
 
     /// <summary>
-    /// Enables the provider you set via the constructor or the <see cref="SetProvider(IInputProvider)"/> call
+    /// Enables the provider you set via the constructor or the <see cref="SetProvider(ISerializableInputProvider)"/> call
     /// </summary>
     public void Enable() => _currentProvider = _mainProvider;
 
@@ -42,7 +42,7 @@ public class Input(IInputProvider provider) : IInputProvider
     /// <summary>
     /// Current hardware provider
     /// </summary>
-    public IInputProvider Provider => _currentProvider;
+    public ISerializableInputProvider Provider => _currentProvider;
 
     /// <summary>
     /// Creates a new instance using the physics input provider by default
@@ -55,7 +55,7 @@ public class Input(IInputProvider provider) : IInputProvider
     /// Changes the input provider in runtime.
     /// This is mainly thought for using a ReplayInputProvider
     /// </summary>
-    public void SetProvider(IInputProvider newProvider) => _mainProvider = newProvider;
+    public void SetProvider(ISerializableInputProvider newProvider) => _mainProvider = newProvider;
 
     /// <summary>
     /// Updates all input states.
