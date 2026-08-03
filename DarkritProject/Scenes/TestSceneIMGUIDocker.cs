@@ -23,6 +23,7 @@ namespace Darkrit.Scenes
         AnimatedSprite slimeAnimation;
         Sprite sprite;
         Vector2 position;
+        Vector2 previousPosition;
         Vector2 velocity;
         private float speed = 500f;
         InputAction moveUp;
@@ -83,9 +84,9 @@ namespace Darkrit.Scenes
             Vector2 ve2Value = Input.GetVector(moveLeft, moveRight, moveDown, moveUp);
         }
 
-        public override void Update(GameTime gameTime)
+        public override void FixedUpdate(GameTime gameTime)
         {
-            base.Update(gameTime);
+            base.FixedUpdate(gameTime);
 
             if (paused) return;
 
@@ -120,17 +121,20 @@ namespace Darkrit.Scenes
             else
                 velocity.X = 0;
 
+            previousPosition = position;
             position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
         }
+
+        bool useInterpolation = true;
 
         public override void DebugDraw(GameTime gameTime)
         {
             ImGui.Begin("Test");
             ImGui.Checkbox("Render", ref render);
             ImGui.Checkbox("Pause", ref paused);
-
+            ImGui.Checkbox("Enable Physics Interpolation", ref useInterpolation);
             ImGui.End();
 
             camera.EditorDraw();
@@ -144,10 +148,19 @@ namespace Darkrit.Scenes
             if (!render) return;
 
             Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
-            slimeAnimation.Draw(Core.SpriteBatch, position);
+            
+            if(!useInterpolation)
+            {
+                slimeAnimation.Draw(Core.SpriteBatch, position);
+                Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(0, -30), Color.White);
+            }
+            else
+            {
+                Vector2 lerpedPosition = Vector2.Lerp(previousPosition, position, Core.ALPHA);
+                slimeAnimation.Draw(Core.SpriteBatch, lerpedPosition);
+                Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", lerpedPosition + new Vector2(0, -30), Color.White);
+            }
             //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
-            Core.SpriteBatch.Draw(Core.Pixel, Vector2.Zero, Color.Red);
-            Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", position + new Vector2(0, -30), Color.White);
             Core.SpriteBatch.End();
         }
 

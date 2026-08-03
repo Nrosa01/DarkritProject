@@ -63,6 +63,12 @@ public abstract class Scene : IDisposable
     public virtual void Update(GameTime gameTime) { }
 
     /// <summary>
+    /// Updates this scene.
+    /// </summary>
+    /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
+    public virtual void FixedUpdate(GameTime gameime) { }
+
+    /// <summary>
     /// Draws this scene.
     /// </summary>
     /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
