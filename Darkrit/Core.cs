@@ -169,10 +169,11 @@ public class Core : Game
     private bool _hasPendingResize;
     private const float ResizeDelaySeconds = 0.01f;
 
-    private bool _showEditor = true;
-    private bool _viewportFocused = false;
+    private static bool _showEditor = true;
+    private static bool _viewportFocused = false;
+    private static bool IsGameNotFocused => !_viewportFocused && _showEditor;
 
-    public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 15;
+    public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
     // this will be the FixedUpdate frequency, we set it to 30 FPS
     private float fixedUpdateDelta = (int)(1000 / (float)PHYSICS_TICKS_PER_SECOND);
@@ -191,7 +192,7 @@ public class Core : Game
     // this value stores how far we are in the current frame. For example, when the 
     // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
     // next upcoming frame.
-    public static float ALPHA { get; private set; } = 0;
+    public static float FixedUpdateAlpha { get; private set; }  = 0;
 
     /// <summary>
     /// Creates a new Core instance.
@@ -278,7 +279,7 @@ public class Core : Game
         // this value stores how far we are in the current frame. For example, when the 
         // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
         // next upcoming frame.
-        ALPHA = (accumulator / fixedUpdateDelta);
+        FixedUpdateAlpha = (accumulator / fixedUpdateDelta);
     }
 
     protected override void Update(GameTime gameTime)
@@ -294,7 +295,7 @@ public class Core : Game
         if (Input.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
             ImGui.SetWindowFocus();
 
-        if (!_viewportFocused && _showEditor)
+        if (IsGameNotFocused)
             Input.Disable();
 
 

@@ -96,7 +96,9 @@ namespace Darkrit.Scenes
 
         private void HandleInput(GameTime gameTime)
         {
-            if(!Core.Input.IsEnabled)
+            previousPosition = position;
+
+            if (!Core.Input.IsEnabled)
                 return;
 
             if (moveUp.IsPressed)
@@ -121,7 +123,6 @@ namespace Darkrit.Scenes
             else
                 velocity.X = 0;
 
-            previousPosition = position;
             position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
@@ -156,7 +157,7 @@ namespace Darkrit.Scenes
             }
             else
             {
-                Vector2 lerpedPosition = Vector2.Lerp(previousPosition, position, Core.ALPHA);
+                Vector2 lerpedPosition = Vector2.Lerp(previousPosition, position, Core.FixedUpdateAlpha);
                 slimeAnimation.Draw(Core.SpriteBatch, lerpedPosition);
                 Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", lerpedPosition + new Vector2(0, -30), Color.White);
             }
