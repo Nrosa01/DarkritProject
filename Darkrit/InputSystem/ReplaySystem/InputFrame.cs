@@ -4,10 +4,10 @@ using System.Text;
 
 namespace Darkrit.InputSystem.ReplaySystem
 {
-    internal struct InputFrame
+    internal readonly struct InputFrame
     {
-        public KeyboardFrame Keyboard;
-        public MouseFrame Mouse;
-        public GamePadFrame[] GamePads;
+        public readonly KeyboardFrame Keyboard { get; init; }
+        public readonly MouseFrame Mouse { get; init; }
+        public readonly GamePadFrame[] GamePads { get; init; }
     }
 }

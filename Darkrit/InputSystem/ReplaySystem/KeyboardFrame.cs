@@ -27,7 +27,7 @@ namespace Darkrit.InputSystem.ReplaySystem
             }
         }
 
-        static bool IsPressed(in KeyboardFrame frame, int key)
+        public static bool IsPressed(in KeyboardFrame frame, int key)
         {
             int index = key >> 6;      // /64
             int bit = key & 63;        // %64

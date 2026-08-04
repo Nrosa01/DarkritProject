@@ -6,16 +6,16 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem.ReplaySystem
 {
-    internal struct GamePadFrame
+    internal readonly struct GamePadFrame
     {
-        public bool Connected;
+        public readonly bool Connected { get; init; }
 
-        public GamePadButtons Buttons;
+        public readonly GamePadButtons Buttons { get; init; }
 
-        public Vector2 LeftStick;
-        public Vector2 RightStick;
+        public readonly Vector2 LeftStick { get; init; }
+        public readonly Vector2 RightStick { get; init; }
 
-        public float LeftTrigger;
-        public float RightTrigger;
+        public readonly float LeftTrigger { get; init; }
+        public readonly float RightTrigger { get; init; }
     }
 }

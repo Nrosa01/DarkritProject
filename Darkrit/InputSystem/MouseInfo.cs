@@ -79,21 +79,15 @@ public class MouseInfo
     /// <returns>true if the specified mouse button is currently down; otherwise, false.</returns>
     public bool IsButtonDown(MouseButton button)
     {
-        switch (button)
+        return button switch
         {
-            case MouseButton.Left:
-                return CurrentState.LeftButton == ButtonState.Pressed;
-            case MouseButton.Middle:
-                return CurrentState.MiddleButton == ButtonState.Pressed;
-            case MouseButton.Right:
-                return CurrentState.RightButton == ButtonState.Pressed;
-            case MouseButton.XButton1:
-                return CurrentState.XButton1 == ButtonState.Pressed;
-            case MouseButton.XButton2:
-                return CurrentState.XButton2 == ButtonState.Pressed;
-            default:
-                return false;
-        }
+            MouseButton.Left => CurrentState.LeftButton == ButtonState.Pressed,
+            MouseButton.Middle => CurrentState.MiddleButton == ButtonState.Pressed,
+            MouseButton.Right => CurrentState.RightButton == ButtonState.Pressed,
+            MouseButton.XButton1 => CurrentState.XButton1 == ButtonState.Pressed,
+            MouseButton.XButton2 => CurrentState.XButton2 == ButtonState.Pressed,
+            _ => false,
+        };
     }
 
     /// <summary>
@@ -101,24 +95,7 @@ public class MouseInfo
     /// </summary>
     /// <param name="button">The mouse button to check.</param>
     /// <returns>true if the specified mouse button is currently up; otherwise, false.</returns>
-    public bool IsButtonUp(MouseButton button)
-    {
-        switch (button)
-        {
-            case MouseButton.Left:
-                return CurrentState.LeftButton == ButtonState.Released;
-            case MouseButton.Middle:
-                return CurrentState.MiddleButton == ButtonState.Released;
-            case MouseButton.Right:
-                return CurrentState.RightButton == ButtonState.Released;
-            case MouseButton.XButton1:
-                return CurrentState.XButton1 == ButtonState.Released;
-            case MouseButton.XButton2:
-                return CurrentState.XButton2 == ButtonState.Released;
-            default:
-                return false;
-        }
-    }
+    public bool IsButtonUp(MouseButton button) => !IsButtonDown(button);
 
     /// <summary>
     /// Returns a value that indicates whether the specified mouse button was just pressed on the current frame.
@@ -127,21 +104,15 @@ public class MouseInfo
     /// <returns>true if the specified mouse button was just pressed on the current frame; otherwise, false.</returns>
     public bool WasButtonJustPressed(MouseButton button)
     {
-        switch (button)
+        return button switch
         {
-            case MouseButton.Left:
-                return CurrentState.LeftButton == ButtonState.Pressed && PreviousState.LeftButton == ButtonState.Released;
-            case MouseButton.Middle:
-                return CurrentState.MiddleButton == ButtonState.Pressed && PreviousState.MiddleButton == ButtonState.Released;
-            case MouseButton.Right:
-                return CurrentState.RightButton == ButtonState.Pressed && PreviousState.RightButton == ButtonState.Released;
-            case MouseButton.XButton1:
-                return CurrentState.XButton1 == ButtonState.Pressed && PreviousState.XButton1 == ButtonState.Released;
-            case MouseButton.XButton2:
-                return CurrentState.XButton2 == ButtonState.Pressed && PreviousState.XButton2 == ButtonState.Released;
-            default:
-                return false;
-        }
+            MouseButton.Left => CurrentState.LeftButton == ButtonState.Pressed && PreviousState.LeftButton == ButtonState.Released,
+            MouseButton.Middle => CurrentState.MiddleButton == ButtonState.Pressed && PreviousState.MiddleButton == ButtonState.Released,
+            MouseButton.Right => CurrentState.RightButton == ButtonState.Pressed && PreviousState.RightButton == ButtonState.Released,
+            MouseButton.XButton1 => CurrentState.XButton1 == ButtonState.Pressed && PreviousState.XButton1 == ButtonState.Released,
+            MouseButton.XButton2 => CurrentState.XButton2 == ButtonState.Pressed && PreviousState.XButton2 == ButtonState.Released,
+            _ => false,
+        };
     }
 
     /// <summary>

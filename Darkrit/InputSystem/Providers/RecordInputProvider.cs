@@ -14,12 +14,33 @@ namespace Darkrit.InputSystem.Providers
     /// </summary>
     internal class RecordInputProvider(ISerializableInputProvider providerToRecord) : IInputProvider
     {
-        List<InputFrame> _frames = new(60 * 60 * 10); // 60fps * 10 minutes
+        readonly List<InputFrame> _frames = new(60 * 60 * 10); // 60fps * 10 minutes
+
+        bool recording = false;
+        
+        public bool IsRecording => recording;
+
+        public bool HasRecording => !IsRecording && _frames.Count > 0;
+
+        public void StartRecording()
+        {
+            recording = true;
+            _frames.Clear();
+        }
+
+        public void StopRecording()
+        {
+            recording = false;
+        }
+
+        public IReadOnlyList<InputFrame> GetRecordedFrames() => _frames;
 
         public void Update(GameTime gameTime)
         {
             providerToRecord.Update(gameTime);
-            _frames.Add(providerToRecord.CaptureFrame());
+            
+            if(recording)
+                _frames.Add(providerToRecord.CaptureFrame());
         }
 
         // Keyboard

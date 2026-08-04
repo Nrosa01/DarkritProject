@@ -5,6 +5,7 @@ using Darkrit.DevTools.Logger.Renderers;
 using Darkrit.Graphics;
 using Darkrit.ImGuiUtils.Themes;
 using Darkrit.InputSystem;
+using Darkrit.InputSystem.Providers;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
 using ExampleMonoGame;
@@ -194,6 +195,11 @@ public class Core : Game
     // next upcoming frame.
     public static float FixedUpdateAlpha { get; private set; }  = 0;
 
+
+    // Record system
+    private RecordInputProvider recordInputProvider = new(new PhysicalInputProvider());
+    private ReplayInputProvider replayInputProvider = new();
+
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -242,11 +248,18 @@ public class Core : Game
         IsMouseVisible = true;
 
         // Create a new input manager.
-        Input = new Darkrit.InputSystem.Input();
+        Input = new(recordInputProvider);
 
         var imguiLogger = new ImGuiLogger();
         ImGuiLoggerConsole = new(imguiLogger);
         Log.AddLogger(imguiLogger);
+
+        replayInputProvider.OnPlaybackFinished += OnInputPlaybackFinished;
+    }
+
+    private void OnInputPlaybackFinished()
+    {
+        Input.SetProvider(recordInputProvider);
     }
 
     protected void FixedUpdate(GameTime gameTime)
@@ -348,6 +361,36 @@ public class Core : Game
                 ChangeScene((Scene)Activator.CreateInstance(sceneType));
         }
 
+        ImGui.End();
+
+        ImGui.Begin("Input Replay");
+        if (recordInputProvider.IsRecording)
+            ImGui.BeginDisabled(true);
+        if (ImGui.Button("Record"))
+        {
+            recordInputProvider.StartRecording();
+        }
+        if (recordInputProvider.IsRecording)
+            ImGui.EndDisabled();
+
+        if (!recordInputProvider.IsRecording)
+            ImGui.BeginDisabled(true);
+        if(ImGui.Button("Stop recording"))
+        {
+            recordInputProvider.StopRecording();
+        }
+        if (!recordInputProvider.IsRecording)
+            ImGui.EndDisabled();
+
+        if (!recordInputProvider.HasRecording)
+            ImGui.BeginDisabled(true);
+        if(ImGui.Button("Replay saved Input"))
+        {
+            Input.SetProvider(replayInputProvider);
+            replayInputProvider.StartReplay(recordInputProvider.GetRecordedFrames());
+        }
+        if (!recordInputProvider.HasRecording)
+            ImGui.EndDisabled();
         ImGui.End();
     }
 

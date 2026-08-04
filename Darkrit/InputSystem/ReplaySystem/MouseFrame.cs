@@ -6,15 +6,15 @@ using System.Text;
 
 namespace Darkrit.InputSystem.ReplaySystem
 {
-    internal class MouseFrame
+    internal readonly struct MouseFrame
     {
-        public Point Position;
-        public int Wheel;
+        public readonly Point Position { get; init; }
+        public readonly int Wheel { get; init; }
 
-        public bool Left;
-        public bool Middle;
-        public bool Right;
-        public bool X1;
-        public bool X2;
+        public readonly bool Left { get; init; }
+        public readonly bool Middle { get; init; }
+        public readonly bool Right { get; init; }
+        public readonly bool X1 { get; init; }
+        public readonly bool X2 { get; init; }
     }
 }

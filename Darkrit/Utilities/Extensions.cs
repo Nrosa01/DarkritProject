@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Drawing;
+using Microsoft.Xna.Framework;
+using Point = Microsoft.Xna.Framework.Point;
+using SPoint = System.Drawing.Point;
 
 namespace Darkrit.Utilities
 {
@@ -17,6 +20,11 @@ namespace Darkrit.Utilities
 
                 vector.Normalize();
             }
+        }
+
+        extension(SPoint sysPoint)
+        {
+            public Point AsMonoGamePoint() => new(sysPoint.X, sysPoint.Y);
         }
     }
 }
