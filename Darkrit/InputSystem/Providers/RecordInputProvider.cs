@@ -22,6 +22,8 @@ namespace Darkrit.InputSystem.Providers
 
         public bool HasRecording => !IsRecording && _frames.Count > 0;
 
+        public int RecordedFrames => _frames.Count; 
+
         public void StartRecording()
         {
             recording = true;

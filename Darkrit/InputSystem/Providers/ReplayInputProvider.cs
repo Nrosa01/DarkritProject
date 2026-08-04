@@ -17,9 +17,9 @@ namespace Darkrit.InputSystem.Providers
 
         public event Action OnPlaybackFinished;
 
-        IReadOnlyList<InputFrame> _replayFrames;
+        IReadOnlyList<InputFrame> _replayFrames = [];
 
-        bool replaying = true;
+        bool replaying = false;
 
         public bool IsReplaying => replaying;
 
@@ -27,7 +27,12 @@ namespace Darkrit.InputSystem.Providers
         {
             replaying = true;
             _replayFrames = replayFrames;
+            _frame = 0;
         }
+
+        public int TotalFrames => _replayFrames.Count;
+
+        public int CurrentFrame => _frame;
 
         public void StopReplay()
         {
@@ -42,6 +47,7 @@ namespace Darkrit.InputSystem.Providers
             {
                 StopReplay();
                 OnPlaybackFinished?.Invoke();
+                return;
             }
 
             if(_frame > 0)
