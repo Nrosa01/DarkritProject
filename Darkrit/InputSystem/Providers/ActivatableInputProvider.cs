@@ -48,11 +48,8 @@ internal class ActivatableInputProvider(ISerializableInputProvider provider) : I
     {
         _currentProvider.Update(gameTime);
 
-        if (!Enabled && _enabledLastFrame)
-        {
+        if (Enabled != _enabledLastFrame)
             _nullInput.LastRecordedMousePosition = _mainProvider.GetMousePosition();
-            Log.Debug("Disabling Input");
-        }
 
         _enabledLastFrame = Enabled;
     }

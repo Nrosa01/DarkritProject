@@ -178,7 +178,7 @@ public class Core : Game
     private static bool _showEditor = true;
     private static bool _viewportFocused = false;
     private static bool IsGameNotFocused => !_viewportFocused && _showEditor;
-
+    private static bool IsGameFocused => !IsGameNotFocused;
     public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
     // this will be the FixedUpdate frequency, we set it to 30 FPS
@@ -331,6 +331,11 @@ public class Core : Game
         if (IsGameNotFocused && !replayInputProvider.IsReplaying)
             activatableInputProvider.Enabled = false;
 
+        if(IsGameFocused && requestedRecording)
+        {
+            recordInputProvider.StartRecording();
+            requestedRecording = false;
+        }
 
         // Update the input manager.
         Input.Update(gameTime);
@@ -368,6 +373,7 @@ public class Core : Game
 
     readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
 
+    bool requestedRecording = false;
     internal void EditorDraw(GameTime gameTime)
     {
         s_activeScene?.DebugDraw(gameTime);
@@ -384,8 +390,11 @@ public class Core : Game
         ImGui.End();
 
         ImGui.Begin("Input Replay");
-        if (ImGuiEx.DisableButton("Record", recordInputProvider.IsRecording))
-            recordInputProvider.StartRecording();
+        if (ImGuiEx.DisableButton("Record", recordInputProvider.IsRecording || requestedRecording))
+            requestedRecording = true;
+
+        if (requestedRecording && ImGui.Button("Stop recording quest"))
+            requestedRecording = false;
 
         if(ImGuiEx.DisableButton("Stop recording", !recordInputProvider.IsRecording))
             recordInputProvider.StopRecording();
