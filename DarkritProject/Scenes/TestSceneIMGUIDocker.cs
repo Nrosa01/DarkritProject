@@ -98,7 +98,7 @@ namespace Darkrit.Scenes
         {
             previousPosition = position;
 
-            if (!Core.Input.IsEnabled)
+            if (!Core.Input.Enabled)
                 return;
 
             if (moveUp.IsPressed)

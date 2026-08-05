@@ -314,7 +314,7 @@ public class Core : Game
 #endif
         FMOD.Update();
 
-        Input.Enable();
+        Input.Enabled = true;
         Input.Update(gameTime);
 
         if (Input.WasKeyJustPressed(Keys.F11))
@@ -325,7 +325,7 @@ public class Core : Game
 
         // While replaying, the game window recives input focus no matter what
         if (IsGameNotFocused && !replayInputProvider.IsReplaying)
-            Input.Disable();
+            Input.Enabled = false;
 
 
         // Update the input manager.

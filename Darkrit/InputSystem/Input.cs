@@ -25,14 +25,26 @@ public class Input(IInputProvider provider) : IInputProvider
     /// Disables the provider. Internally it sets the <see cref="_currentProvider"/> to a null provider
     /// that returns default values for everything
     /// </summary>
-    public void Disable() => _currentProvider = _nullInput;
+    private void Disable() => _currentProvider = _nullInput;
 
     /// <summary>
     /// Enables the provider you set via the constructor or the <see cref="SetProvider(IInputProvider)"/> call
     /// </summary>
-    public void Enable() => _currentProvider = _mainProvider;
+    private void Enable() => _currentProvider = _mainProvider;
 
-    public bool IsEnabled => _currentProvider != _nullInput;
+    public bool Enabled
+    {
+        get => _currentProvider != _nullInput && _currentProvider.Enabled;
+        set
+        {
+            _currentProvider.Enabled = value;
+
+            if (value)
+                Enable();
+            else
+                Disable();
+        }
+    }
 
     /// <summary>
     /// Action map that maps string names to bindings

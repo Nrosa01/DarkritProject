@@ -9,6 +9,8 @@ namespace Darkrit.InputSystem.Providers;
 /// </summary>
 public class NullInputProvider : IInputProvider
 {
+    public bool Enabled { get; set; } = false;
+
     public void Update(GameTime gameTime)
     {
     }

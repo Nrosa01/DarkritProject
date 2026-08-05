@@ -14,6 +14,8 @@ public class PhysicalInputProvider : ISerializableInputProvider
     private readonly MouseInfo _mouse;
     private readonly GamePadInfo[] _gamePads;
 
+    public bool Enabled { get; set; } = true;
+
     public PhysicalInputProvider()
     {
         _keyboard = new KeyboardInfo();
@@ -77,6 +79,7 @@ public class PhysicalInputProvider : ISerializableInputProvider
     {
         return new InputFrame
         {
+            Enabled = Enabled,
             GamePads = [_gamePads[0].CaptureFrame()], // For now, just one gamepad, I probably won't need more
             Mouse = _mouse.CaptureFrame(),
             Keyboard = _keyboard.CaptureFrame()
