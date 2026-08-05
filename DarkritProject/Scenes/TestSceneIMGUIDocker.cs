@@ -98,16 +98,13 @@ namespace Darkrit.Scenes
         {
             previousPosition = position;
 
-            if (!Core.Input.Enabled)
-                return;
-
             if (moveUp.IsPressed)
             {
-                velocity.Y = 1;
+                velocity.Y = -1;
             }
             else if (moveDown.IsPressed)
             {
-                velocity.Y = -1;
+                velocity.Y = 1;
             }
             else
                 velocity.Y = 0;
@@ -125,7 +122,7 @@ namespace Darkrit.Scenes
 
             position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
+            //position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
         }
 
         bool useInterpolation = true;

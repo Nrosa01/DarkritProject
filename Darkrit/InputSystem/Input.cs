@@ -61,7 +61,7 @@ public class Input(IInputProvider provider) : IInputProvider
     /// </summary>
     public Input() : this(new PhysicalInputProvider()) { }
 
-    public InputAction CreateAction(string actionName) => _actionMap.AddAction(actionName, _mainProvider);
+    public InputAction CreateAction(string actionName) => _actionMap.AddAction(actionName, this);
 
     /// <summary>
     /// Changes the input provider in runtime.
