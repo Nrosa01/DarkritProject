@@ -1,4 +1,5 @@
 ﻿using Darkrit.InputSystem.Bindings;
+using Darkrit.InputSystem.ReplaySystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -7,9 +8,9 @@ namespace Darkrit.InputSystem.Providers;
 /// <summary>
 /// Input provider that returns false or default values. Useful for ignoring all inputs.
 /// </summary>
-public class NullInputProvider : IInputProvider
+public class NullInputProvider : ISerializableInputProvider
 {
-    public bool Enabled { get; set; } = false;
+    public Point LastRecordedMousePosition { get; set; }
 
     public void Update(GameTime gameTime)
     {
@@ -23,7 +24,7 @@ public class NullInputProvider : IInputProvider
     public Keys[] GetPressedKeys() => [];
 
     // ===== Mouse =====
-    public Point GetMousePosition() => default;
+    public Point GetMousePosition() => LastRecordedMousePosition;
     public int GetMouseScrollWheelValue() => default;
     public bool IsMouseButtonDown(MouseButton button) => false;
     public bool IsMouseButtonUp(MouseButton button) => false;
@@ -42,4 +43,24 @@ public class NullInputProvider : IInputProvider
     public float GetGamepadLeftTrigger(PlayerIndex playerIndex) => default;
     public float GetGamepadRightTrigger(PlayerIndex playerIndex) => default;
     public float GetGamepadAxis(PlayerIndex playerIndex, GamepadAxis axis) => default;
+
+    internal InputFrame CaptureFrame()
+    {
+        return new InputFrame
+        {
+            GamePads = [new GamePadFrame {
+
+            }],
+            Keyboard = new KeyboardFrame
+            {
+
+            },
+            Mouse = new MouseFrame
+            {
+                Position = new(LastRecordedMousePosition.X, LastRecordedMousePosition.Y)
+            }
+        };
+    }
+
+    InputFrame ISerializableInputProvider.CaptureFrame() => CaptureFrame();
 }

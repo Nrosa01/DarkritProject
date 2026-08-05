@@ -34,8 +34,6 @@ namespace Darkrit.InputSystem.Providers
 
         public int CurrentFrame => _frame;
 
-        public bool Enabled { get => _currentFrame.Enabled; set => _ = false; }
-
         public void StopReplay()
         {
             replaying = false;

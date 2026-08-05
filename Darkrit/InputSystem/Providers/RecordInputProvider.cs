@@ -24,10 +24,6 @@ namespace Darkrit.InputSystem.Providers
 
         public int RecordedFrames => _frames.Count;
 
-#pragma warning disable CS9266 // Property accessor should use 'field' because the other accessor is using it.
-        public bool Enabled { get => providerToRecord.Enabled; set => providerToRecord.Enabled = value; }
-#pragma warning restore CS9266 // Property accessor should use 'field' because the other accessor is using it.
-
         public void StartRecording()
         {
             recording = true;

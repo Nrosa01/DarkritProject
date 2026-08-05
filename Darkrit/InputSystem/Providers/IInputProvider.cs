@@ -6,8 +6,6 @@ namespace Darkrit.InputSystem.Providers;
 
 public interface IInputProvider
 {
-    public bool Enabled { get; set; }
-
     // Keyboard
     bool IsKeyDown(Keys key);
     bool IsKeyUp(Keys key);

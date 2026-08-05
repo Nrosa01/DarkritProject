@@ -202,7 +202,9 @@ public class Core : Game
 
 
     // Record system
-    private readonly RecordInputProvider recordInputProvider = new(new PhysicalInputProvider());
+    private readonly PhysicalInputProvider EngineInputProvider = new();
+    private readonly ActivatableInputProvider activatableInputProvider = new(new PhysicalInputProvider());
+    private readonly RecordInputProvider recordInputProvider;
     private readonly ReplayInputProvider replayInputProvider = new();
 
     /// <summary>
@@ -251,6 +253,8 @@ public class Core : Game
 
         // Mouse is visible by default.
         IsMouseVisible = true;
+
+        recordInputProvider = new(activatableInputProvider);
 
         // Create a new input manager.
         Input = new(recordInputProvider);
@@ -314,24 +318,24 @@ public class Core : Game
 #endif
         FMOD.Update();
 
-        Input.Enabled = true;
-        Input.Update(gameTime);
+        activatableInputProvider.Enabled = true;
+        EngineInputProvider.Update(gameTime);
 
-        if (Input.WasKeyJustPressed(Keys.F11))
+        if (EngineInputProvider.WasKeyJustPressed(Keys.F11))
             _showEditor = !_showEditor;
 
-        if (Input.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
+        if (EngineInputProvider.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
             ImGui.SetWindowFocus();
 
         // While replaying, the game window recives input focus no matter what
         if (IsGameNotFocused && !replayInputProvider.IsReplaying)
-            Input.Enabled = false;
+            activatableInputProvider.Enabled = false;
 
 
         // Update the input manager.
         Input.Update(gameTime);
 
-        if (ExitOnEscape && Input.WasKeyJustPressed(Keys.Escape))
+        if (ExitOnEscape && EngineInputProvider.WasKeyJustPressed(Keys.Escape) && IsGameNotFocused)
             Exit();
 
         // if there is a next scene waiting to be switch to, then transition
