@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Darkrit.DevTools.Logger;
+using System;
 using System.Diagnostics;
 
 namespace Darkrit.Utilities
@@ -14,8 +15,8 @@ namespace Darkrit.Utilities
 
             timer.Stop();
 
-            Debug.WriteLine($"Function: {function.Method.DeclaringType?.FullName}.{function.Method.Name}");
-            Debug.WriteLine($"  Time taken: {timer.Elapsed:mm\\:ss\\.fff}");
+            Log.Debug($"Function: {function.Method.DeclaringType?.FullName}.{function.Method.Name}");
+            Log.Debug($"  Time taken: {timer.Elapsed:mm\\:ss\\.fff}");
 #else
             function();
 #endif
@@ -30,7 +31,7 @@ namespace Darkrit.Utilities
 
             timer.Stop();
 
-            Debug.WriteLine($"{name}: {timer.Elapsed:mm\\:ss\\.fff}");
+            Log.Debug($"{name}: {timer.Elapsed:mm\\:ss\\.fff}");
 #else
             function();
 #endif

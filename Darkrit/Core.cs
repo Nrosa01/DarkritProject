@@ -84,22 +84,10 @@ public class Core : Game
     /// </summary>
     public static bool ExitOnEscape { get; set; }
 
-    public static Viewport Viewport { get; private set;  }
+    static CoreEditor s_coreEditor;
 
-    private RenderTarget2D _sceneTarget;
-    private ImTextureRef _sceneTextureId;
-    
-    private CoreStats _coreStats;
-    
-    private Point _pendingViewportSize;
-    private float _resizeDelay;
-    private bool _hasPendingResize;
-    private const float ResizeDelaySeconds = 0.01f;
+    public static Viewport Viewport { get => s_coreEditor.Viewport; private set => s_coreEditor.Viewport = value;  }
 
-    private static bool _showEditor = true;
-    private static bool _viewportFocused = false;
-    private static bool IsGameNotFocused => !_viewportFocused && _showEditor;
-    private static bool IsGameFocused => !IsGameNotFocused;
     public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
     // this will be the FixedUpdate frequency, we set it to 30 FPS
@@ -227,23 +215,23 @@ public class Core : Game
 
     protected override void Update(GameTime gameTime)
     {
-        _coreStats.Update(gameTime);
+        s_coreEditor.Update(gameTime);
         FMOD.Update();
 
         activatableInputProvider.Enabled = true;
         EngineInputProvider.Update(gameTime);
 
         if (EngineInputProvider.WasKeyJustPressed(Keys.F11))
-            _showEditor = !_showEditor;
+            s_coreEditor.ToggleShow();
 
-        if (EngineInputProvider.WasKeyJustPressed(Keys.Escape) && _viewportFocused)
-            ImGui.SetWindowFocus();
+        if (EngineInputProvider.WasKeyJustPressed(Keys.Escape) && s_coreEditor.ViewportFocused)
+            CoreEditor.UnFocus();
 
         // While replaying, the game window recives input focus no matter what
-        if (IsGameNotFocused && !replayInputProvider.IsReplaying)
+        if (s_coreEditor.IsGameNotFocused && !replayInputProvider.IsReplaying)
             activatableInputProvider.Enabled = false;
 
-        if(IsGameFocused && requestedRecording)
+        if(s_coreEditor.IsGameFocused && requestedRecording)
         {
             recordInputProvider.StartRecording();
             requestedRecording = false;
@@ -252,7 +240,7 @@ public class Core : Game
         // Update the input manager.
         Input.Update(gameTime);
 
-        if (ExitOnEscape && EngineInputProvider.WasKeyJustPressed(Keys.Escape) && IsGameNotFocused)
+        if (ExitOnEscape && EngineInputProvider.WasKeyJustPressed(Keys.Escape) && s_coreEditor.IsGameNotFocused)
             Exit();
 
         // if there is a next scene waiting to be switch to, then transition
@@ -262,14 +250,14 @@ public class Core : Game
 
         Content.ReloadChangedAssets();
 
-        _coreStats.ProfileStartLogic();
+        s_coreEditor.CoreStats.ProfileStartLogic();
 
         // If there is an active scene, update it.
         s_activeScene?.Update(gameTime);
 
         FixedUpdate(gameTime);
 
-        _coreStats.ProfileEndLogic(gameTime);
+        s_coreEditor.CoreStats.ProfileEndLogic(gameTime);
 
         base.Update(gameTime);
     }
@@ -277,6 +265,8 @@ public class Core : Game
     readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
 
     bool requestedRecording = false;
+
+    [Conditional("EDITOR_BUILD")]
     internal void EditorDraw(GameTime gameTime)
     {
         s_activeScene?.DebugDraw(gameTime);
@@ -319,108 +309,22 @@ public class Core : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        _coreStats.ProfileStartRender();
+        s_coreEditor.CoreStats.ProfileStartRender();
 
         ImGuiRenderer.BeforeLayout(gameTime);
-        GraphicsDevice.Clear(Color.CornflowerBlue);
-        s_activeScene?.Draw(gameTime);
 
-        if (_showEditor)
-        {
-            RenderWithDocking(() =>
-            {
-                GraphicsDevice.Clear(Color.CornflowerBlue);
-                s_activeScene?.Draw(gameTime);
-                EditorDraw(gameTime);
-                Material.DrawVisibleDebugUi();
-            }, gameTime);
-        }
-        else
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            s_activeScene?.Draw(gameTime);
-            Viewport = GraphicsDevice.Viewport;
-        }
+        s_coreEditor.Render(gameTime, s_activeScene);
+
+        if (s_coreEditor.ShowEditor)
+            EditorDraw(gameTime);
 
         ImGuiRenderer.AfterLayout();
 
-        _coreStats.ProfileEndRender(gameTime);
+        s_coreEditor.CoreStats.ProfileEndRender(gameTime);
 
         base.Draw(gameTime);
     }
 
-    private void RenderWithDocking(Action renderAction, GameTime gameTime)
-    {
-        ImGui.DockSpaceOverViewport();
-
-        ImGui.Begin("Viewport");
-
-        Vector2 viewportPos = ImGui.GetCursorScreenPos();
-        Vector2 viewportSize = ImGui.GetContentRegionAvail();
-
-        Viewport = new(
-            (int)viewportPos.X,
-            (int)viewportPos.Y,
-            (int)viewportSize.X,
-            (int)viewportSize.Y);
-
-        UpdateViewportResize(viewportSize, gameTime);
-
-        ImGui.Image(_sceneTextureId, viewportSize.ToSystemVector2());
-
-        _viewportFocused = ImGui.IsWindowFocused();
-
-        ImGui.End();
-
-        GraphicsDevice.SetRenderTarget(_sceneTarget);
-
-        renderAction?.Invoke();
-
-        GraphicsDevice.SetRenderTarget(null);
-
-        _coreStats.DrawStats();
-    }
-
-    private void UpdateViewportResize(Vector2 viewportSize, GameTime gameTime)
-    {
-        var size = new Point(
-            SMath.Max(1, (int)viewportSize.X),
-            SMath.Max(1, (int)viewportSize.Y));
-
-        if (size != _pendingViewportSize)
-        {
-            _pendingViewportSize = size;
-            _resizeDelay = ResizeDelaySeconds;
-            _hasPendingResize = true;
-        }
-
-        if (!_hasPendingResize)
-            return;
-
-        _resizeDelay -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        if (_resizeDelay <= 0 &&
-            (_sceneTarget.Width != size.X || _sceneTarget.Height != size.Y))
-        {
-            ResizeSceneTarget(_pendingViewportSize);
-            _hasPendingResize = false;
-        }
-    }
-
-    private void ResizeSceneTarget(Point size)
-    {
-        Core.ImGuiRenderer.UnbindTexture(_sceneTextureId);
-
-
-        _sceneTarget.Dispose();
-
-        _sceneTarget = new RenderTarget2D(
-            GraphicsDevice,
-            size.X,
-            size.Y);
-
-        _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
-    }
 
     public static void ChangeScene(Scene next)
     {
@@ -471,8 +375,6 @@ public class Core : Game
         // graphics device.
         GraphicsDevice = base.GraphicsDevice;
 
-        _coreStats = new(GraphicsDevice);
-
         //GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
         //GraphicsDevice.RasterizerState = RasterizerState.CullNone;
 
@@ -485,6 +387,8 @@ public class Core : Game
 
         // Create the ImGui renderer.
         ImGuiRenderer = new ImGuiRenderer(this);
+
+        s_coreEditor = new(GraphicsDevice, ImGuiRenderer);
 
         // Optional: Scale text and widgets for easier readability.
         var io = ImGui.GetIO();
@@ -501,15 +405,5 @@ public class Core : Game
         ImGui.GetStyle().ScaleAllSizes(1.25f);
 
         PurpleComfyTheme.SetupImGuiStyle();
-
-        _sceneTarget = new RenderTarget2D(
-            GraphicsDevice,
-            1280,
-            720,
-            false,
-            SurfaceFormat.Color,
-            DepthFormat.Depth24);
-
-        _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
     }
 }
