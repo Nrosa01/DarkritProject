@@ -1,14 +1,15 @@
 <Project>
-  <Target Name="BuildContent" BeforeTargets="BeforeCompile">
-    <PropertyGroup>
-      <ContentOutput>$(ProjectDir)$(OutputPath)</ContentOutput>
-      <ContentTemp>$(ProjectDir)$(IntermediateOutputPath)</ContentTemp>
-      <ContentArgs>build -p $(MonoGamePlatform) -s Content/Assets -o $(ContentOutput) -i $(ContentTemp)</ContentArgs>
-      <ContentCommand>$(MSBuildThisFileDirectory)bin\Debug\Content</ContentCommand>
-    </PropertyGroup>
-    <MSBuild Projects="$(MSBuildThisFileDirectory)Content.csproj" Targets="Build" RemoveProperties="Configuration;TargetFramework;RuntimeIdentifier;RuntimeIdentifiers" />
-    <Exec Command="$(ContentCommand) $(ContentArgs)" WorkingDirectory="$(MSBuildThisFileDirectory)..\" CustomErrorRegularExpression="\[E\] .+" CustomWarningRegularExpression="\[W\] .+" />
-   </Target>
+	<Target Name="BuildContent" BeforeTargets="BeforeCompile;Publish">
+		<PropertyGroup>
+			<ContentOutput Condition="'$(PublishDir)' != ''">$(PublishDir)</ContentOutput>
+			<ContentOutput Condition="'$(PublishDir)' == ''">$(ProjectDir)$(OutputPath)</ContentOutput>
+			<ContentTemp>$(ProjectDir)$(IntermediateOutputPath)</ContentTemp>
+			<ContentArgs>build -p $(MonoGamePlatform) -s Content/Assets -o $(ContentOutput) -i $(ContentTemp)</ContentArgs>
+			<ContentCommand>$(MSBuildThisFileDirectory)bin\Debug\Content</ContentCommand>
+		</PropertyGroup>
+		<MSBuild Projects="$(MSBuildThisFileDirectory)Content.csproj" Targets="Build" RemoveProperties="Configuration;TargetFramework;RuntimeIdentifier;RuntimeIdentifiers" />
+		<Exec Command="$(ContentCommand) $(ContentArgs)" WorkingDirectory="$(MSBuildThisFileDirectory)..\" CustomErrorRegularExpression="\[E\] .+" CustomWarningRegularExpression="\[W\] .+" />
+	</Target>
 	<Target Name="StartHotReload">
 		<PropertyGroup>
 			<ContentOutput>$(ProjectDir)$(OutputPath)</ContentOutput>
@@ -19,20 +20,32 @@
 		<MSBuild Projects="$(MSBuildThisFileDirectory)Content.csproj" Targets="Build" RemoveProperties="Configuration;TargetFramework;RuntimeIdentifier;RuntimeIdentifiers" />
 		<Exec Command="$(ContentCommand) $(ContentArgs)" WorkingDirectory="$(MSBuildThisFileDirectory)..\" CustomErrorRegularExpression="\[E\] .+" CustomWarningRegularExpression="\[W\] .+" />
 	</Target>
-  <Target Name="AddGeneratedContentAssets"
-    AfterTargets="BuildContent">
-    <ItemGroup>
-      <GeneratedAsset Include="$(ProjectDir)$(OutputPath)Content\**\*" />
+	<Target Name="AddGeneratedContentAssets" AfterTargets="BuildContent">
+		<PropertyGroup>
+			<ContentOutput Condition="'$(PublishDir)' != ''">$(PublishDir)</ContentOutput>
+			<ContentOutput Condition="'$(PublishDir)' == ''">$(TargetDir)</ContentOutput>
+		</PropertyGroup>
+		<ItemGroup>
+			<GeneratedAsset Include="$(ContentOutput)Content\**\*" />
 
-      <AndroidAsset Include="@(GeneratedAsset)"
-        Condition="'$(MonoGamePlatform)' == 'Android'">
-        <Link>Content\%(GeneratedAsset.RecursiveDir)%(GeneratedAsset.Filename)%(GeneratedAsset.Extension)</Link>
-      </AndroidAsset>
+			<AndroidAsset Include="@(GeneratedAsset)"
+			Condition="'$(MonoGamePlatform)' == 'Android'">
+				<Link>Content\%(GeneratedAsset.RecursiveDir)%(GeneratedAsset.Filename)%(GeneratedAsset.Extension)</Link>
+			</AndroidAsset>
 
-      <BundledResource Include="@(GeneratedAsset)"
-        Condition="'$(MonoGamePlatform)' == 'MacOSX' Or '$(MonoGamePlatform)' == 'iOS'">
-        <Link>Content\%(GeneratedAsset.RecursiveDir)%(GeneratedAsset.Filename)%(GeneratedAsset.Extension)</Link>
-      </BundledResource>
-    </ItemGroup>
-  </Target>
+			<BundledResource Include="@(GeneratedAsset)"
+			  Condition="'$(MonoGamePlatform)' == 'MacOSX' Or '$(MonoGamePlatform)' == 'iOS'">
+				<Link>Content\%(GeneratedAsset.RecursiveDir)%(GeneratedAsset.Filename)%(GeneratedAsset.Extension)</Link>
+			</BundledResource>
+		</ItemGroup>
+	</Target>
+	<Target Name="CopyContentToPublish" AfterTargets="Publish">
+		<ItemGroup>
+			<GeneratedContent Include="$(TargetDir)Content\**\*" />
+		</ItemGroup>
+
+		<Copy
+			SourceFiles="@(GeneratedContent)"
+			DestinationFiles="@(GeneratedContent->'$(PublishDir)Content\%(RecursiveDir)%(Filename)%(Extension)')" />
+	</Target>
 </Project>

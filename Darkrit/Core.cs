@@ -56,6 +56,7 @@ public class Core : Game
     private readonly float[] _fpsHistory = new float[HistorySize];
     private int _fpsHistoryIndex;
 
+    [Conditional("EDITOR_BUILD")]
     public void DrawStats()
     {
         ImGui.Begin("Renderer Stats");
@@ -63,8 +64,8 @@ public class Core : Game
         ImGui.Text($"FPS              : {_fps:0.0}");
         ImGui.Text($"CPU Compute Time : {_cpuProcessAverageMs:0.00} ms");
         ImGui.Text($"CPU Render Time  : {_cpuRenderAverageMs:0.00} ms");
-        ImGui.Text($"Memory Usage     : {CurrentProcess.WorkingSet64 * 1e-6:F3}MB");
-        ImGui.Text($"Peak Memory Usage: {CurrentProcess.PeakWorkingSet64 * 1e-6:F3}MB");
+        ImGui.Text($"Memory Usage     : {ProcessStats.Process.WorkingSet64 * 1e-6:F3}MB");
+        ImGui.Text($"Peak Memory Usage: {ProcessStats.Process.PeakWorkingSet64 * 1e-6:F3}MB");
         ImGui.Text($"Draw Calls       : {GraphicsDevice.Metrics.DrawCount}");
         ImGui.Text($"Sprites          : {GraphicsDevice.Metrics.SpriteCount}");
         ImGui.Text($"Primitives       : {GraphicsDevice.Metrics.PrimitiveCount}");
@@ -144,7 +145,7 @@ public class Core : Game
     /// <summary>
     /// Gets a reference to the input management system.
     /// </summary>
-    public static Darkrit.InputSystem.Input Input { get; private set; }
+    public static Input Input { get; private set; }
 
     public static FmodStudio FMOD { get; private set; }
 
@@ -163,7 +164,7 @@ public class Core : Game
     /// </summary>
     public static bool ExitOnEscape { get; set; }
 
-    readonly Process CurrentProcess = Process.GetCurrentProcess();
+    readonly ProcessStats ProcessStats = new(Process.GetCurrentProcess());
 
     public static Viewport Viewport { get; private set;  }
 
@@ -304,18 +305,9 @@ public class Core : Game
         FixedUpdateAlpha = (accumulator / fixedUpdateDelta);
     }
 
-    double currentProcessUpdateInterval = 1.5f;
-    double currentProcessUpdateIntervalTimer = 0.0f;
     protected override void Update(GameTime gameTime)
     {
-#if DEBUG
-        currentProcessUpdateIntervalTimer += gameTime.ElapsedGameTime.TotalSeconds;
-        if(currentProcessUpdateIntervalTimer > currentProcessUpdateInterval)
-        {
-            CurrentProcess.Refresh();
-            currentProcessUpdateIntervalTimer -= currentProcessUpdateInterval;
-        }
-#endif
+        ProcessStats.Update(gameTime.ElapsedGameTime.TotalSeconds);
         FMOD.Update();
 
         activatableInputProvider.Enabled = true;
