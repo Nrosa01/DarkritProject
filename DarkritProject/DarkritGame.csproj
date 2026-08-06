@@ -21,26 +21,8 @@
         <AlwaysBuildContent>true</AlwaysBuildContent>
     </PropertyGroup>
     <ItemGroup>
-        <None Remove="fmod.dll" />
-        <None Remove="fmodL.dll" />
-        <None Remove="fmodstudio.dll" />
-        <None Remove="fmodstudioL.dll" />
         <None Remove="Icon.ico" />
         <None Remove="Icon.bmp" />
-    </ItemGroup>
-    <ItemGroup>
-      <Content Include="fmod.dll">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="fmodL.dll">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="fmodstudio.dll">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="fmodstudioL.dll">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico">

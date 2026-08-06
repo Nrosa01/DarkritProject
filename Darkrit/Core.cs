@@ -321,7 +321,7 @@ public class Core : Game
         ImGuiRenderer.AfterLayout();
 
         s_coreEditor.CoreStats.ProfileEndRender(gameTime);
-
+        
         base.Draw(gameTime);
     }
 
