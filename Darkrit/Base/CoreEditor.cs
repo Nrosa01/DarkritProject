@@ -1,13 +1,14 @@
-﻿using Darkrit.Scenes;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Darkrit.ImGuiUtils.Themes;
+using Darkrit.Scenes;
 using Darkrit.Utilities;
 using ExampleMonoGame;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 
 namespace Darkrit.Base
 {
@@ -31,23 +32,42 @@ namespace Darkrit.Base
             CoreStats = new(GraphicsDevice);
 
             ShowEditor = true;
+
+            this.ImGuiRenderer = ImGuiRenderer;
+
+            // Optional: Scale text and widgets for easier readability.
+            var io = ImGui.GetIO();
+
+            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
+            //io.FontGlobalScale = 1.25f;
+            unsafe
+            {
+                io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 20);
+            }
+            //io.Fonts.AddFontFromFileTTF("Content/fonts/FiraCode-Regular.ttf", 16);
+            ImGui.GetStyle().ScaleAllSizes(1.25f);
+
+            PurpleComfyTheme.SetupImGuiStyle();
 #endif
         }
 
         readonly GraphicsDevice GraphicsDevice;
+        public ImGuiRenderer ImGuiRenderer { get; init; }
 
         public Viewport Viewport { get; internal set; }
+        public CoreStats CoreStats { get; init; }
 
+#if EDITOR_BUILD
         private RenderTarget2D _sceneTarget;
         private ImTextureRef _sceneTextureId;
-
-        public CoreStats CoreStats { get; init; }
 
         private Point _pendingViewportSize;
         private float _resizeDelay;
         private bool _hasPendingResize;
         private const float ResizeDelaySeconds = 0.01f;
-
+#endif
         public void ToggleShow() => ShowEditor = !ShowEditor;
 
         public static void UnFocus() => ImGui.SetWindowFocus();
@@ -122,7 +142,7 @@ namespace Darkrit.Base
 
         private void ResizeSceneTarget(Point size)
         {
-            Core.ImGuiRenderer.UnbindTexture(_sceneTextureId);
+            ImGuiRenderer.UnbindTexture(_sceneTextureId);
 
 
             _sceneTarget.Dispose();
@@ -132,31 +152,35 @@ namespace Darkrit.Base
                 size.X,
                 size.Y);
 
-            _sceneTextureId = Core.ImGuiRenderer.BindTexture(_sceneTarget);
+            _sceneTextureId = ImGuiRenderer.BindTexture(_sceneTarget);
         }
 
-        internal void Render(GameTime gameTime, Scene scene)
+        internal void Render(GameTime gameTime, Action<GameTime, CoreEditor> renderAction)
         {
+            ImGuiRenderer.BeforeLayout(gameTime);
+
             if (ShowEditor)
             {
                 RenderWithDocking(() =>
                 {
                     GraphicsDevice.Clear(Color.CornflowerBlue);
-                    scene?.Draw(gameTime);
+                    renderAction?.Invoke(gameTime, this);
                 }, gameTime);
             }
             else
             {
                 GraphicsDevice.Clear(Color.CornflowerBlue);
-                scene?.Draw(gameTime);
+                renderAction?.Invoke(gameTime, this);
                 Viewport = GraphicsDevice.Viewport;
             }
+
+            ImGuiRenderer.AfterLayout();
         }
 #else
-        internal void Render(GameTime gameTime, Scene scene)
+        internal void Render(GameTime gameTime, Action<GameTime, CoreEditor> renderAction)
         {
            GraphicsDevice.Clear(Color.CornflowerBlue);
-           scene?.Draw(gameTime);
+           renderAction?.Invoke(gameTime, this);
            Viewport = GraphicsDevice.Viewport;
         }
 #endif

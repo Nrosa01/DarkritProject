@@ -26,8 +26,11 @@ namespace Darkrit;
 
 public class Core : Game
 {
+#if EDITOR_BUILD
     // Loggers
     ImGuiLoggerConsole ImGuiLoggerConsole { get; set; }
+
+#endif
 
     internal static Core s_instance;
 
@@ -70,11 +73,6 @@ public class Core : Game
     public static FmodStudio FMOD { get; private set; }
 
     /// <summary>  
-    /// Gets the ImGui renderer used for debug UIs.  
-    /// </summary>  
-    public static ImGuiRenderer ImGuiRenderer { get; private set; }
-
-    /// <summary>  
     /// Gets a runtime generated 1x1 pixel texture.  
     /// </summary>  
     public static Texture2D Pixel { get; private set; }
@@ -115,6 +113,7 @@ public class Core : Game
     private readonly ActivatableInputProvider activatableInputProvider = new(new PhysicalInputProvider());
     private readonly RecordInputProvider recordInputProvider;
     private readonly ReplayInputProvider replayInputProvider = new();
+    bool requestedRecording = false;
 
     /// <summary>
     /// Creates a new Core instance.
@@ -168,11 +167,13 @@ public class Core : Game
         // Create a new input manager.
         Input = new(recordInputProvider);
 
+        replayInputProvider.OnPlaybackFinished += OnInputPlaybackFinished;
+
+#if EDITOR_BUILD
         var imguiLogger = new ImGuiLogger();
         ImGuiLoggerConsole = new(imguiLogger);
         Log.AddLogger(imguiLogger);
-
-        replayInputProvider.OnPlaybackFinished += OnInputPlaybackFinished;
+#endif
     }
 
     private void OnInputPlaybackFinished()
@@ -264,11 +265,11 @@ public class Core : Game
 
     readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
 
-    bool requestedRecording = false;
 
     [Conditional("EDITOR_BUILD")]
     internal void EditorDraw(GameTime gameTime)
     {
+#if EDITOR_BUILD
         s_activeScene?.DebugDraw(gameTime);
         ImGuiLoggerConsole.Draw(gameTime);
 
@@ -305,23 +306,27 @@ public class Core : Game
             ImGui.Text($"Replaying frame {replayInputProvider.CurrentFrame} or {replayInputProvider.TotalFrames}");
         
         ImGui.End();
+#endif
     }
 
     protected override void Draw(GameTime gameTime)
     {
         s_coreEditor.CoreStats.ProfileStartRender();
 
-        ImGuiRenderer.BeforeLayout(gameTime);
+        // I should make this lambda static once everything is properly decoupled
+        s_coreEditor.Render(gameTime, (GameTime innerGameTime, CoreEditor coreEditor) =>
+        {
+            s_activeScene.Draw(innerGameTime);
 
-        s_coreEditor.Render(gameTime, s_activeScene);
-
-        if (s_coreEditor.ShowEditor)
-            EditorDraw(gameTime);
-
-        ImGuiRenderer.AfterLayout();
+#if EDITOR_BUILD
+            s_activeScene.DebugDraw(innerGameTime);
+            if (coreEditor.ShowEditor)
+                EditorDraw(innerGameTime);
+#endif
+        });
 
         s_coreEditor.CoreStats.ProfileEndRender(gameTime);
-        
+
         base.Draw(gameTime);
     }
 
@@ -385,25 +390,11 @@ public class Core : Game
         Pixel = new Texture2D(GraphicsDevice, 1, 1);
         Pixel.SetData([Color.White]);
 
+#if EDITOR_BUILD
         // Create the ImGui renderer.
-        ImGuiRenderer = new ImGuiRenderer(this);
-
-        s_coreEditor = new(GraphicsDevice, ImGuiRenderer);
-
-        // Optional: Scale text and widgets for easier readability.
-        var io = ImGui.GetIO();
-
-        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-        io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-
-        //io.FontGlobalScale = 1.25f;
-        unsafe
-        {
-           io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 20);
-        }
-        //io.Fonts.AddFontFromFileTTF("Content/fonts/FiraCode-Regular.ttf", 16);
-        ImGui.GetStyle().ScaleAllSizes(1.25f);
-
-        PurpleComfyTheme.SetupImGuiStyle();
+        s_coreEditor = new(GraphicsDevice, new ImGuiRenderer(this));
+#else
+        s_coreEditor = new(GraphicsDevice, null);
+#endif
     }
 }

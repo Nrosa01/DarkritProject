@@ -191,9 +191,12 @@ public class Material : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    [Conditional("DEBUG")]
+    [Conditional("EDITOR_BUILD")]
     public void DrawDebug()
     {
+
+#if EDITOR_BUILD
+
         ImGui.Begin(Effect.Name);
 
         var currentSize = ImGui.GetWindowSize();
@@ -286,11 +289,13 @@ public class Material : IDisposable
             }
         }
         ImGui.End();
+#endif
     }
 
-    [Conditional("DEBUG")]
+    [Conditional("EDITOR_BUILD")]
     public static void DrawVisibleDebugUi()
     {
+#if EDITOR_BUILD
         // first, cull any materials that are not visible, or disposed. 
         var toRemove = new List<Material>();
         foreach (var material in s_debugMaterials)
@@ -310,5 +315,6 @@ public class Material : IDisposable
         {
             material.DrawDebug();
         }
+#endif
     }
 }
