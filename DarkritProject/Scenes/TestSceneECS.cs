@@ -1,293 +1,145 @@
-using Darkrit.Graphics;
 using Darkrit.Graphics.InstancedQuadRenderer;
-using Frent;
-using Frent.Core;
-using Frent.Systems;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.CompilerServices;
 
+namespace Darkrit.Scenes;
 
-namespace Darkrit.Scenes
+internal class TestSceneECS : Scene
 {
-    internal class TestSceneECS : Scene
+    enum TinyECSMode
     {
-        static bool USE_FREN = false;
+        Delegate,
+        DelegateParallel,
+    }
 
-        enum FrentMode
+    static TinyECSMode tinyEcsMode = TinyECSMode.DelegateParallel;
+    readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
+    static bool paused = false;
+    static bool render = true;
+    static bool renderInstanced = true;
+
+    const int worldSize = 10_000;
+
+    TinyECS.Registry world;
+
+    InstancedQuadRenderer instancedQuadRenderer;
+
+    static readonly int WindowsWidth = Core.GraphicsDevice.Viewport.Width;
+    static readonly int WindowsHeight = Core.GraphicsDevice.Viewport.Height;
+
+    record struct Square(int Size);
+
+    record struct Position(float X, float Y);
+    record struct Velocity(float X, float Y);
+    record struct Fart(int Power);
+
+    public override void Initialize()
+    {
+        instancedQuadRenderer = new(Core.GraphicsDevice, Content);
+
+        world = new TinyECS.Registry(worldSize);
+
+        for (var i = 0; i < worldSize; i++)
         {
-            Delegate, Inline, Enumerate
+            var entity = world.Create();
+            world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight / 2 });
+            world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });
+            world.AddComponent(entity, new Square { Size = 10 });
+
+            if (i % 2 == 0) world.AddComponent(entity, new Fart { Power = 666 });
         }
+    }
 
-        enum TinyECSMode
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static void UpdateAction(ref Velocity vel, ref Position pos, ref Square square)
+    {
+        pos.X += vel.X;
+        pos.Y += vel.Y;
+
+        if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
+            vel.X *= -1;
+
+        if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
+            vel.Y *= -1;
+    }
+
+    static void RunVelocitySystem(TinyECS.Registry registry)
+    {
+        switch (tinyEcsMode)
         {
-            Delegate,
-            DelegateParallel,
+            case TinyECSMode.DelegateParallel:
+                registry.QueryParallel<Velocity, Position, Square>(UpdateAction);
+                break;
+            case TinyECSMode.Delegate:
+                registry.Query<Velocity, Position, Square>(UpdateAction);
+                break;
         }
+    }
 
-        static FrentMode frentMode = FrentMode.Inline;
-        static TinyECSMode tinyEcsMode = TinyECSMode.DelegateParallel;
-        readonly string[] frentNames = Enum.GetNames<FrentMode>();
-        readonly string[] tinyNames = Enum.GetNames<TinyECSMode>();
-        static bool paused = false;
-        static bool render = true;
-        static bool renderInstanced = true;
-
-        const int worldSize = 10_000;
-
-
-        Darkrit.TinyECS.Registry world;
-        Frent.World frentWorld;
-
-        InstancedQuadRenderer instancedQuadRenderer;
-
-        static int WindowsWidth = Core.GraphicsDevice.Viewport.Width;
-        static int WindowsHeight = Core.GraphicsDevice.Viewport.Height;
-
-        private static readonly EntityType _entityType = EntityType.EntityTypeOf([Component<Position>.ID, Component<Velocity>.ID, Component<Square>.ID], []);
-
-        record struct Square(int Size);
-
-        record struct Position(float X, float Y);
-        record struct Velocity(float X, float Y);
-        record struct Fart(int Power);
-
-        public override void Initialize()
+    static void RunSquareSystem(TinyECS.Registry registry, Action<Texture2D, Rectangle, Rectangle?, Color> drawAction)
+    {
+        ArgumentNullException.ThrowIfNull(registry);
+        switch (tinyEcsMode)
         {
-            instancedQuadRenderer = new(Core.GraphicsDevice, Content);
-
-            // Create the texture atlas from the XML configuration file.
-            TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
-
-            if (USE_FREN)
-            {
-                frentWorld = new();
-                frentWorld.EnsureCapacity(_entityType, worldSize);
-
-                for (int i = 0; i < worldSize; i++)
+            case TinyECSMode.Delegate:
+            case TinyECSMode.DelegateParallel: // Graphics can't run in parallel
+                registry.Query((ref Position pos, ref Square square) =>
                 {
-                    var spacing = .2f;
+                    float r = pos.X - MathF.Floor(pos.X);
+                    float g = pos.Y - MathF.Floor(pos.Y);
 
-
-                    var entity = frentWorld.Create(new Position { X = (i + 1) * spacing, Y = (i + 1) * spacing }, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f }, new Square { Size = 10 });
-                    if (i % 2 == 0) entity.Add(new Fart { Power = 666 });
-                }
-            }
-            else
-            {
-                world = new Darkrit.TinyECS.Registry(worldSize);
-
-                for (var i = 0; i < worldSize; i++)
-                {
-                    var entity = world.Create();
-                    world.AddComponent(entity, new Position { X = WindowsWidth / 2, Y = WindowsHeight / 2 });
-                    world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });
-                    world.AddComponent(entity, new Square { Size = 10 });
-
-                    if (i % 2 == 0) world.AddComponent(entity, new Fart { Power = 666 });
-                }
-            }
+                    var color = new Color(r, g, pos.X);
+                    drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
+                });
+                break;
         }
+    }
 
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void UpdateAction(ref Velocity vel, ref Position pos, ref Square square)
+        if (paused) return;
+
+        RunVelocitySystem(world);
+    }
+
+    public override void DebugDraw(GameTime gameTime)
+    {
+        ImGui.Begin("Test");
+        ImGui.Checkbox("Render", ref render);
+        if (render)
+            ImGui.Checkbox("RenderInstanced", ref renderInstanced);
+       
+        ImGui.Checkbox("Pause", ref paused);
+
+        int current = (int)tinyEcsMode;
+        if (ImGui.Combo("TinyECSmODE", ref current, tinyNames, tinyNames.Length))
         {
-            pos.X += vel.X;
-            pos.Y += vel.Y;
-
-            if (pos.X < 0 || pos.X + square.Size > WindowsWidth)
-                vel.X *= -1;
-
-            if (pos.Y < 0 || pos.Y + square.Size > WindowsHeight)
-                vel.Y *= -1;
+            tinyEcsMode = (TinyECSMode)current;
         }
 
-        struct InlineRun : IAction<Velocity, Position, Square>
-        {
-            public readonly void Run(ref Velocity vel, ref Position pos, ref Square square) => UpdateAction(ref vel, ref pos, ref square);
-        }
+        ImGui.End();
+    }
 
-        static void RunVelocitySystem(Darkrit.TinyECS.Registry registry, Frent.World frentWorld)
-        {
-            if (USE_FREN)
-            {
-                if (frentMode == FrentMode.Inline)
-                {
-                    frentWorld.Query<Velocity, Position, Square>().Inline<InlineRun, Velocity, Position, Square>(default);
-                }
-                else if (frentMode == FrentMode.Enumerate)
-                {
-                    foreach (var comp in frentWorld.Query<Velocity, Position, Square>().Enumerate<Velocity, Position, Square>())
-                        UpdateAction(ref comp.Item1.Value, ref comp.Item2.Value, ref comp.Item3.Value);
-                }
-                else
-                {
-                    frentWorld.Query<Velocity, Position, Square>().Delegate<Velocity, Position, Square>(UpdateAction);
-                }
-            }
-            else
-            {
-                switch (tinyEcsMode)
-                {
-                    case TinyECSMode.DelegateParallel:
-                        registry.QueryParallel<Velocity, Position, Square>(UpdateAction);
-                        break;
-                    case TinyECSMode.Delegate:
-                        registry.Query<Velocity, Position, Square>(UpdateAction);
-                        break;
-                }
-            }
-        }
+    public override void Draw(GameTime gameTime)
+    {
+        base.Draw(gameTime);
+        Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
-        struct DrawInline : IAction<Position, Square>
-        {
-            public readonly Action<Texture2D, Rectangle, Rectangle?, Color> drawAction;
+        instancedQuadRenderer.Begin();
+        Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        if (render)
+            RunSquareSystem(world, renderInstanced ? instancedQuadRenderer.Draw : Core.SpriteBatch.Draw);
+        Core.SpriteBatch.End();
+        instancedQuadRenderer.End();
+    }
 
-            public DrawInline(Action<Texture2D, Rectangle, Rectangle?, Color> drawAction)
-            {
-                this.drawAction = drawAction;
-            }
-
-            public readonly void Run(ref Position pos, ref Square square)
-            {
-                float r = pos.X - MathF.Floor(pos.X);
-                float g = pos.Y - MathF.Floor(pos.Y);
-
-                var color = new Color(r, g, pos.X);
-                drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
-            }
-        }
-
-        static void RunSquareSystem(Darkrit.TinyECS.Registry registry, Action<Texture2D, Rectangle, Rectangle?, Color> drawAction, Frent.World frentWorld)
-        {
-            if (USE_FREN)
-            {
-                if (frentMode == FrentMode.Inline)
-                {
-                    frentWorld.Query<Position, Square>().Inline<DrawInline, Position, Square>(new(drawAction));
-                }
-                else
-                {
-                    frentWorld.Query<Position, Square>().Delegate((ref Position pos, ref Square square) =>
-                    {
-                        float r = pos.X - MathF.Floor(pos.X);
-                        float g = pos.Y - MathF.Floor(pos.Y);
-
-                        var color = new Color(r, g, pos.X);
-                        drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
-                    });
-                }
-            }
-            else
-            {
-
-                switch (tinyEcsMode)
-                {
-                    case TinyECSMode.Delegate:
-                    case TinyECSMode.DelegateParallel: // Graphics can't run in parallel
-                        registry.Query<Position, Square>((ref Position pos, ref Square square) =>
-                        {
-                            float r = pos.X - MathF.Floor(pos.X);
-                            float g = pos.Y - MathF.Floor(pos.Y);
-
-                            var color = new Color(r, g, pos.X);
-                            drawAction(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, square.Size, square.Size), null, color);
-                        });
-                        break;
-                }
-            }
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-
-            if (paused) return;
-
-            RunVelocitySystem(world, frentWorld);
-        }
-
-        public override void DebugDraw(GameTime gameTime)
-        {
-            ImGui.Begin("Test");
-            ImGui.Checkbox("Render", ref render);
-            if (render)
-                ImGui.Checkbox("RenderInstanced", ref renderInstanced);
-            if (ImGui.Checkbox("Use Frent", ref USE_FREN))
-            {
-                if (!USE_FREN && world == null)
-                {
-                    world = new Darkrit.TinyECS.Registry(worldSize);
-
-                    for (var i = 0; i < worldSize; i++)
-                    {
-                        var spacing = .2f;
-                        var entity = world.Create();
-                        world.AddComponent(entity, new Position { X = (i + 1) * spacing, Y = (i + 1) * spacing });
-                        world.AddComponent(entity, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f });
-                        world.AddComponent(entity, new Square { Size = 10 });
-
-                        if (i % 2 == 0) world.AddComponent(entity, new Fart { Power = 666 });
-                    }
-                }
-                else if (frentWorld == null)
-                {
-                    frentWorld = new();
-                    frentWorld.EnsureCapacity(_entityType, worldSize);
-
-                    for (int i = 0; i < worldSize; i++)
-                    {
-                        var spacing = .2f;
-
-
-                        var entity = frentWorld.Create(new Position { X = (i + 1) * spacing, Y = (i + 1) * spacing }, new Velocity { X = 8 + i * 0.01f, Y = 4f + i * 0.01f }, new Square { Size = 10 });
-                        if (i % 2 == 0) entity.Add(new Fart { Power = 666 });
-                    }
-                }
-            }
-
-            if (USE_FREN)
-                ImGui.BeginDisabled();
-            int current = (int)tinyEcsMode;
-            if (ImGui.Combo("TinyECSmODE", ref current, tinyNames, tinyNames.Length))
-            {
-                tinyEcsMode = (TinyECSMode)current;
-            }
-            if (USE_FREN)
-                ImGui.EndDisabled();
-
-            ImGui.Checkbox("Pause", ref paused);
-            if (!USE_FREN)
-                ImGui.BeginDisabled();
-            current = (int)frentMode;
-            if (ImGui.Combo("FrentMode", ref current, frentNames, frentNames.Length))
-            {
-                frentMode = (FrentMode)current;
-            }
-            if (!USE_FREN)
-                ImGui.EndDisabled();
-
-            ImGui.End();
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-            Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
-
-            instancedQuadRenderer.Begin();
-            Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            if (render)
-                RunSquareSystem(world, renderInstanced ? instancedQuadRenderer.Draw : Core.SpriteBatch.Draw, frentWorld);
-            Core.SpriteBatch.End();
-            instancedQuadRenderer.End();
-        }
-
-        public override void Deinitialize()
-        {
-        }
+    public override void Deinitialize()
+    {
     }
 }
