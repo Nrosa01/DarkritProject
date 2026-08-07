@@ -2,6 +2,7 @@ using Darkrit.Base;
 using Darkrit.Content;
 using Darkrit.DevTools.Logger;
 using Darkrit.DevTools.Logger.Renderers;
+using Darkrit.Editor;
 using Darkrit.Graphics;
 using Darkrit.ImGuiUtils;
 using Darkrit.ImGuiUtils.Themes;
@@ -26,12 +27,6 @@ namespace Darkrit;
 
 public class Core : Game
 {
-#if EDITOR_BUILD
-    // Loggers
-    ImGuiLoggerConsole ImGuiLoggerConsole { get; set; }
-
-#endif
-
     internal static Core s_instance;
 
     /// <summary>
@@ -108,12 +103,15 @@ public class Core : Game
     public static float FixedUpdateAlpha { get; private set; }  = 0;
 
 
-    // Record system
-    private readonly PhysicalInputProvider EngineInputProvider = new();
-    private readonly ActivatableInputProvider activatableInputProvider = new(new PhysicalInputProvider());
-    private readonly RecordInputProvider recordInputProvider;
-    private readonly ReplayInputProvider replayInputProvider = new();
-    bool requestedRecording = false;
+    // Input system
+    private readonly PhysicalInputProvider _engineInputProvider = new();
+    private readonly ActivatableInputProvider _activatableInputProvider;
+
+    internal readonly InputRecordingController Recording;
+
+#if EDITOR_BUILD
+    private EditorOverlay EditorOverlayInstance;
+#endif
 
     /// <summary>
     /// Creates a new Core instance.
@@ -162,23 +160,11 @@ public class Core : Game
         // Mouse is visible by default.
         IsMouseVisible = true;
 
-        recordInputProvider = new(activatableInputProvider);
+        _activatableInputProvider = new(new PhysicalInputProvider());
 
-        // Create a new input manager.
-        Input = new(recordInputProvider);
+        Input = new(_activatableInputProvider);
 
-        replayInputProvider.OnPlaybackFinished += OnInputPlaybackFinished;
-
-#if EDITOR_BUILD
-        var imguiLogger = new ImGuiLogger();
-        ImGuiLoggerConsole = new(imguiLogger);
-        Log.AddLogger(imguiLogger);
-#endif
-    }
-
-    private void OnInputPlaybackFinished()
-    {
-        Input.SetProvider(recordInputProvider);
+        Recording = new(Input, _activatableInputProvider);
     }
 
     protected void FixedUpdate(GameTime gameTime)
@@ -219,30 +205,33 @@ public class Core : Game
         s_coreEditor.Update(gameTime);
         FMOD.Update();
 
-        activatableInputProvider.Enabled = true;
-        EngineInputProvider.Update(gameTime);
+        _engineInputProvider.Update(gameTime);
 
-        if (EngineInputProvider.WasKeyJustPressed(Keys.F11))
+        if (_engineInputProvider.WasKeyJustPressed(Keys.F11))
             s_coreEditor.ToggleShow();
 
-        if (EngineInputProvider.WasKeyJustPressed(Keys.Escape) && s_coreEditor.ViewportFocused)
-            CoreEditor.UnFocus();
-
-        // While replaying, the game window recives input focus no matter what
-        if (s_coreEditor.IsGameNotFocused && !replayInputProvider.IsReplaying)
-            activatableInputProvider.Enabled = false;
-
-        if(s_coreEditor.IsGameFocused && requestedRecording)
+        if (_engineInputProvider.WasKeyJustPressed(Keys.Escape) &&
+            s_coreEditor.ViewportFocused)
         {
-            recordInputProvider.StartRecording();
-            requestedRecording = false;
+            CoreEditor.UnFocus();
         }
 
-        // Update the input manager.
+        _activatableInputProvider.Enabled = true;
+
+        if (s_coreEditor.IsGameNotFocused && !Recording.IsReplaying)
+            _activatableInputProvider.Enabled = false;
+
+        if (s_coreEditor.IsGameFocused && Recording.RecordingRequested)
+            Recording.StartRecording();
+
         Input.Update(gameTime);
 
-        if (ExitOnEscape && EngineInputProvider.WasKeyJustPressed(Keys.Escape) && s_coreEditor.IsGameNotFocused)
+        if (ExitOnEscape &&
+            _engineInputProvider.WasKeyJustPressed(Keys.Escape) &&
+            s_coreEditor.IsGameNotFocused)
+        {
             Exit();
+        }
 
         // if there is a next scene waiting to be switch to, then transition
         // to that scene.
@@ -263,52 +252,6 @@ public class Core : Game
         base.Update(gameTime);
     }
 
-    readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
-
-
-    [Conditional("EDITOR_BUILD")]
-    internal void EditorDraw(GameTime gameTime)
-    {
-#if EDITOR_BUILD
-        s_activeScene?.DebugDraw(gameTime);
-        ImGuiLoggerConsole.Draw(gameTime);
-
-        ImGui.Begin("Scene Switcher");
-
-        foreach (var sceneType in _sceneTypes)
-        {
-            if (ImGui.Button(sceneType.Name))
-                ChangeScene((Scene)Activator.CreateInstance(sceneType));
-        }
-
-        ImGui.End();
-
-        ImGui.Begin("Input Replay");
-        if (ImGuiEx.DisableButton("Record", recordInputProvider.IsRecording || requestedRecording))
-            requestedRecording = true;
-
-        if (requestedRecording && ImGui.Button("Stop recording quest"))
-            requestedRecording = false;
-
-        if(ImGuiEx.DisableButton("Stop recording", !recordInputProvider.IsRecording))
-            recordInputProvider.StopRecording();
-
-        if(ImGuiEx.DisableButton("Replay saved Input", !recordInputProvider.HasRecording))
-        {
-           Input.SetProvider(replayInputProvider);
-           replayInputProvider.StartReplay(recordInputProvider.GetRecordedFrames());
-        }
-
-        if (recordInputProvider.IsRecording)
-            ImGui.Text($"Recording Frame {recordInputProvider.RecordedFrames}");
-
-        if (replayInputProvider.IsReplaying)
-            ImGui.Text($"Replaying frame {replayInputProvider.CurrentFrame} or {replayInputProvider.TotalFrames}");
-        
-        ImGui.End();
-#endif
-    }
-
     protected override void Draw(GameTime gameTime)
     {
         s_coreEditor.CoreStats.ProfileStartRender();
@@ -321,7 +264,7 @@ public class Core : Game
 #if EDITOR_BUILD
             s_activeScene.DebugDraw(innerGameTime);
             if (coreEditor.ShowEditor)
-                EditorDraw(innerGameTime);
+                EditorOverlayInstance.Draw(innerGameTime);
 #endif
         });
 
@@ -391,10 +334,10 @@ public class Core : Game
         Pixel.SetData([Color.White]);
 
 #if EDITOR_BUILD
-        // Create the ImGui renderer.
         s_coreEditor = new(GraphicsDevice, new ImGuiRenderer(this));
+        EditorOverlayInstance = new(Recording);
 #else
-        s_coreEditor = new(GraphicsDevice, null);
+    s_coreEditor = new(GraphicsDevice, null);
 #endif
     }
 }

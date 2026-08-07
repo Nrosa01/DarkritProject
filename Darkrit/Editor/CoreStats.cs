@@ -1,4 +1,5 @@
-﻿using Hexa.NET.ImGui;
+﻿using Darkrit.Base;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Darkrit.Base;
+namespace Darkrit.Editor;
 
 internal class CoreStats(GraphicsDevice GraphicsDevice)
 {
