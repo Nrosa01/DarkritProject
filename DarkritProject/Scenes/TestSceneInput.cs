@@ -110,7 +110,7 @@ namespace Darkrit.Scenes
             position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 
-        public override void DebugDraw(GameTime gameTime)
+        public override void EditorDraw(GameTime gameTime)
         {
             ImGui.Begin("Test");
             ImGui.Checkbox("Render", ref render);

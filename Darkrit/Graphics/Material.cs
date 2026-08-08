@@ -271,8 +271,8 @@ public class Material : IDisposable
                     var texture = prop.Value.GetValueTexture2D();
                     if (texture != null)
                     {
-                        //var texturePtr = Core.ImGuiRenderer.BindTexture(texture);
-                        //ImGui.Image(texturePtr, new System.Numerics.Vector2(texture.Width, texture.Height));
+                        var texturePtr = Core.ImGuiRenderer.BindTexture(texture);
+                        ImGui.Image(texturePtr, new System.Numerics.Vector2(texture.Width, texture.Height));
                     }
                     else
                     {

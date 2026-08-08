@@ -74,11 +74,19 @@ public abstract class Scene : IDisposable
     /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
     public virtual void Draw(GameTime gameTime) { }
 
+
+    /// <summary>
+    /// Allows to draw Debug shapes and Gizmos. Similar to Unity OnDrawGizmos
+    /// </summary>
+    /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
+    public virtual void DebugDraw(GameTime gameTime) { }
+
+
     /// <summary>
     /// Allows to draw ImGui widgets
     /// </summary>
     /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
-    public virtual void DebugDraw(GameTime gameTime) { }
+    public virtual void EditorDraw(GameTime gameTime) { }
 
     /// <summary>
     /// Disposes of this scene.

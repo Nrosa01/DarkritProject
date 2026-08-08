@@ -108,7 +108,7 @@ internal class TestSceneECS : Scene
         RunVelocitySystem(world);
     }
 
-    public override void DebugDraw(GameTime gameTime)
+    public override void EditorDraw(GameTime gameTime)
     {
         ImGui.Begin("Test");
         ImGui.Checkbox("Render", ref render);

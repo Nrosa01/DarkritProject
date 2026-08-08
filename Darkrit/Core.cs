@@ -21,12 +21,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using TinyFmod;
 
 namespace Darkrit;
 
 public class Core : Game
 {
+    public enum EngineUpdateLayer { UPDATE, FIXED_UPDATE }
+
     internal static Core s_instance;
 
     /// <summary>
@@ -65,6 +68,8 @@ public class Core : Game
     /// </summary>
     public static Input Input { get; private set; }
 
+    public EngineUpdateLayer InputUpdateLayer { get; set; } = EngineUpdateLayer.FIXED_UPDATE;
+
     public static FmodStudio FMOD { get; private set; }
 
     /// <summary>  
@@ -79,22 +84,25 @@ public class Core : Game
 
     static CoreEditor s_coreEditor;
 
-    public static Viewport Viewport { get => s_coreEditor.Viewport; private set => s_coreEditor.Viewport = value;  }
+    public static ImGuiRenderer ImGuiRenderer => s_coreEditor.ImGuiRenderer;
+
+    public static Viewport Viewport => s_coreEditor.Viewport;
 
     public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
-    // this will be the FixedUpdate frequency, we set it to 30 FPS
-    private float fixedUpdateDelta = (int)(1000 / (float)PHYSICS_TICKS_PER_SECOND);
+    // this will be the FixedUpdate frequency in hz
+    private float fixedUpdateDelta = (int)(1000.0 / PHYSICS_TICKS_PER_SECOND);
 
     // helper variables for the fixed update
+    private readonly int _maxFixedUpdatesPerFrame = 3;
     private float previousT = 0;
     private float accumulator = 0.0f;
-    private float maxFrameTime = 250;
+    private readonly float maxFrameTime = 250;
 
     // Elapsed time here will be fake, set to fixedUpdateDelta
     // A difference instance from the normal game time is not really needed
     // but I prefer diong the separation
-    private GameTime physicsGameTime = new();
+    private readonly GameTime physicsGameTime = new();
 
 
     // this value stores how far we are in the current frame. For example, when the 
@@ -167,7 +175,7 @@ public class Core : Game
         Recording = new(Input, _activatableInputProvider);
     }
 
-    protected void FixedUpdate(GameTime gameTime)
+    protected void HandleFixedUpdate(GameTime gameTime)
     {
         if (previousT == 0)
         {
@@ -185,25 +193,61 @@ public class Core : Game
 
         accumulator += frameTime;
 
-        while (accumulator >= fixedUpdateDelta)
+        int updatesThisFrame = 0;
+        while (accumulator >= fixedUpdateDelta && updatesThisFrame < _maxFixedUpdatesPerFrame)
         {
-            physicsGameTime.TotalGameTime = gameTime.TotalGameTime;
-            physicsGameTime.IsRunningSlowly = gameTime.IsRunningSlowly;
-            physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(fixedUpdateDelta);
-            s_activeScene?.FixedUpdate(physicsGameTime);
+            DoFixedUpdate(gameTime);
             accumulator -= fixedUpdateDelta;
+            updatesThisFrame++;
         }
 
         // this value stores how far we are in the current frame. For example, when the 
         // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
         // next upcoming frame.
         FixedUpdateAlpha = (accumulator / fixedUpdateDelta);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void DoFixedUpdate(GameTime gameTime)
+        {
+            physicsGameTime.TotalGameTime = gameTime.TotalGameTime;
+            physicsGameTime.IsRunningSlowly = gameTime.IsRunningSlowly;
+            physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(fixedUpdateDelta);
+            
+            if (InputUpdateLayer == EngineUpdateLayer.FIXED_UPDATE)
+                Input.Update(gameTime);
+            
+            s_activeScene?.FixedUpdate(physicsGameTime);
+        }
     }
 
     protected override void Update(GameTime gameTime)
     {
-        s_coreEditor.Update(gameTime);
         FMOD.Update();
+
+        InputAndEditorUpdate(gameTime);
+
+        // if there is a next scene waiting to be switch to, then transition
+        // to that scene.
+        if (s_nextScene != null)
+            TransitionScene();
+
+        Content.ReloadChangedAssets();
+
+        s_coreEditor.CoreStats.ProfileStartLogic();
+
+        // If there is an active scene, update it.
+        s_activeScene?.Update(gameTime);
+
+        HandleFixedUpdate(gameTime);
+
+        s_coreEditor.CoreStats.ProfileEndLogic(gameTime);
+
+        base.Update(gameTime);
+    }
+
+    private void InputAndEditorUpdate(GameTime gameTime)
+    {
+        s_coreEditor.Update(gameTime);
 
         _engineInputProvider.Update(gameTime);
 
@@ -224,8 +268,6 @@ public class Core : Game
         if (s_coreEditor.IsGameFocused && Recording.RecordingRequested)
             Recording.StartRecording();
 
-        Input.Update(gameTime);
-
         if (ExitOnEscape &&
             _engineInputProvider.WasKeyJustPressed(Keys.Escape) &&
             s_coreEditor.IsGameNotFocused)
@@ -233,23 +275,8 @@ public class Core : Game
             Exit();
         }
 
-        // if there is a next scene waiting to be switch to, then transition
-        // to that scene.
-        if (s_nextScene != null)
-            TransitionScene();
-
-        Content.ReloadChangedAssets();
-
-        s_coreEditor.CoreStats.ProfileStartLogic();
-
-        // If there is an active scene, update it.
-        s_activeScene?.Update(gameTime);
-
-        FixedUpdate(gameTime);
-
-        s_coreEditor.CoreStats.ProfileEndLogic(gameTime);
-
-        base.Update(gameTime);
+        if(InputUpdateLayer == EngineUpdateLayer.UPDATE)
+            Input.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
@@ -262,7 +289,7 @@ public class Core : Game
             s_activeScene.Draw(innerGameTime);
 
 #if EDITOR_BUILD
-            s_activeScene.DebugDraw(innerGameTime);
+            s_activeScene.EditorDraw(innerGameTime);
             if (coreEditor.ShowEditor)
                 EditorOverlayInstance.Draw(innerGameTime);
 #endif
