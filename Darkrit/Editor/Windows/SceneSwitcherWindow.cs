@@ -16,7 +16,7 @@ namespace Darkrit.Editor.Windows;
 /// </summary>
 internal class SceneSwitcherWindow : IEditorOverlay
 {
-    readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
+    private readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();
 
     public void Draw(GameTime gameTime)
     {

@@ -43,7 +43,7 @@ public class ActivatableInputProvider(ISerializableInputProvider provider) : ISe
     public ActivatableInputProvider() : this(new PhysicalInputProvider()) { }
 
 
-    bool _enabledLastFrame;
+    private bool _enabledLastFrame;
     /// <summary>
     /// Updates all input states.
     /// Must be called once per frame.

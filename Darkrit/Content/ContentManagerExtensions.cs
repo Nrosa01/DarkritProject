@@ -15,9 +15,9 @@ namespace Darkrit.Content;
 
 public interface IHotReloadableAsset
 {
-    public string AssetName { get; }
+    string AssetName { get; }
 
-    public void Reload();
+    void Reload();
 }
 
 public static class ContentManagerExtensions

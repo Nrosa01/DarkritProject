@@ -79,7 +79,7 @@ public class Core : Game
     /// </summary>
     public static bool ExitOnEscape { get; set; }
 
-    static CoreEditor s_coreEditor;
+    private static CoreEditor s_coreEditor;
 
     public static ImGuiRenderer ImGuiRenderer => s_coreEditor.ImGuiRenderer;
 
@@ -88,18 +88,18 @@ public class Core : Game
     public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
     // this will be the FixedUpdate frequency in hz
-    private float fixedUpdateDelta = (int)(1000.0 / PHYSICS_TICKS_PER_SECOND);
+    private float _fixedUpdateDelta = (int)(1000.0 / PHYSICS_TICKS_PER_SECOND);
 
     // helper variables for the fixed update
     private readonly int _maxFixedUpdatesPerFrame = 3;
-    private float previousT = 0;
-    private float accumulator = 0.0f;
-    private readonly float maxFrameTime = 250;
+    private float _previousT = 0;
+    private float _accumulator = 0.0f;
+    private readonly float _maxFrameTime = 250;
 
     // Elapsed time here will be fake, set to fixedUpdateDelta
     // A difference instance from the normal game time is not really needed
     // but I prefer diong the separation
-    private readonly GameTime physicsGameTime = new();
+    private readonly GameTime _physicsGameTime = new();
 
 
     // this value stores how far we are in the current frame. For example, when the 
@@ -112,7 +112,7 @@ public class Core : Game
     private readonly PhysicalInputProvider _engineInputProvider = new();
     private readonly ActivatableInputProvider _activatableInputProvider;
 
-    public static InputRecordingController InputRecorder;
+    public static InputRecordingController InputRecorder { get; private set; }
     #endregion
     
     /// <summary>
@@ -175,46 +175,46 @@ public class Core : Game
     /// <param name="gameTime"></param>
     protected void HandleFixedUpdate(GameTime gameTime)
     {
-        if (previousT == 0)
+        if (_previousT == 0)
         {
-            previousT = (float)gameTime.TotalGameTime.TotalMilliseconds;
+            _previousT = (float)gameTime.TotalGameTime.TotalMilliseconds;
         }
 
         float now = (float)gameTime.TotalGameTime.TotalMilliseconds;
-        float frameTime = now - previousT;
-        if (frameTime > maxFrameTime)
+        float frameTime = now - _previousT;
+        if (frameTime > _maxFrameTime)
         {
-            frameTime = maxFrameTime;
+            frameTime = _maxFrameTime;
         }
 
-        previousT = now;
+        _previousT = now;
 
-        accumulator += frameTime;
+        _accumulator += frameTime;
 
         int updatesThisFrame = 0;
-        while (accumulator >= fixedUpdateDelta && updatesThisFrame < _maxFixedUpdatesPerFrame)
+        while (_accumulator >= _fixedUpdateDelta && updatesThisFrame < _maxFixedUpdatesPerFrame)
         {
             DoFixedUpdate(gameTime);
-            accumulator -= fixedUpdateDelta;
+            _accumulator -= _fixedUpdateDelta;
             updatesThisFrame++;
         }
 
         // this value stores how far we are in the current frame. For example, when the 
         // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
         // next upcoming frame.
-        FixedUpdateAlpha = (accumulator / fixedUpdateDelta);
+        FixedUpdateAlpha = (_accumulator / _fixedUpdateDelta);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void DoFixedUpdate(GameTime gameTime)
         {
-            physicsGameTime.TotalGameTime = gameTime.TotalGameTime;
-            physicsGameTime.IsRunningSlowly = gameTime.IsRunningSlowly;
-            physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(fixedUpdateDelta);
+            _physicsGameTime.TotalGameTime = gameTime.TotalGameTime;
+            _physicsGameTime.IsRunningSlowly = gameTime.IsRunningSlowly;
+            _physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(_fixedUpdateDelta);
             
             if (InputUpdateLayer == EngineUpdateLayer.FIXED_UPDATE)
                 Input.Update(gameTime);
             
-            s_activeScene?.FixedUpdate(physicsGameTime);
+            s_activeScene?.FixedUpdate(_physicsGameTime);
         }
     }
 

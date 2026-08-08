@@ -10,9 +10,9 @@ public interface IInputBinding
 {
     internal IInputProvider provider { set; }
 
-    public bool Pressed();
-    public bool Released() => !Pressed();
-    public bool PressedThisFrame();
-    public bool ReleasedThisFrame();
+    bool Pressed();
+    bool Released() => !Pressed();
+    bool PressedThisFrame();
+    bool ReleasedThisFrame();
     float GetValue();
 }

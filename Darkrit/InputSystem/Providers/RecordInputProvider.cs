@@ -16,9 +16,9 @@ namespace Darkrit.InputSystem.Providers;
 /// </summary>
 internal class RecordInputProvider(ISerializableInputProvider providerToRecord) : IInputProvider
 {
-    readonly List<InputFrame> _frames = new(60 * 60 * 10); // 60fps * 10 minutes
+    private readonly List<InputFrame> _frames = new(60 * 60 * 10); // 60fps * 10 minutes
 
-    bool recording = false;
+    private bool recording = false;
     
     public bool IsRecording => recording;
 

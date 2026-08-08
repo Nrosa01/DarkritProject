@@ -36,7 +36,7 @@ public class FirstBatcher
     private bool _indicesChanged = false;
     private uint _fromIndex = 0;
     private uint _fromVertex = 0;
-    GraphicsDevice GraphicsDevice;
+    private GraphicsDevice GraphicsDevice;
 
     public FirstBatcher(GraphicsDevice graphicsDevice)
     {

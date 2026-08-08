@@ -49,5 +49,5 @@ public class ComponentStore<T>(int maxComponents) : IComponentStore
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void Remove(int entityId) => Set.Remove(entityId);
+    private void Remove(int entityId) => Set.Remove(entityId);
 }

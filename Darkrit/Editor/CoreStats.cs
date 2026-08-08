@@ -16,7 +16,7 @@ namespace Darkrit.Editor;
 /// <param name="GraphicsDevice">The GraphicsDevice to use</param>
 internal class CoreStats(GraphicsDevice GraphicsDevice)
 {
-    readonly ProcessStats ProcessStats = new(Process.GetCurrentProcess());
+    private readonly ProcessStats ProcessStats = new(Process.GetCurrentProcess());
 
     private const int HistorySize = 240;
     private readonly float[] _cpuRenderHistory = new float[HistorySize];

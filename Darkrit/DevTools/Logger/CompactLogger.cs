@@ -26,7 +26,7 @@ internal struct LogEntry
 /// </summary>
 internal class CompactLogger : ILogger
 {
-    readonly RingBuffer<LogEntry> _buffer = new (2048);
+    private readonly RingBuffer<LogEntry> _buffer = new (2048);
 
     internal static Color GetColorByLevel(LogLevel level) => level switch
     {

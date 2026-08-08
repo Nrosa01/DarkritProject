@@ -14,7 +14,7 @@ namespace Darkrit.InputSystem.Bindings;
 /// <param name="provider"></param>
 public class KeyboardBinding(Keys key) : IInputBinding
 {
-    IInputProvider provider;
+    private IInputProvider provider;
 
     IInputProvider IInputBinding.provider { set => provider = value; }
 

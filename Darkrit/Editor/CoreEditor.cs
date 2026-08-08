@@ -62,7 +62,7 @@ internal class CoreEditor
 #endif
     }
 
-    readonly GraphicsDevice GraphicsDevice;
+    private readonly GraphicsDevice GraphicsDevice;
     public ImGuiRenderer ImGuiRenderer { get; init; }
 
     public Viewport Viewport { get; internal set; }

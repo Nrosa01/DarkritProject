@@ -11,5 +11,5 @@ namespace Darkrit.Editor;
 /// </summary>
 internal interface IEditorOverlay
 {
-    public void Draw(GameTime gameTime);
+    void Draw(GameTime gameTime);
 }

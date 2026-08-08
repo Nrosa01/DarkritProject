@@ -27,11 +27,11 @@ internal class ImGuiLoggerConsole(CompactLogger logger)
         All = Trace | Debug | Info | Warning | Error
     }
 
-    LogLevelFilter filter = LogLevelFilter.All;
+    private LogLevelFilter filter = LogLevelFilter.All;
 
-    bool collapseRepeated = true;
+    private bool collapseRepeated = true;
 
-    string searchText = "";
+    private string searchText = "";
     internal void Draw(GameTime gameTime)
     {
         var buffer = logger.Buffer;

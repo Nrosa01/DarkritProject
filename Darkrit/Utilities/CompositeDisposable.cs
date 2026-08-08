@@ -12,7 +12,7 @@ namespace Darkrit.Utilities;
 /// </summary>
 public class CompositeDisposable : IDisposable
 {
-    readonly List<IDisposable> _disposables = [];
+    private readonly List<IDisposable> _disposables = [];
 
     public void Dispose()
     {

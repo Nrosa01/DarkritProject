@@ -38,10 +38,10 @@ public static class TypeId<T>
 
 public partial class Registry(int maxEntities)
 {
-    readonly Dictionary<int, IComponentStore> data = [];
-    readonly Stack<int> deletedEntities = new();
-    readonly int[] generations = new int[maxEntities];
-    Int32 nextEntity = 0;
+    private readonly Dictionary<int, IComponentStore> data = [];
+    private readonly Stack<int> deletedEntities = new();
+    private readonly int[] generations = new int[maxEntities];
+    private Int32 nextEntity = 0;
 
     private Int32 NextEntityId()
     {
@@ -79,7 +79,7 @@ public partial class Registry(int maxEntities)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    bool Exists(Entity entity) => generations[entity.Id] == entity.Generation;
+    private bool Exists(Entity entity) => generations[entity.Id] == entity.Generation;
 
     public void AddComponent<T>(Entity entity, T component) => Assure<T>().Add(entity.Id, component);
 

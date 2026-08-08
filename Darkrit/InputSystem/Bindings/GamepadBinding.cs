@@ -13,7 +13,7 @@ namespace Darkrit.InputSystem.Bindings;
 /// </summary>
 public class GamepadBinding : IInputBinding
 {
-    IInputBinding _inputBinding;
+    private IInputBinding _inputBinding;
 
     IInputProvider IInputBinding.provider { set => _inputBinding.provider = value; }
     public GamepadBinding(PlayerIndex playerIndex, GamepadAxis axis, float deadZone = 0.2f)

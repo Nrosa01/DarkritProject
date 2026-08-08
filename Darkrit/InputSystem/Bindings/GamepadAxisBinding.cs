@@ -33,7 +33,7 @@ internal class GamepadAxisBinding(
     GamepadAxis axis,
     float deadZone = 0.2f) : IInputBinding
 {
-    IInputProvider provider;
+    private IInputProvider provider;
 
     IInputProvider IInputBinding.provider { set => provider = value; }
 

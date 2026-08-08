@@ -17,15 +17,15 @@ namespace Darkrit.InputSystem.Providers;
 /// </summary>
 internal class ReplayInputProvider : IInputProvider
 {
-    InputFrame _previousFrame;
-    InputFrame _currentFrame;
-    int _frame = 0;
+    private InputFrame _previousFrame;
+    private InputFrame _currentFrame;
+    private int _frame = 0;
 
     public event Action OnPlaybackFinished;
 
-    IReadOnlyList<InputFrame> _replayFrames = [];
+    private IReadOnlyList<InputFrame> _replayFrames = [];
 
-    bool replaying = false;
+    private bool replaying = false;
 
     public bool IsReplaying => replaying;
 

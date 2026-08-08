@@ -13,8 +13,8 @@ namespace Darkrit.Base;
 internal class ProcessStats(Process Process)
 {
 #if EDITOR_BUILD
-    readonly double currentProcessUpdateInterval = 1.5f;
-    double currentProcessUpdateIntervalTimer = 0.0f;
+    private readonly double currentProcessUpdateInterval = 1.5f;
+    private double currentProcessUpdateIntervalTimer = 0.0f;
 #endif
     public Process Process { get; } = Process;
 
