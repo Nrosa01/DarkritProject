@@ -1,7 +1,14 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem.ReplaySystem;
 
+/// <summary>
+/// Stores the keyboard state in 256bits as 4 <see cref="ulong"/>
+/// </summary>
 public struct KeyboardFrame
 {
     public ulong B0;

@@ -1,9 +1,16 @@
-﻿using System;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using System;
 using Darkrit.InputSystem.ReplaySystem;
 using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem;
 
+/// <summary>
+/// Wrapper about KeyboardState to easily handle keyboard input
+/// </summary>
 public class KeyboardInfo
 {
     internal readonly Keys[] Keys = new Keys[256];
@@ -41,40 +48,28 @@ public class KeyboardInfo
     /// </summary>
     /// <param name="key">The key to check.</param>
     /// <returns>true if the specified key is currently down; otherwise, false.</returns>
-    public bool IsKeyDown(Keys key)
-    {
-        return CurrentState.IsKeyDown(key);
-    }
+    public bool IsKeyDown(Keys key) => CurrentState.IsKeyDown(key);
 
     /// <summary>
     /// Returns a value that indicates whether the specified key is currently up.
     /// </summary>
     /// <param name="key">The key to check.</param>
     /// <returns>true if the specified key is currently up; otherwise, false.</returns>
-    public bool IsKeyUp(Keys key)
-    {
-        return CurrentState.IsKeyUp(key);
-    }
+    public bool IsKeyUp(Keys key) => CurrentState.IsKeyUp(key);
 
     /// <summary>
     /// Returns a value that indicates if the specified key was just pressed on the current frame.
     /// </summary>
     /// <param name="key">The key to check.</param>
     /// <returns>true if the specified key was just pressed on the current frame; otherwise, false.</returns>
-    public bool WasKeyJustPressed(Keys key)
-    {
-        return CurrentState.IsKeyDown(key) && PreviousState.IsKeyUp(key);
-    }
+    public bool WasKeyJustPressed(Keys key) => CurrentState.IsKeyDown(key) && PreviousState.IsKeyUp(key);
 
     /// <summary>
     /// Returns a value that indicates if the specified key was just released on the current frame.
     /// </summary>
     /// <param name="key">The key to check.</param>
     /// <returns>true if the specified key was just released on the current frame; otherwise, false.</returns>
-    public bool WasKeyJustReleased(Keys key)
-    {
-        return CurrentState.IsKeyUp(key) && PreviousState.IsKeyDown(key);
-    }
+    public bool WasKeyJustReleased(Keys key) => CurrentState.IsKeyUp(key) && PreviousState.IsKeyDown(key);
 
     private static readonly Keys[] AllKeys = Enum.GetValues<Keys>();
 

@@ -1,4 +1,8 @@
-﻿using Darkrit.InputSystem.Bindings;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.InputSystem.Bindings;
 using Darkrit.InputSystem.ReplaySystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -7,6 +11,10 @@ namespace Darkrit.InputSystem.Providers;
 
 /// <summary>
 /// Input provider that returns false or default values. Useful for ignoring all inputs.
+/// There is one exception for the Mouse Input for which it returns the last recorded mouse position
+/// 
+/// By default it always returns <see cref="Vector2.Zero"/>, but the engine usually pais this with an
+/// <see cref="ActivatableInputProvider"/>
 /// </summary>
 public class NullInputProvider : ISerializableInputProvider
 {

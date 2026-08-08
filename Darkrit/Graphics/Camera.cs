@@ -1,10 +1,17 @@
-﻿using Hexa.NET.ImGui;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Darkrit.Graphics;
 
+/// <summary>
+/// Simple camera that computes a matrix based on position, rotation and zoom
+/// </summary>
 public class Camera
 {
     public Vector2 Position { get; set; } = Vector2.Zero;
@@ -58,13 +65,13 @@ public class Camera
                 0);
     }
 
-    public Vector2 ScreenToWorld(Vector2 screenPosition, Viewport viewport)
+    public Vector2 ScreenToWorld(Point screenPosition, Viewport viewport)
     {
-        Vector2 viewportPosition = screenPosition - new Vector2(viewport.X, viewport.Y);
+        Point viewportPosition = screenPosition - new Point(viewport.X, viewport.Y);
 
         Matrix view = GetViewMatrix(viewport);
         Matrix inverse = Matrix.Invert(view);
 
-        return Vector2.Transform(viewportPosition, inverse);
+        return Vector2.Transform(viewportPosition.ToVector2(), inverse);
     }
 }

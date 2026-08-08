@@ -1,11 +1,15 @@
-﻿using Microsoft.Xna.Framework;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Microsoft.Xna.Framework;
 using System;
 
-namespace Darkrit;
+namespace Darkrit.Math;
 
 public readonly struct Circle : IEquatable<Circle>
 {
-    private static readonly Circle s_empty = new Circle();
+    private static readonly Circle s_empty = new();
 
     /// <summary>
     /// The x-coordinate of the center of this circle.
@@ -25,7 +29,7 @@ public readonly struct Circle : IEquatable<Circle>
     /// <summary>
     /// Gets the location of the center of this circle.
     /// </summary>
-    public readonly Point Location => new Point(X, Y);
+    public readonly Point Location => new(X, Y);
 
     /// <summary>
     /// Gets a circle with X=0, Y=0, and Radius=0.

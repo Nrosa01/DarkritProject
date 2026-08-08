@@ -1,4 +1,8 @@
-﻿using Darkrit.ImGuiUtils;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.ImGuiUtils;
 using Darkrit.InputSystem;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
@@ -23,7 +27,7 @@ internal class InputRecorderWindow(InputRecordingController recording)
         }
 
         if (recording.RecordingRequested && ImGui.Button("Stop recording quest"))
-            recording.CancelRecording();
+            recording.CancelRecordingRequest();
 
         if (ImGuiEx.DisableButton(
             "Stop recording",
@@ -40,11 +44,11 @@ internal class InputRecorderWindow(InputRecordingController recording)
         }
 
         if (recording.IsRecording)
-            ImGui.Text($"Recording Frame {recording.RecordedFrames}");
+            ImGui.Text($"Recording Frame {recording.RecordedFramesCount}");
 
         if (recording.IsReplaying)
             ImGui.Text(
-                $"Replaying frame {recording.CurrentFrame} or {recording.TotalFrames}");
+                $"Replaying frame {recording.CurrentFrameIndex} or {recording.ReplayFramesCount}");
 
         ImGui.End();
     }

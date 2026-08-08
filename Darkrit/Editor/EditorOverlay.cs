@@ -1,4 +1,8 @@
-﻿using Darkrit.Editor.Windows;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.Editor.Windows;
 using Darkrit.InputSystem;
 using Microsoft.Xna.Framework;
 

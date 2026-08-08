@@ -13,9 +13,9 @@ public static class DrawVertDeclaration
     {
         Size = sizeof(ImDrawVert);
 
-        VertexElement position = new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0);
-        VertexElement uv = new VertexElement(8, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0);
-        VertexElement color = new VertexElement(16, VertexElementFormat.Color, VertexElementUsage.Color, 0);
+        VertexElement position = new(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0);
+        VertexElement uv = new(8, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0);
+        VertexElement color = new(16, VertexElementFormat.Color, VertexElementUsage.Color, 0);
 
         Declaration = new VertexDeclaration(Size, position, uv, color);
     }

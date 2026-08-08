@@ -1,10 +1,18 @@
-﻿using Darkrit.InputSystem.Bindings;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.InputSystem.Bindings;
 using Darkrit.InputSystem.ReplaySystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem.Providers;
 
+/// <summary>
+/// InputProvider that can be disabled. What really makes is switching to a <see cref="NullInputProvider"/>
+/// </summary>
+/// <param name="provider">The main provider to use when active</param>
 public class ActivatableInputProvider(ISerializableInputProvider provider) : ISerializableInputProvider
 {
     private ISerializableInputProvider _currentProvider = provider;

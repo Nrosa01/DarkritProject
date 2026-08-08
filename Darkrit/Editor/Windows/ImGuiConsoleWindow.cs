@@ -1,4 +1,8 @@
-﻿using Darkrit.DevTools.Logger;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.DevTools.Logger;
 using Darkrit.DevTools.Logger.Renderers;
 using Microsoft.Xna.Framework;
 

@@ -120,7 +120,7 @@ internal class TestSceneIMGUIDocker : Scene
 
         position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        position = camera.ScreenToWorld(Core.Input.GetMousePosition().ToVector2().ToSystemVector2(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
+        position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
     }
 
     bool useInterpolation = true;

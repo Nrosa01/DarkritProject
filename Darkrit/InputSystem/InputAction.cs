@@ -1,4 +1,8 @@
-﻿using Darkrit.InputSystem.Providers;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.InputSystem.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +20,11 @@ public class InputAction(string name, IInputProvider provider)
     public string Name => name;
     public IReadOnlyList<IInputBinding> Bindings => _bindings;
 
+    /// <summary>
+    /// Adds a binding to this action
+    /// </summary>
+    /// <param name="binding"></param>
+    /// <returns></returns>
     public InputAction AddBinding(IInputBinding binding)
     {
         _bindings.Add(binding);
@@ -24,6 +33,12 @@ public class InputAction(string name, IInputProvider provider)
 
         return this;
     }
+
+    /// <summary>
+    /// Adds a collection of bindings to this action
+    /// </summary>
+    /// <param name="bindings"></param>
+    /// <returns></returns>
     public InputAction AddBindings(IEnumerable<IInputBinding> bindings)
     {
         _bindings.AddRange(bindings);
@@ -33,6 +48,10 @@ public class InputAction(string name, IInputProvider provider)
 
         return this;
     }
+
+    /// <summary>
+    /// Clears all bindings associated with this action
+    /// </summary>
     public void ClearBindings() => _bindings.Clear();
 
     /// <summary>

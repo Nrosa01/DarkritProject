@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using System;
 using System.Collections.Generic;
 using Darkrit.InputSystem.Bindings;
 using Darkrit.InputSystem.ReplaySystem;
@@ -8,6 +12,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem.Providers;
 
+/// <summary>
+/// Input Provider that fakes input by replaying a list of input frames
+/// </summary>
 internal class ReplayInputProvider : IInputProvider
 {
     InputFrame _previousFrame;
@@ -38,6 +45,13 @@ internal class ReplayInputProvider : IInputProvider
         replaying = false;
     }
 
+    /// <summary>
+    /// If not replying, here are no frames or there are none, it does nothing
+    /// 
+    /// Otherwise it advances frames, storing the current and previous ones in <see cref="_currentFrame"/> and <see cref="_previousFrame"/>
+    /// When the last frame is reached, <see cref="OnPlaybackFinished"/> is fired
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void Update(GameTime gameTime)
     {
         if (!replaying || _replayFrames == null || _replayFrames.Count == 0) return;

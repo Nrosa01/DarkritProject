@@ -1,3 +1,7 @@
+// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
 using Darkrit.Content;
 using Darkrit.Editor;
 using Darkrit.InputSystem;
@@ -19,6 +23,7 @@ namespace Darkrit;
 
 public class Core : Game
 {
+    #region Class Members
     public enum EngineUpdateLayer { UPDATE, FIXED_UPDATE }
 
     internal static Core s_instance;
@@ -61,6 +66,7 @@ public class Core : Game
 
     public EngineUpdateLayer InputUpdateLayer { get; set; } = EngineUpdateLayer.FIXED_UPDATE;
 
+    // TODO: Create a wrapper over the FMOD api
     public static FmodStudio FMOD { get; private set; }
 
     /// <summary>  
@@ -107,7 +113,8 @@ public class Core : Game
     private readonly ActivatableInputProvider _activatableInputProvider;
 
     public static InputRecordingController InputRecorder;
-
+    #endregion
+    
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -162,6 +169,10 @@ public class Core : Game
         InputRecorder = new(Input, _activatableInputProvider);
     }
 
+    /// <summary>
+    /// Handles the physics update timer and callback
+    /// </summary>
+    /// <param name="gameTime"></param>
     protected void HandleFixedUpdate(GameTime gameTime)
     {
         if (previousT == 0)
@@ -207,6 +218,17 @@ public class Core : Game
         }
     }
 
+
+    /// <summary>
+    /// Main game lifecycle
+    /// 
+    /// First, updates FMOD
+    /// 
+    /// Then handles editor input and editor overlays
+    /// 
+    /// Then, update scenes
+    /// </summary>
+    /// <param name="gameTime"></param>
     protected override void Update(GameTime gameTime)
     {
         FMOD.Update();
@@ -232,6 +254,17 @@ public class Core : Game
         base.Update(gameTime);
     }
 
+    /// <summary>
+    /// Updates editor windows and focus
+    /// If <see cref="InputUpdateLayer"/> is <see cref="EngineUpdateLayer.UPDATE"/> input is updated here
+    /// 
+    /// Input recording requests are also processed here
+    /// 
+    /// ActivatableInput state is also processed here
+    /// 
+    /// EditorFocus and visibility is also focused here
+    /// </summary>
+    /// <param name="gameTime"></param>
     private void InputAndEditorUpdate(GameTime gameTime)
     {
         s_coreEditor.Update(gameTime);
@@ -266,6 +299,10 @@ public class Core : Game
             Input.Update(gameTime);
     }
 
+    /// <summary>
+    /// Draws the current scene
+    /// </summary>
+    /// <param name="gameTime"></param>
     protected override void Draw(GameTime gameTime)
     {
         s_coreEditor.Render(gameTime, s_activeScene);
@@ -283,6 +320,10 @@ public class Core : Game
         s_nextScene = next;
     }
 
+    /// <summary>
+    /// Disposes curent scene and changes to the next queued one and initializes it.
+    /// This method forces a GC collection
+    /// </summary>
     private static void TransitionScene()
     {
         // If there is an active scene, dispose of it.
@@ -323,9 +364,6 @@ public class Core : Game
         // Set the core's graphics device to a reference of the base Game's
         // graphics device.
         GraphicsDevice = base.GraphicsDevice;
-
-        //GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-        //GraphicsDevice.RasterizerState = RasterizerState.CullNone;
 
         // Create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);

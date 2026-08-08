@@ -1,4 +1,8 @@
-﻿using Darkrit.Content;
+﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE.txt', which is part of this source code package.
+
+using Darkrit.Content;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -98,6 +102,11 @@ public class Material : IDisposable
         }
     }
 
+    /// <summary>
+    /// Set a matrix parameter on the shader
+    /// </summary>
+    /// <param name="name">The parameter name</param>  
+    /// <param name="value">The matrix value to set</param>
     public void SetParameter(string name, Matrix value)
     {
         if (DebugOverride) return;
@@ -112,6 +121,11 @@ public class Material : IDisposable
         }
     }
 
+    /// <summary>
+    /// Set a Vector2 parameter on the shader
+    /// </summary>
+    /// <param name="name">The parameter name</param>  
+    /// <param name="value">The Vector2 value to set</param>
     public void SetParameter(string name, Vector2 value)
     {
         if (DebugOverride) return;
@@ -126,6 +140,12 @@ public class Material : IDisposable
         }
     }
 
+
+    /// <summary>
+    /// Set a Texture2D parameter on the shader
+    /// </summary>
+    /// <param name="name">The parameter name</param>  
+    /// <param name="value">The Texture2D value to set</param>
     public void SetParameter(string name, Texture2D value)
     {
         if (DebugOverride) return;
@@ -141,6 +161,11 @@ public class Material : IDisposable
     }
 
 
+    /// <summary>
+    /// Hot Reloading code. When an effect changed, I take the parameter
+    /// data from the old one and set it to the new one
+    /// </summary>
+    /// <param name="oldEffect"></param>
     private void OnEffectChanged(Effect oldEffect)
     {
         UpdateParameterCache();
@@ -148,9 +173,7 @@ public class Material : IDisposable
         foreach (var oldParam in oldEffect.Parameters)
         {
             if (!TryGetParameter(oldParam.Name, out var newParam))
-            {
                 continue;
-            }
 
             switch (oldParam.ParameterClass)
             {
