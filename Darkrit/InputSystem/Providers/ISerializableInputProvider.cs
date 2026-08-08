@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Darkrit.InputSystem.ReplaySystem;
+﻿using Darkrit.InputSystem.ReplaySystem;
 
-namespace Darkrit.InputSystem.Providers
+namespace Darkrit.InputSystem.Providers;
+
+public interface ISerializableInputProvider : IInputProvider
 {
-    internal interface ISerializableInputProvider : IInputProvider
-    {
-        InputFrame CaptureFrame();
-    }
+    InputFrame CaptureFrame();
 }

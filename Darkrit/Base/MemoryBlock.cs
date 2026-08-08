@@ -1,6 +1,5 @@
-﻿namespace Darkrit.Base
+﻿namespace Darkrit.Base;
+
+public class MemoryBlock
 {
-    public class MemoryBlock
-    {
-    }
 }

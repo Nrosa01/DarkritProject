@@ -2,13 +2,14 @@
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace Darkrit.Editor;
 
+/// <summary>
+/// Performance overlay that tracks memory, cpu, gpu, drawcalls...
+/// </summary>
+/// <param name="GraphicsDevice">The GraphicsDevice to use</param>
 internal class CoreStats(GraphicsDevice GraphicsDevice)
 {
     readonly ProcessStats ProcessStats = new(Process.GetCurrentProcess());

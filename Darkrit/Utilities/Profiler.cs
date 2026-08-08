@@ -2,39 +2,38 @@
 using System;
 using System.Diagnostics;
 
-namespace Darkrit.Utilities
+namespace Darkrit.Utilities;
+
+public class Profiler
 {
-    public class Profiler
+    public static void Profile(Action function)
     {
-        public static void Profile(Action function)
-        {
 #if DEBUG
-            var timer = Stopwatch.StartNew();
+        var timer = Stopwatch.StartNew();
 
-            function();
+        function();
 
-            timer.Stop();
+        timer.Stop();
 
-            Log.Debug($"Function: {function.Method.DeclaringType?.FullName}.{function.Method.Name}");
-            Log.Debug($"  Time taken: {timer.Elapsed:mm\\:ss\\.fff}");
+        Log.Debug($"Function: {function.Method.DeclaringType?.FullName}.{function.Method.Name}");
+        Log.Debug($"  Time taken: {timer.Elapsed:mm\\:ss\\.fff}");
 #else
-            function();
+        function();
 #endif
-        }
+    }
 
-        public static void Profile(string name, Action function)
-        {
+    public static void Profile(string name, Action function)
+    {
 #if DEBUG
-            var timer = Stopwatch.StartNew();
+        var timer = Stopwatch.StartNew();
 
-            function();
+        function();
 
-            timer.Stop();
+        timer.Stop();
 
-            Log.Debug($"{name}: {timer.Elapsed:mm\\:ss\\.fff}");
+        Log.Debug($"{name}: {timer.Elapsed:mm\\:ss\\.fff}");
 #else
-            function();
+        function();
 #endif
-        }
     }
 }

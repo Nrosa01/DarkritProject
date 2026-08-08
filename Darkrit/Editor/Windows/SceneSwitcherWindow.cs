@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Darkrit.Base;
-using Darkrit.DevTools.Logger.Renderers;
 using Darkrit.Scenes;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 
 namespace Darkrit.Editor.Windows;
 
+/// <summary>
+/// Displays every class that derives from Scene as a button so changing scenes it's easy
+/// </summary>
 internal class SceneSwitcherWindow : IEditorOverlay
 {
     readonly IReadOnlyList<Type> _sceneTypes = ReflectionUtils.FindAllDerivedTypes<Scene>();

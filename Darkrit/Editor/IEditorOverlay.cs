@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
-namespace Darkrit.Editor
+namespace Darkrit.Editor;
+
+/// <summary>
+/// Drawing interface for editor stuff
+/// </summary>
+internal interface IEditorOverlay
 {
-    internal interface IEditorOverlay
-    {
-        public void Draw(GameTime gameTime);
-    }
+    public void Draw(GameTime gameTime);
 }

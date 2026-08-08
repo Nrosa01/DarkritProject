@@ -1,30 +1,28 @@
-﻿using System.Drawing;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Point = Microsoft.Xna.Framework.Point;
 using SPoint = System.Drawing.Point;
 
-namespace Darkrit.Utilities
+namespace Darkrit.Utilities;
+
+public static class Extensions
 {
-    public static class Extensions
+    extension(Vector2 vector)
     {
-        extension(Vector2 vector)
+        public Vector2 Normalized => vector == Vector2.Zero ? vector : Vector2.Normalize(vector);
+
+        public System.Numerics.Vector2 ToSystemVector2() => new(vector.X, vector.Y);
+
+        public void NormalizeZero()
         {
-            public Vector2 Normalized => vector == Vector2.Zero ? vector : Vector2.Normalize(vector);
+            if (vector == Vector2.Zero)
+                return;
 
-            public System.Numerics.Vector2 ToSystemVector2() => new(vector.X, vector.Y);
-
-            public void NormalizeZero()
-            {
-                if (vector == Vector2.Zero)
-                    return;
-
-                vector.Normalize();
-            }
+            vector.Normalize();
         }
+    }
 
-        extension(SPoint sysPoint)
-        {
-            public Point AsMonoGamePoint() => new(sysPoint.X, sysPoint.Y);
-        }
+    extension(SPoint sysPoint)
+    {
+        public Point AsMonoGamePoint() => new(sysPoint.X, sysPoint.Y);
     }
 }

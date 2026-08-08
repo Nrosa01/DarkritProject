@@ -1,24 +1,15 @@
-using Darkrit.Base;
 using Darkrit.Content;
-using Darkrit.DevTools.Logger;
-using Darkrit.DevTools.Logger.Renderers;
 using Darkrit.Editor;
-using Darkrit.Graphics;
-using Darkrit.ImGuiUtils;
-using Darkrit.ImGuiUtils.Themes;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Providers;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
 using ExampleMonoGame;
-using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -115,11 +106,7 @@ public class Core : Game
     private readonly PhysicalInputProvider _engineInputProvider = new();
     private readonly ActivatableInputProvider _activatableInputProvider;
 
-    internal readonly InputRecordingController Recording;
-
-#if EDITOR_BUILD
-    private EditorOverlay EditorOverlayInstance;
-#endif
+    public static InputRecordingController InputRecorder;
 
     /// <summary>
     /// Creates a new Core instance.
@@ -172,7 +159,7 @@ public class Core : Game
 
         Input = new(_activatableInputProvider);
 
-        Recording = new(Input, _activatableInputProvider);
+        InputRecorder = new(Input, _activatableInputProvider);
     }
 
     protected void HandleFixedUpdate(GameTime gameTime)
@@ -262,11 +249,11 @@ public class Core : Game
 
         _activatableInputProvider.Enabled = true;
 
-        if (s_coreEditor.IsGameNotFocused && !Recording.IsReplaying)
+        if (s_coreEditor.IsGameNotFocused && !InputRecorder.IsReplaying)
             _activatableInputProvider.Enabled = false;
 
-        if (s_coreEditor.IsGameFocused && Recording.RecordingRequested)
-            Recording.StartRecording();
+        if (s_coreEditor.IsGameFocused && InputRecorder.RecordingRequested)
+            InputRecorder.StartRecording();
 
         if (ExitOnEscape &&
             _engineInputProvider.WasKeyJustPressed(Keys.Escape) &&
@@ -281,32 +268,19 @@ public class Core : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        s_coreEditor.CoreStats.ProfileStartRender();
-
-        // I should make this lambda static once everything is properly decoupled
-        s_coreEditor.Render(gameTime, (GameTime innerGameTime, CoreEditor coreEditor) =>
-        {
-            s_activeScene.Draw(innerGameTime);
-
-#if EDITOR_BUILD
-            s_activeScene.EditorDraw(innerGameTime);
-            if (coreEditor.ShowEditor)
-                EditorOverlayInstance.Draw(innerGameTime);
-#endif
-        });
-
-        s_coreEditor.CoreStats.ProfileEndRender(gameTime);
-
+        s_coreEditor.Render(gameTime, s_activeScene);
         base.Draw(gameTime);
     }
 
-
+    /// <summary>
+    /// Queues a scene to change in the next frame after the current Update cycle
+    /// If the same scene that is currently running is passed, nothing will happen
+    /// </summary>
+    /// <param name="next"></param>
     public static void ChangeScene(Scene next)
     {
-        // Only set the next scene value if it is not the same
-        // instance as the currently active scene.
-        if (s_activeScene != next)
-            s_nextScene = next;
+        System.Diagnostics.Debug.Assert(s_activeScene != next);
+        s_nextScene = next;
     }
 
     private static void TransitionScene()
@@ -362,7 +336,6 @@ public class Core : Game
 
 #if EDITOR_BUILD
         s_coreEditor = new(GraphicsDevice, new ImGuiRenderer(this));
-        EditorOverlayInstance = new(Recording);
 #else
     s_coreEditor = new(GraphicsDevice, null);
 #endif

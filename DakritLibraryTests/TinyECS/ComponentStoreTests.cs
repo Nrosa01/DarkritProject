@@ -1,6 +1,5 @@
-﻿namespace DakritTests.TinyECS
+﻿namespace DakritTests.TinyECS;
+
+internal class ComponentStoreTests
 {
-    internal class ComponentStoreTests
-    {
-    }
 }

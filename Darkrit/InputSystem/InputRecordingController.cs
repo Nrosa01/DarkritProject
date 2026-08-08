@@ -2,7 +2,7 @@
 
 namespace Darkrit.InputSystem;
 
-internal class InputRecordingController
+public class InputRecordingController
 {
     private readonly Input _input;
     private readonly RecordInputProvider _recordInputProvider;

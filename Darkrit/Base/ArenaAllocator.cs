@@ -2,9 +2,8 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
-namespace Darkrit.Base
+namespace Darkrit.Base;
+
+public class ArenaAllocator
 {
-    public class ArenaAllocator
-    {
-    }
 }

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Darkrit.DevTools.Logger;
-using Darkrit.InputSystem.Bindings;
+﻿using Darkrit.InputSystem.Bindings;
 using Darkrit.InputSystem.ReplaySystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Darkrit.InputSystem.Providers;
 
-internal class ActivatableInputProvider(ISerializableInputProvider provider) : ISerializableInputProvider
+public class ActivatableInputProvider(ISerializableInputProvider provider) : ISerializableInputProvider
 {
     private ISerializableInputProvider _currentProvider = provider;
     private readonly ISerializableInputProvider _mainProvider = provider;

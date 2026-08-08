@@ -3,7 +3,10 @@ using System;
 
 namespace Darkrit.Content;
 
-
+/// <summary>
+/// Class that holds a reference to an asset that is compatible with hot reloading
+/// </summary>
+/// <typeparam name="T">The type of the asset to store</typeparam>
 public class WatchedAsset<T> : IHotReloadableAsset, IDisposable
 {
     public event Action<T> AssetChanged;
@@ -45,6 +48,9 @@ public class WatchedAsset<T> : IHotReloadableAsset, IDisposable
 
     ~WatchedAsset() => Dispose();
 
+    /// <summary>
+    /// Dispose of this asset
+    /// </summary>
     public void Dispose()
     {
         AssetChanged = null;

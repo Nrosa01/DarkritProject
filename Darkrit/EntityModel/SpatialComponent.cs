@@ -4,10 +4,9 @@
 
 using System;
 
-namespace Darkrit.EntityModel
+namespace Darkrit.EntityModel;
+
+public abstract class SpatialComponent : Component, IDisposable
 {
-    public abstract class SpatialComponent : Component, IDisposable
-    {
-        public abstract void Dispose();
-    }
+    public abstract void Dispose();
 }

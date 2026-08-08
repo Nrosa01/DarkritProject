@@ -1,36 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using Darkrit.DevTools.Logger.Renderers;
-using Darkrit.Editor.Windows;
-using Darkrit.ImGuiUtils;
+﻿using Darkrit.Editor.Windows;
 using Darkrit.InputSystem;
-using Darkrit.InputSystem.Providers;
-using Darkrit.Scenes;
-using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 
-namespace Darkrit.Editor
+namespace Darkrit.Editor;
+
+/// <summary>
+/// Class that contains all editor ImGui overlays except for CoreStats
+/// </summary>
+internal class EditorOverlay
 {
-    internal class EditorOverlay
+    private readonly ImGuiConsoleWindow _consoleWindow;
+    private readonly SceneSwitcherWindow _sceneSwitcherWindow;
+    private readonly InputRecorderWindow _inputRecorderWindow;
+
+    public EditorOverlay(InputRecordingController recording)
     {
-        private readonly ConsoleWindow _consoleWindow;
-        private readonly SceneSwitcherWindow _sceneSwitcherWindow;
-        private readonly InputRecorderWindow _inputRecorderWindow;
+        _consoleWindow = new();
+        _sceneSwitcherWindow = new();
+        _inputRecorderWindow = new(recording);
+    }
 
-        public EditorOverlay(InputRecordingController recording)
-        {
-            _consoleWindow = new();
-            _sceneSwitcherWindow = new();
-            _inputRecorderWindow = new(recording);
-        }
-
-        public void Draw(GameTime gameTime)
-        {
-            _consoleWindow.Draw(gameTime);
-            _sceneSwitcherWindow.Draw(gameTime);
-            _inputRecorderWindow.Draw(gameTime);
-        }
+    public void Draw(GameTime gameTime)
+    {
+        _consoleWindow.Draw(gameTime);
+        _sceneSwitcherWindow.Draw(gameTime);
+        _inputRecorderWindow.Draw(gameTime);
     }
 }
