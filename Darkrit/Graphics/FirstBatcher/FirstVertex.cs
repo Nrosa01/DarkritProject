@@ -46,7 +46,7 @@ public struct FirstVertex(Vector3 position, Vector2 textureCoordinate, Color col
         return !(left == right);
     }
 
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj == null)
             return false;

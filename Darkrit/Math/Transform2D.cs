@@ -9,5 +9,5 @@ namespace Darkrit.Math;
 public struct Transform2D
 {
     // Affin transform
-    private Vector2 BasisX, BasisY, Translation;
+    //private Vector2 BasisX, BasisY, Translation;
 }

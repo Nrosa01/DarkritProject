@@ -221,7 +221,7 @@ internal class CoreEditor
     /// </summary>
     /// <param name="gameTime"></param>
     /// <param name="renderAction">The render function to draw</param>
-    internal void Render(GameTime gameTime, Action<GameTime, CoreEditor> renderAction)
+    internal void Render(GameTime gameTime, Scenes.Scene scene)
     {
        GraphicsDevice.Clear(Color.CornflowerBlue);
        scene?.Draw(gameTime);

@@ -4,6 +4,6 @@ namespace DakritTests.TinyECS;
 
 public class RegistryTests
 {
-    const int CAPACITY = 5;
-    private readonly Registry registry;
+    //const int CAPACITY = 5;
+    //private readonly Registry registry = new(CAPACITY);
 }

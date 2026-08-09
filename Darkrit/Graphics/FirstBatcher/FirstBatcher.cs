@@ -56,7 +56,7 @@ public class FirstBatcher
         _indexBuffer.SetData(_indices);
     }
 
-    public void Begin(Texture2D texture = null, Matrix? view = null, Matrix? projection = null, SamplerState? sampler = null)
+    public void Begin(Texture2D texture = null, Matrix? view = null, Matrix? projection = null, SamplerState sampler = null)
     {
         Viewport viewport = GraphicsDevice.Viewport;
 
