@@ -19,6 +19,15 @@
 		<MSBuild Projects="$(MSBuildThisFileDirectory)Content.csproj" Targets="Build" RemoveProperties="Configuration;TargetFramework;RuntimeIdentifier;RuntimeIdentifiers" />
 		<Exec Command="$(ContentCommand) $(ContentArgs)" WorkingDirectory="$(MSBuildThisFileDirectory)..\" CustomErrorRegularExpression="\[E\] .+" CustomWarningRegularExpression="\[W\] .+" />
 	</Target>
+	<Target Name="CopyGeneratedAssetsToPublish"
+        AfterTargets="Publish">
+
+		<Copy
+			SourceFiles="@(GeneratedAsset)"
+			DestinationFiles="@(GeneratedAsset->'$(PublishDir)Content\%(RecursiveDir)%(Filename)%(Extension)')"
+			SkipUnchangedFiles="true" />
+
+	</Target>
 	<Target Name="AddGeneratedContentAssets"
 	  AfterTargets="BuildContent">
 		<ItemGroup>
