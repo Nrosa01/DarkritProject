@@ -1,8 +1,7 @@
 <Project>
-	<Target Name="BuildContent" BeforeTargets="BeforeCompile;Publish">
+	<Target Name="BuildContent" BeforeTargets="BeforeCompile">
 		<PropertyGroup>
-			<ContentOutput Condition="'$(PublishDir)' != ''">$(PublishDir)</ContentOutput>
-			<ContentOutput Condition="'$(PublishDir)' == ''">$(ProjectDir)$(OutputPath)</ContentOutput>
+			<ContentOutput>$(ProjectDir)$(OutputPath)</ContentOutput>
 			<ContentTemp>$(ProjectDir)$(IntermediateOutputPath)</ContentTemp>
 			<ContentArgs>build -p $(MonoGamePlatform) -s Content/Assets -o $(ContentOutput) -i $(ContentTemp)</ContentArgs>
 			<ContentCommand>$(MSBuildThisFileDirectory)bin\Debug\Content</ContentCommand>
@@ -20,16 +19,13 @@
 		<MSBuild Projects="$(MSBuildThisFileDirectory)Content.csproj" Targets="Build" RemoveProperties="Configuration;TargetFramework;RuntimeIdentifier;RuntimeIdentifiers" />
 		<Exec Command="$(ContentCommand) $(ContentArgs)" WorkingDirectory="$(MSBuildThisFileDirectory)..\" CustomErrorRegularExpression="\[E\] .+" CustomWarningRegularExpression="\[W\] .+" />
 	</Target>
-	<Target Name="AddGeneratedContentAssets" AfterTargets="BuildContent">
-		<PropertyGroup>
-			<ContentOutput Condition="'$(PublishDir)' != ''">$(PublishDir)</ContentOutput>
-			<ContentOutput Condition="'$(PublishDir)' == ''">$(TargetDir)</ContentOutput>
-		</PropertyGroup>
+	<Target Name="AddGeneratedContentAssets"
+	  AfterTargets="BuildContent">
 		<ItemGroup>
-			<GeneratedAsset Include="$(ContentOutput)Content\**\*" />
+			<GeneratedAsset Include="$(ProjectDir)$(OutputPath)Content\**\*" />
 
 			<AndroidAsset Include="@(GeneratedAsset)"
-			Condition="'$(MonoGamePlatform)' == 'Android'">
+			  Condition="'$(MonoGamePlatform)' == 'Android'">
 				<Link>Content\%(GeneratedAsset.RecursiveDir)%(GeneratedAsset.Filename)%(GeneratedAsset.Extension)</Link>
 			</AndroidAsset>
 
@@ -38,14 +34,5 @@
 				<Link>Content\%(GeneratedAsset.RecursiveDir)%(GeneratedAsset.Filename)%(GeneratedAsset.Extension)</Link>
 			</BundledResource>
 		</ItemGroup>
-	</Target>
-	<Target Name="CopyContentToPublish" AfterTargets="Publish">
-		<ItemGroup>
-			<GeneratedContent Include="$(TargetDir)Content\**\*" />
-		</ItemGroup>
-
-		<Copy
-			SourceFiles="@(GeneratedContent)"
-			DestinationFiles="@(GeneratedContent->'$(PublishDir)Content\%(RecursiveDir)%(Filename)%(Extension)')" />
 	</Target>
 </Project>
