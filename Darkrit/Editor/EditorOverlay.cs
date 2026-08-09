@@ -2,8 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using Darkrit.Editor.MenuBar;
 using Darkrit.Editor.Windows;
 using Darkrit.InputSystem;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 
 namespace Darkrit.Editor;
@@ -22,6 +24,27 @@ internal class EditorOverlay
         _consoleWindow = new();
         _sceneSwitcherWindow = new();
         _inputRecorderWindow = new(recording);
+    }
+
+    /// <summary>
+    /// Draws the main title bar
+    /// </summary>
+    /// <param name="gameTime"></param>
+    public void DrawMainBar(GameTime gameTime)
+    {
+        if (ImGui.BeginMainMenuBar())
+        {
+            if (ImGui.BeginMenu("View"))
+            {
+                EditorLayouts.Draw(gameTime);
+
+                ImGui.EndMenu();
+            }
+
+            ImGui.EndMainMenuBar();
+        }
+
+        EditorModals.Draw();
     }
 
     public void Draw(GameTime gameTime)

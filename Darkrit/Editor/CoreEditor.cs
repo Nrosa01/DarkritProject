@@ -131,6 +131,10 @@ internal class CoreEditor
         GraphicsDevice.SetRenderTarget(null);
 
         CoreStats.DrawStats();
+
+        // Must be called last as it also handle layout save and restore
+        // Ideally those operations should be queued but for now this works
+        EditorOverlayInstance.DrawMainBar(gameTime);
     }
 
     /// <summary>
