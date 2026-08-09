@@ -26,6 +26,7 @@ internal class EditorOverlay
         _inputRecorderWindow = new(recording);
     }
 
+
     /// <summary>
     /// Draws the main title bar
     /// </summary>
@@ -34,9 +35,10 @@ internal class EditorOverlay
     {
         if (ImGui.BeginMainMenuBar())
         {
+            FileMenuItem.Draw();
             if (ImGui.BeginMenu("View"))
             {
-                EditorLayouts.Draw(gameTime);
+                EditorLayouts.Draw();
 
                 ImGui.EndMenu();
             }

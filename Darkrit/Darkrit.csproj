@@ -32,4 +32,21 @@
 	<PropertyGroup Condition="'$(PublishDir)' != ''">
 		<DefineConstants>$(DefineConstants);PUBLISH</DefineConstants>
 	</PropertyGroup>
+
+	<PropertyGroup>
+		<EditorGeneratedPath>$(MSBuildProjectDirectory)\Editor\EditorProjectPath.g.cs</EditorGeneratedPath>
+	</PropertyGroup>
+
+	<Target Name="GenerateEditorProjectPath" BeforeTargets="CoreCompile">
+		<MakeDir Directories="$(MSBuildProjectDirectory)\Editor" />
+
+		<WriteLinesToFile
+			File="$(EditorGeneratedPath)"
+			Overwrite="true"
+			Lines="namespace Darkrit.Editor%3B; internal static class EditorProjectPath { public const string Root = @&quot;$(MSBuildProjectDirectory)&quot;%3B }" />
+
+		<ItemGroup>
+			<Compile Include="$(EditorGeneratedPath)" />
+		</ItemGroup>
+	</Target>
 </Project>

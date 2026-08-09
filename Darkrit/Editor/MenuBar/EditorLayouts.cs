@@ -11,9 +11,7 @@ internal class EditorLayouts
 {
     private static readonly string LayoutDirectory =
         Path.Combine(
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData),
-            "DarkritEditor",
+            EditorData.UserDirectory,
             "Layouts");
 
     /// <summary>
@@ -98,7 +96,7 @@ internal class EditorLayouts
     private static string _layoutName = string.Empty;
     private static string _layoutToDelete = string.Empty;
 
-    public static void Draw(GameTime _)
+    public static void Draw()
     {
         if (ImGui.BeginMenu("Layouts"))
         {
