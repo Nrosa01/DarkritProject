@@ -11,34 +11,6 @@ public delegate void CollisionAction(
     CollisionResponse collisionResponse
 );
 
-public static class CollisionResponses
-{
-    public static void Push(ref RectangleF _, ref Vector2 velocity, CollisionResponse collisionResponde)
-    {
-        float magnitude = MathF.Sqrt((velocity.X * velocity.X + velocity.Y * velocity.Y)) * collisionResponde.RemaininTime;
-        float dotprod = velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X;
-
-        if (dotprod > 0.0f) dotprod = 1.0f;
-        else if (dotprod < 0.0f) dotprod = -1.0f;
-
-        velocity.X = dotprod * collisionResponde.Normal.Y * magnitude;
-        velocity.Y = dotprod * collisionResponde.Normal.X * magnitude;
-    }
-
-    public static void Slide(ref RectangleF _, ref Vector2 velocity, CollisionResponse collisionResponde)
-    {
-        float dotprod = (velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X) * collisionResponde.RemaininTime;
-        velocity.X = dotprod * collisionResponde.Normal.Y;
-        velocity.Y = dotprod * collisionResponde.Normal.X;
-    }
-
-    public static void Stop(ref RectangleF r1, ref Vector2 velocity, CollisionResponse collisionResponde)
-    {
-        r1.X += velocity.X * collisionResponde.CollisionTime;
-        r1.Y += velocity.Y * collisionResponde.CollisionTime;
-    }
-}
-
 public readonly struct CollisionResponse
 {
     public readonly float CollisionTime { get; init; }
@@ -139,3 +111,32 @@ public class CollisionFunctions
         }
     }
 }
+
+public static class CollisionResponses
+{
+    public static void Push(ref RectangleF _, ref Vector2 velocity, CollisionResponse collisionResponde)
+    {
+        float magnitude = MathF.Sqrt((velocity.X * velocity.X + velocity.Y * velocity.Y)) * collisionResponde.RemaininTime;
+        float dotprod = velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X;
+
+        if (dotprod > 0.0f) dotprod = 1.0f;
+        else if (dotprod < 0.0f) dotprod = -1.0f;
+
+        velocity.X = dotprod * collisionResponde.Normal.Y * magnitude;
+        velocity.Y = dotprod * collisionResponde.Normal.X * magnitude;
+    }
+
+    public static void Slide(ref RectangleF _, ref Vector2 velocity, CollisionResponse collisionResponde)
+    {
+        float dotprod = (velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X) * collisionResponde.RemaininTime;
+        velocity.X = dotprod * collisionResponde.Normal.Y;
+        velocity.Y = dotprod * collisionResponde.Normal.X;
+    }
+
+    public static void Stop(ref RectangleF r1, ref Vector2 velocity, CollisionResponse collisionResponde)
+    {
+        r1.X += velocity.X * collisionResponde.CollisionTime;
+        r1.Y += velocity.Y * collisionResponde.CollisionTime;
+    }
+}
+
