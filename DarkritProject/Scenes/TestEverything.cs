@@ -1,17 +1,22 @@
+using System.IO;
+using Darkrit.DevTools.Logger;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
+using Darkrit.Math;
+using Darkrit.Physics.Boxy2D;
 using Darkrit.Utilities;
 using FontStashSharp;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.IO;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 using Key = Microsoft.Xna.Framework.Input.Keys;
 using Sprite = Darkrit.Graphics.Sprite;
 
 namespace Darkrit.Scenes;
+
+using Handle = HandleMapGrowing<RectangleF>.Handle;
 
 internal class TestEverything : Scene
 {
@@ -30,6 +35,8 @@ internal class TestEverything : Scene
     InputAction moveRight;
     FontSystem _fontSystem;
     Camera camera = new();
+    Handle playerHandle;
+    Darkrit.Physics.Boxy2D.World world;
 
     public override void Initialize()
     {
@@ -49,6 +56,10 @@ internal class TestEverything : Scene
         {
             Scale = Vector2.One * 4
         };
+
+        world = new();
+        world.Create(new Vector2(100, 100), new Vector2(100, 20));
+        playerHandle = world.Create(position, slimeAnimation.Size);
 
         moveUp = Core.Input.CreateAction("Move Up").AddBindings([
             new KeyboardBinding(Key.Up),
@@ -120,7 +131,12 @@ internal class TestEverything : Scene
 
         position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
+        //position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
+
+        var response = world.Move(playerHandle, position);
+        position = world.Get(playerHandle).Location;
+        if (response.HasCollision)
+            Log.Info("Collision");
     }
 
     bool useInterpolation = true;
@@ -157,6 +173,8 @@ internal class TestEverything : Scene
             Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", lerpedPosition + new Vector2(0, -30), Color.White);
         }
         //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
+
+        world.Draw(Core.SpriteBatch);
         Core.SpriteBatch.End();
     }
 

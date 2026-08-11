@@ -79,6 +79,14 @@ public class Sprite
     public float Height => Region.Height * Scale.Y;
 
     /// <summary>
+    /// Gets the size, as a Vector2, of this sprite
+    /// </summary>
+    /// /// <remarks>
+    /// Size is calculated by multiplying the height and width of the source texture region by the axis scale factor.
+    /// </remarks>
+    public Vector2 Size => new(Width, Height);
+
+    /// <summary>
     /// Creates a new sprite.
     /// </summary>
     public Sprite()
