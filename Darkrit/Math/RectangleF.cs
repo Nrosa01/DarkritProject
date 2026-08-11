@@ -492,6 +492,8 @@ public struct RectangleF : IEquatable<RectangleF>
     //     System.String representation of this Microsoft.Xna.Framework.RectangleF.
     public override readonly string ToString() => "{X:" + X + " Y:" + Y + " Width:" + Width + " Height:" + Height + "}";
 
+    public readonly Rectangle ToRectangle() => new((int)X, (int)Y, (int)Width, (int)Height);
+
     //
     // Summary:
     //     Creates a new Microsoft.Xna.Framework.RectangleF that completely contains two
