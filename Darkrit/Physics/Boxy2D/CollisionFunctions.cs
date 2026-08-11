@@ -45,22 +45,20 @@ public readonly struct CollisionResponse
 
     public readonly float RemaininTime => 1.0f - CollisionTime;
 
-
     public readonly Vector2 Normal { get; init; }
 
-    public static CollisionResponse Invalid = new() { CollisionTime = -1 };
+    public readonly static CollisionResponse NoCollision = new() { HasCollision = false, CollisionTime = -1.0f };
 
     public CollisionResponse()
     {
-        CollisionTime = -1.0f;
     }
 
-    public bool HasCollision => CollisionTime >= 0.0f && CollisionTime <= 1.0f;
+    public bool HasCollision { get; init; } = false;
 }
 
 public class CollisionFunctions
 {
-    static float SweptAABB(RectangleF r1, RectangleF r2, Vector2 delta, out Vector2 normal)
+    public static CollisionResponse SweptAABB(RectangleF r1, RectangleF r2, Vector2 delta)
     {
         float xInvEntry, yInvEntry;
         float xInvExit, yInvExit;
@@ -68,24 +66,24 @@ public class CollisionFunctions
         // Find the distance between the objects on the near and far sides for both x and y
         if(delta.X > 0.0f)
         {
-            xInvEntry = r2.X - (r1.X + r1.Width);
-            xInvExit = (r2.X + r2.Width) - r1.X;
+            xInvEntry = r2.Left - r1.Right;
+            xInvExit = r2.Right - r1.Left;
         }
         else
         {
-            xInvEntry = (r2.X + r2.Width) - r1.X;
-            xInvExit = r2.X - (r1.X + r1.Width);
+            xInvEntry = r2.Right - r1.Left;
+            xInvExit = r2.Left - r1.Right;
         }
 
         if (delta.Y > 0.0f)
         {
-            yInvEntry = r2.Y - (r1.Y + r1.Height);
-            yInvExit = (r2.Y + r2.Height) - r1.Y;
+            yInvEntry = r2.Top - r1.Bottom;
+            yInvExit = r2.Bottom - r1.Top;
         }
         else
         {
-            yInvEntry = (r2.Y + r2.Height) - r1.Y;
-            yInvExit = r2.Y - (r1.Y + r1.Height);
+            yInvEntry = r2.Bottom - r1.Top;
+            yInvExit = r2.Top - r1.Bottom;
         }
 
         // Find time of collision and time of leaving for each axis (if statement is to prevent divide by zero)
@@ -121,35 +119,23 @@ public class CollisionFunctions
         // If here was no collision
         if (entryTime > exitTime || (xEntry < 0.0f && yEntry < 0.0f) || xEntry > 1.0f || yEntry > 1.0f)
         {
-            normal = Vector2.Zero;
-            return -1.0f;
+            return CollisionResponse.NoCollision;
         }
         // There was a collision
         else
         {
+            Vector2 normal;
             if (xEntry > yEntry)
                 normal = new Vector2(xInvEntry < 0.0f ? 1.0f : -1.0f, 0.0f);
             else
                 normal = new Vector2(0.0f, yInvEntry < 0.0f ? 1.0f : -1.0f);
 
-            return entryTime;
+            return new CollisionResponse
+            {
+                Normal = normal,
+                HasCollision = true,
+                CollisionTime = entryTime,
+            };
         }
-    }
-
-    public static CollisionResponse SweeptAABB(RectangleF r1, RectangleF r2, Vector2 delta)
-    {
-        float collisiontime = SweptAABB(r1, r2, delta, out Vector2 normal);
-
-        if (collisiontime < 0.0f)
-            return CollisionResponse.Invalid;
-        
-        r1.X += delta.X * collisiontime;
-        r1.Y += delta.Y * collisiontime;
-
-        return new CollisionResponse
-        {
-            CollisionTime = collisiontime,
-            Normal = normal
-        };
     }
 }

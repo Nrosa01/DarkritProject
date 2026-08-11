@@ -24,10 +24,10 @@ internal class TestEverything : Scene
     static bool render = true;
 
     AnimatedSprite slimeAnimation;
-    Sprite sprite;
-    Vector2 position;
+    Vector2 position = new Vector2(-100, 0);
     Vector2 previousPosition;
     Vector2 velocity;
+    Vector2 desiredPosition;
     private float speed = 500f;
     InputAction moveUp;
     InputAction moveDown;
@@ -37,6 +37,8 @@ internal class TestEverything : Scene
     Camera camera = new();
     Handle playerHandle;
     Darkrit.Physics.Boxy2D.World world;
+    bool collisionThisFrame = false;
+    private Handle obstacleHandle;
 
     public override void Initialize()
     {
@@ -52,13 +54,9 @@ internal class TestEverything : Scene
         
         slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
         slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
-        sprite = new Sprite(slimeAnimation.Animation.Frames[0])
-        {
-            Scale = Vector2.One * 4
-        };
 
         world = new();
-        world.Create(new Vector2(100, 100), new Vector2(100, 20));
+        obstacleHandle = world.Create(new Vector2(0, 0), new Vector2(100, 20));
         playerHandle = world.Create(position, slimeAnimation.Size);
 
         moveUp = Core.Input.CreateAction("Move Up").AddBindings([
@@ -132,7 +130,13 @@ internal class TestEverything : Scene
         position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         //position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
+        desiredPosition = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
 
+        var result = CollisionFunctions.SweptAABB(world.Get(playerHandle), world.Get(obstacleHandle), desiredPosition - position);
+        collisionThisFrame = result.HasCollision;
+
+        ref var r = ref world.Get(playerHandle);
+        r.Location = position;
         var response = world.Move(playerHandle, position);
         position = world.Get(playerHandle).Location;
         if (response.HasCollision)
@@ -172,7 +176,23 @@ internal class TestEverything : Scene
             slimeAnimation.Draw(Core.SpriteBatch, lerpedPosition);
             Core.SpriteBatch.DrawString(_fontSystem.GetFont(17.5f), $"Position: {position}", lerpedPosition + new Vector2(0, -30), Color.White);
         }
-        //sprite.Draw(Core.SpriteBatch, Vector2.Zero);
+
+        var yellow = new Color(200, 200, 1, 100);
+        Core.SpriteBatch.DrawLineBetween(position, desiredPosition, 5, yellow);
+        Core.SpriteBatch.DrawLineBetween(position + slimeAnimation.Size, desiredPosition + slimeAnimation.Size, 5, yellow);
+        Core.SpriteBatch.DrawLineBetween(position + slimeAnimation.Size.X * Vector2.UnitX, desiredPosition + slimeAnimation.Size.X * Vector2.UnitX, 5, yellow);
+        Core.SpriteBatch.DrawLineBetween(position + slimeAnimation.Size.X * Vector2.UnitY, desiredPosition + slimeAnimation.Size.X * Vector2.UnitY, 5, yellow);
+
+
+        Core.SpriteBatch.Draw(new RectangleF
+        {
+            X = desiredPosition.X,
+            Y = desiredPosition.Y,
+            Size = slimeAnimation.Size
+        }, collisionThisFrame ? Color.Red : Color.Green, 0.5f);
+
+        yellow.A = 0x10;
+        Core.SpriteBatch.DrawLineBetween(position + slimeAnimation.Size * 0.5f, desiredPosition + slimeAnimation.Size * 0.5f, 5, Color.Yellow);
 
         world.Draw(Core.SpriteBatch);
         Core.SpriteBatch.End();

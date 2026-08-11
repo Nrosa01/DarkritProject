@@ -27,7 +27,7 @@ public class World
 
     public Handle Create(RectangleF rectangle) => _bodies.Add(rectangle);
 
-    public RectangleF Get(Handle handle) => _bodies.Get(handle);
+    public ref RectangleF Get(Handle handle) => ref _bodies.Get(handle);
 
     public CollisionResponse Move(Handle handle, Vector2 targetPosition)
     {
@@ -48,7 +48,7 @@ public class World
 
             RectangleF rect = _bodies.Items[i];
 
-            CollisionResponse response = CollisionFunctions.SweeptAABB(body, rect, velocity);
+            CollisionResponse response = CollisionFunctions.SweptAABB(body, rect, velocity);
 
             if (response.CollisionTime < closestCollision.CollisionTime)
                 closestCollision = response;
