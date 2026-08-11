@@ -135,8 +135,8 @@ internal class TestEverything : Scene
         var result = CollisionFunctions.SweptAABB(world.Get(playerHandle), world.Get(obstacleHandle), desiredPosition - position);
         collisionThisFrame = result.HasCollision;
 
-        ref var r = ref world.Get(playerHandle);
-        r.Location = position;
+        //ref var r = ref world.Get(playerHandle);
+        //r.Location = position;
         var response = world.Move(playerHandle, position);
         position = world.Get(playerHandle).Location;
         if (response.HasCollision)

@@ -32,83 +32,82 @@ public class CollisionFunctions
 {
     public static CollisionResponse SweptAABB(RectangleF r1, RectangleF r2, Vector2 delta)
     {
-        float xInvEntry, yInvEntry;
-        float xInvExit, yInvExit;
+        Vector2 halfSize = new(
+            r1.Width * 0.5f,
+            r1.Height * 0.5f
+        );
 
-        // Find the distance between the objects on the near and far sides for both x and y
-        if(delta.X > 0.0f)
-        {
-            xInvEntry = r2.Left - r1.Right;
-            xInvExit = r2.Right - r1.Left;
-        }
-        else
-        {
-            xInvEntry = r2.Right - r1.Left;
-            xInvExit = r2.Left - r1.Right;
-        }
+        Vector2 center = new(
+            r1.Left + halfSize.X,
+            r1.Top + halfSize.Y
+        );
 
-        if (delta.Y > 0.0f)
-        {
-            yInvEntry = r2.Top - r1.Bottom;
-            yInvExit = r2.Bottom - r1.Top;
-        }
-        else
-        {
-            yInvEntry = r2.Bottom - r1.Top;
-            yInvExit = r2.Top - r1.Bottom;
-        }
+        // Expands r2 by the size of r1
+        // That allows to treat r1 as if it was a point
+        RectangleF expanded = new(
+            r2.Left - halfSize.X,
+            r2.Top - halfSize.Y,
+            r2.Width + r1.Width,
+            r2.Height + r1.Height
+        );
 
-        // Find time of collision and time of leaving for each axis (if statement is to prevent divide by zero)
-        float xEntry, yEntry;
-        float xExit, yExit;
+        float lastEntry = float.NegativeInfinity;
+        float firstExit = float.PositiveInfinity;
 
-        if(delta.X == 0.0f)
+        // X e Y
+        for (int axis = 0; axis < 2; axis++)
         {
-            xEntry = float.NegativeInfinity;
-            xExit = float.PositiveInfinity;
-        }
-        else
-        {
-            xEntry = xInvEntry / delta.X;
-            xExit = xInvExit / delta.X;
-        }
+            float pos = axis == 0 ? center.X : center.Y;
+            float movement = axis == 0 ? delta.X : delta.Y;
 
-        if (delta.Y == 0.0f)
-        {
-            yEntry = float.NegativeInfinity;
-            yExit = float.PositiveInfinity;
-        }
-        else
-        {
-            yEntry = yInvEntry / delta.Y;
-            yExit = yInvExit / delta.Y;
-        }
+            float min = axis == 0 ? expanded.Left : expanded.Top;
+            float max = axis == 0 ? expanded.Right : expanded.Bottom;
 
-        // Find the earliest time of collision
-        float entryTime = SMath.Max(xEntry, yEntry);
-        float exitTime = SMath.Min(xExit, yExit);
-
-        // If here was no collision
-        if (entryTime > exitTime || (xEntry < 0.0f && yEntry < 0.0f) || xEntry > 1.0f || yEntry > 1.0f)
-        {
-            return CollisionResponse.NoCollision;
-        }
-        // There was a collision
-        else
-        {
-            Vector2 normal;
-            if (xEntry > yEntry)
-                normal = new Vector2(xInvEntry < 0.0f ? 1.0f : -1.0f, 0.0f);
-            else
-                normal = new Vector2(0.0f, yInvEntry < 0.0f ? 1.0f : -1.0f);
-
-            return new CollisionResponse
+            if (movement != 0.0f)
             {
-                Normal = normal,
-                HasCollision = true,
-                CollisionTime = entryTime,
-            };
+                float t1 = (min - pos) / movement;
+                float t2 = (max - pos) / movement;
+
+                lastEntry = MathF.Max(lastEntry,MathF.Min(t1, t2));
+
+                firstExit = MathF.Min(firstExit,MathF.Max(t1, t2));
+            }
+            else
+            {
+                // We don't move in this axis.
+                // If the center is outside the interval,
+                // there will never be a point in the extended AABB
+                if (pos <= min || pos >= max)
+                    return CollisionResponse.NoCollision;
+            }
         }
+
+        // There is no intersection with the segmnet [0, 1]
+        if (firstExit <= lastEntry || firstExit <= 0.0f || lastEntry >= 1.0f)
+            return CollisionResponse.NoCollision;
+
+        Vector2 hitPosition = center + delta * lastEntry;
+
+        // Normal
+        float dx = hitPosition.X - expanded.Left - expanded.Width * 0.5f;
+        float dy = hitPosition.Y - expanded.Top - expanded.Height * 0.5f;
+
+        float px = expanded.Width * 0.5f - MathF.Abs(dx);
+        float py = expanded.Height * 0.5f - MathF.Abs(dy);
+
+        Vector2 normal;
+
+        if (px < py)
+            normal = new Vector2(dx > 0 ? 1.0f : -1.0f, 0.0f);
+        else
+            normal = new Vector2(0.0f, dy > 0 ? 1.0f : -1.0f);
+
+        return new CollisionResponse
+        {
+            HasCollision = true,
+            CollisionTime = lastEntry,
+            Normal = normal
+        };
     }
 }
 

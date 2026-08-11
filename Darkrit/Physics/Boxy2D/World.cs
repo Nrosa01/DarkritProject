@@ -55,9 +55,11 @@ public class World
         }
 
         if (closestCollision.HasCollision)
+        {
+            CollisionResponses.Stop(ref body, ref velocity, closestCollision);
             return closestCollision;
+        }
 
-        CollisionResponses.Stop(ref body, ref velocity, closestCollision);
 
         body.X = targetPosition.X;
         body.Y = targetPosition.Y;
