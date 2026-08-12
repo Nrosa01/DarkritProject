@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 using Darkrit.Base;
 using Darkrit.Physics.Boxy2D;
@@ -129,7 +131,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Skip(Handle<T> handle) => handle.Id == 0;
 
-    public struct Enumerator : IEnumerator<T>
+    public struct Enumerator
     {
         private readonly GrowableArray<HandleItem<T>> _items;
         private int _index;
@@ -140,13 +142,11 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
             _index = -1;
         }
 
-        public readonly T Current
+        public readonly ref T Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _items[_index].Item;
+            get => ref _items[_index].Item;
         }
-
-        readonly object IEnumerator.Current => Current!;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
@@ -170,10 +170,25 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public struct Enumerator2 : IEnumerator<T>
+    {
+        private readonly Enumerator baseEnumerator;
+
+        internal Enumerator2(GrowableArray<HandleItem<T>> items) => baseEnumerator = new(items);
+
+        public readonly T Current => baseEnumerator.Current;
+
+        readonly object IEnumerator.Current => Current;
+
+        public readonly void Dispose() => baseEnumerator.Dispose();
+
+        public readonly bool MoveNext() => baseEnumerator.MoveNext();
+
+        public readonly void Reset() => baseEnumerator.Reset();
+    }
+
     public Enumerator GetEnumerator() => new(_items);
 
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(_items);
-
-    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_items);
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator2(_items);
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator2(_items);
 }
