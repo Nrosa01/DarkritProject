@@ -12,7 +12,7 @@ namespace Darkrit.Physics.Boxy2D;
 
 public class World
 {
-    private readonly HandleMapGrowing<RectangleF> _bodies = new();
+    private readonly HandleMapGrowing<RectangleF> _bodies = [];
 
     public Handle<RectangleF> Create(Vector2 center, Vector2 size)
     {
@@ -42,7 +42,7 @@ public class World
 
         for (int i = 1; i < _bodies.Count; i++)
         {
-            if (i == handle.Id)
+            if (i == handle.Id || !_bodies.IsValid(handle))
                 continue;
 
             RectangleF rect = _bodies[i];
