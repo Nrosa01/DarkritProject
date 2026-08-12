@@ -168,14 +168,9 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
             return false;
         }
 
-        public void Reset()
-        {
-            _index = -1;
-        }
+        public void Reset() => _index = -1;
 
-        public readonly void Dispose()
-        {
-        }
+        public readonly void Dispose() { }
     }
 
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();

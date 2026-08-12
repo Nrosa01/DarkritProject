@@ -40,7 +40,7 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
         Array.Resize(ref _items, newCapacity);
     }
 
-    public struct Enumerator : IEnumerator<T>, IEnumerator
+    public struct Enumerator : IEnumerator<T>
     {
         private readonly T[] _items;
         private readonly int _count;
@@ -53,13 +53,19 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
             _index = -1;
         }
 
-        public readonly T Current
+        public readonly ref T Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _items[_index];
+        }
+
+        readonly T IEnumerator<T>.Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _items[_index];
         }
 
-        object IEnumerator.Current => Current;
+        readonly object IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
@@ -75,14 +81,9 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
             return false;
         }
 
-        public void Reset()
-        {
-            _index = -1;
-        }
+        public void Reset() => _index = -1;
 
-        public readonly void Dispose()
-        {
-        }
+        public readonly void Dispose() { }
     }
 
     public Enumerator GetEnumerator() => new(_items, _count);
