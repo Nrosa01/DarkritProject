@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Darkrit.Base;
+using Darkrit.DataStructures;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RectangleF = Darkrit.Math.RectangleF;
 
-
 namespace Darkrit.Physics.Boxy2D;
-
-using Handle = HandleMapGrowing<RectangleF>.Handle;
 
 public class World
 {
     private readonly HandleMapGrowing<RectangleF> _bodies = new();
 
-    public Handle Create(Vector2 center, Vector2 size)
+    public Handle<RectangleF> Create(Vector2 center, Vector2 size)
     {
         return Create(new RectangleF
         {
@@ -25,13 +24,13 @@ public class World
         });
     }
 
-    public Handle Create(RectangleF rectangle) => _bodies.Add(rectangle);
+    public Handle<RectangleF> Create(RectangleF rectangle) => _bodies.Add(rectangle);
 
-    public ref RectangleF Get(Handle handle) => ref _bodies.Get(handle);
+    public ref RectangleF Get(Handle<RectangleF> handle) => ref _bodies.Get(handle);
 
-    public CollisionResponse Move(Handle handle, Vector2 targetPosition)
+    public CollisionResponse Move(Handle<RectangleF> handle, Vector2 targetPosition)
     {
-        Debug.Assert(_bodies.Exists(handle));
+        Debug.Assert(_bodies.IsValid(handle));
 
         ref RectangleF body = ref _bodies.Get(handle);
         Vector2 velocity = targetPosition - body.Location;
@@ -41,12 +40,12 @@ public class World
             CollisionTime = float.PositiveInfinity
         };
 
-        for (int i = 1; i < _bodies.Items.Count; i++)
+        for (int i = 1; i < _bodies.Count; i++)
         {
             if (i == handle.Id)
                 continue;
 
-            RectangleF rect = _bodies.Items[i];
+            RectangleF rect = _bodies[i];
 
             CollisionResponse response = CollisionFunctions.SweptAABB(body, rect, velocity);
 
@@ -67,13 +66,16 @@ public class World
         return closestCollision; // Invalid
     }
 
+    public void InnerDraw(ref RectangleF rect)
+    {
+        _spriteBatch.Draw(rect, Color.Red, 0.5f);
+    }
+
+    SpriteBatch _spriteBatch;
+
     public void Draw(SpriteBatch spriteBatch)
     {
-        for (int i = 0; i < _bodies.Items.Count; i++)
-        {
-            RectangleF rect = _bodies.Items[i];
-
-            spriteBatch.Draw(rect, Color.Red, 0.5f);
-        }
+        this._spriteBatch = spriteBatch;
+        _bodies.Iterate(InnerDraw);
     }
 }

@@ -5,10 +5,23 @@
 using Darkrit.Math;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Point = Microsoft.Xna.Framework.Point;
 using SPoint = System.Drawing.Point;
 
 namespace Darkrit.Utilities;
+
+public static class GenericExtensions {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static T UnsafeGetElementAt<T>(this T[] array, int index)
+    {
+        Debug.Assert(array is not null);
+        Debug.Assert((index >= 0) && (index < array.Length));
+        return Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), index);
+    }
+}
 
 public static class Extensions
 {

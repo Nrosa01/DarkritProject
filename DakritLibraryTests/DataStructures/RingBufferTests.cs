@@ -1,13 +1,13 @@
 ﻿using Darkrit.DataStructures;
 
-namespace DakritFacts.DataStructures;
+namespace DakritTests.DataStructures;
 
-public class RingBuffer
+public class RingBufferTests
 {
     const int CAPACITY = 5;
     private readonly RingBuffer<int> buffer;
 
-    public RingBuffer()
+    public RingBufferTests()
     {
         buffer = new(CAPACITY);
     }
