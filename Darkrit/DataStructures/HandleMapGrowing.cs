@@ -131,7 +131,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Skip(Handle<T> handle) => handle.Id == 0;
 
-    public struct Enumerator
+    public struct Enumerator : IEnumerator<T>
     {
         private readonly GrowableArray<HandleItem<T>> _items;
         private int _index;
@@ -147,6 +147,14 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref _items[_index].Item;
         }
+
+        readonly T IEnumerator<T>.Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _items[_index].Item;
+        }
+
+        readonly object IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
@@ -170,25 +178,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
         }
     }
 
-    public struct Enumerator2 : IEnumerator<T>
-    {
-        private readonly Enumerator baseEnumerator;
-
-        internal Enumerator2(GrowableArray<HandleItem<T>> items) => baseEnumerator = new(items);
-
-        public readonly T Current => baseEnumerator.Current;
-
-        readonly object IEnumerator.Current => Current;
-
-        public readonly void Dispose() => baseEnumerator.Dispose();
-
-        public readonly bool MoveNext() => baseEnumerator.MoveNext();
-
-        public readonly void Reset() => baseEnumerator.Reset();
-    }
-
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public Enumerator GetEnumerator() => new(_items);
-
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator2(_items);
-    IEnumerator IEnumerable.GetEnumerator() => new Enumerator2(_items);
 }
