@@ -139,7 +139,7 @@ internal class TestManyBoxes : Scene
 
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
-        var hasCollision = world.Move(playerHandle, position, Test.Slide);
+        var hasCollision = world.Move(playerHandle, position, CollisionFilters<ItemType>.Slide);
         position = world.Get(playerHandle).Bounds.Location;
         if (hasCollision)
         {

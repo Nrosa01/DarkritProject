@@ -13,9 +13,14 @@ namespace Darkrit.Physics.Boxy2D;
 
 public delegate CollisionAction CollisionFilter<T>(ref Body<T> self, ref Body<T> other);
 
-public static  class Test {
-    public static CollisionAction Stop<T>(ref Body<T> self, ref Body<T> other) => CollisionResponses.Stop;
-    public static CollisionAction Slide<T>(ref Body<T> self, ref Body<T> other) => CollisionResponses.Slide;
+public static class CollisionFilters<T>
+{
+    public static CollisionFilter<T> Response(CollisionAction action) => (ref Body<T> _, ref Body<T> _) => action;
+
+    public static CollisionFilter<T> Stop => Response(CollisionResponses.Stop);
+    public static CollisionFilter<T> Slide => Response(CollisionResponses.Slide);
+    public static CollisionFilter<T> Push => Response(CollisionResponses.Push);
+    public static CollisionFilter<T> Cross => Response(CollisionResponses.Cross);
 }
 
 public class World<T>
@@ -62,7 +67,7 @@ public class World<T>
         SetMask(handle, mask);
     }
 
-    public bool Move(Handle<Body<T>> handle, Vector2 targetPosition) => Move(handle, targetPosition, Test.Stop, 1);
+    public bool Move(Handle<Body<T>> handle, Vector2 targetPosition) => Move(handle, targetPosition, CollisionFilters<T>.Response(CollisionResponses.Stop), 1);
 
     /// <summary>
     /// 

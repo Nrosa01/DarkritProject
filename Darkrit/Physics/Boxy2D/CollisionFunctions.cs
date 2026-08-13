@@ -130,5 +130,10 @@ public static class CollisionResponses
 
         velocity = Vector2.Zero;
     }
+
+    public static void Cross(ref RectangleF r1, ref Vector2 velocity, CollisionInfo collisionResponde)
+    {
+        velocity = Vector2.Zero;
+    }
 }
 
