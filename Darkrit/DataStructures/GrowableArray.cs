@@ -1,21 +1,35 @@
-﻿using Darkrit.Base;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Darkrit.DataStructures;
 
+/// <summary>
+/// Dynamic array that resizes when adding items
+/// Unlike <see cref="List{T}"/>, it's possible to get the underlaying value by reference
+/// so there is no need to convert to a Span which saves processing time in hotpaths
+/// </summary>
+/// <typeparam name="T">Type to be contained</typeparam>
 public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
 {
     private T[] _items = [];
     private int _count;
 
+    /// <summary>
+    /// Gets the number of elements contained in the <see cref="GrowableArray{T}"/> 
+    /// </summary>
     public int Count => _count;
+
+    /// <summary>
+    /// The total number of elements the internal data structure can hold without resizing
+    /// </summary>
     public int Capacity => _items.Length;
 
+    /// <summary>
+    /// Initializes a <see cref="GrowableArray{T}"/> with 0 elements and <paramref name="capacity"/> allocated elements
+    /// </summary>
+    /// <param name="capacity">Number of elements to preallocate</param>
     public GrowableArray(int capacity)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(capacity);
@@ -24,8 +38,22 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
 
     public GrowableArray() : this(4) { }
 
+    /// <summary>
+    /// Creates a ReadOnlySpan over the contained elements
+    /// </summary>
+    /// <returns>The ReadOnlySpan view</returns>
     public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsSpan(0, _count);
 
+    /// <summary>
+    /// Remove all elements from the <see cref="GrowableArray{T}"/>
+    /// <remarks>
+    /// <see cref="Count"/> is set to 0, and references to other objects 
+    /// from elements of the collection are also released.
+    /// <see cref="Capacity"/> remains unchanged
+    /// This method is an O(n) operation, where n is <see cref="Count"/> only if <see cref="T"/> is or contains references.
+    /// Pure value types aren't cleared
+    /// </remarks>
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear()
     {
@@ -40,6 +68,12 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
         _count = 0;
     }
 
+
+    /// <summary>
+    /// Adds an object to the end of the <see cref="GrowableArray{T}"/>
+    /// </summary>
+    /// <param name="item">The object to be added to the end of the <see cref="GrowableArray{T}"/>. 
+    /// The value can be null for reference types.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(T item)
     {
@@ -49,6 +83,10 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
         _items[_count++] = item;
     }
 
+
+    /// <summary>
+    /// Reizes the array duplicating its <see cref="Capacity"/>
+    /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void Grow()
     {
@@ -81,7 +119,7 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
         {
             int index = _index + 1;
 
-            if ((uint)index < (uint)_count)
+            if (index < _count)
             {
                 _index = index;
                 return true;
@@ -101,5 +139,10 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+    /// <summary>
+    /// Gets or sets the element at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the element to get or set.</param>
+    /// <returns></returns>
     public ref T this[int index] => ref _items[index];
 }

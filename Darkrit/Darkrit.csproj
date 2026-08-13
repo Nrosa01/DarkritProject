@@ -35,6 +35,7 @@
 
 	<PropertyGroup>
 		<EditorGeneratedPath>$(MSBuildProjectDirectory)\Editor\EditorProjectPath.g.cs</EditorGeneratedPath>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<Target Name="GenerateEditorProjectPath" BeforeTargets="CoreCompile">

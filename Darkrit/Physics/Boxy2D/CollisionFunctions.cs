@@ -5,7 +5,7 @@ using RectangleF = Darkrit.Math.RectangleF;
 
 namespace Darkrit.Physics.Boxy2D;
 
-public delegate void CollisionAction(
+public delegate void CollisionResponseFunction(
     ref RectangleF body,
     ref Vector2 velocity,
     CollisionInfo collisionResponse
