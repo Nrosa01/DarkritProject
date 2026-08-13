@@ -133,13 +133,13 @@ internal class TestManyBoxes : Scene
         else
             velocity.X = 0;
 
-        position += velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        Vector2 goalPosition = position + velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         //position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
 
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
-        var hasCollision = world.Move(playerHandle, position, CollisionFilters<ItemType>.Slide);
+        var hasCollision = world.Move(playerHandle, goalPosition, CollisionFilters<ItemType>.Slide);
         position = world.Get(playerHandle).Bounds.Location;
         if (hasCollision)
         {

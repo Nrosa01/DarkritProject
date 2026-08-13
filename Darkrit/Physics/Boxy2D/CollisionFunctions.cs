@@ -5,11 +5,7 @@ using RectangleF = Darkrit.Math.RectangleF;
 
 namespace Darkrit.Physics.Boxy2D;
 
-public delegate void CollisionResponseFunction(
-    ref RectangleF body,
-    ref Vector2 velocity,
-    CollisionInfo collisionResponse
-);
+public delegate void CollisionResponseFunction(ref RectangleF body, ref Vector2 velocity, CollisionInfo collisionResponse);
 
 public class CollisionFunctions
 {
@@ -113,9 +109,7 @@ public static class CollisionResponses
         body.X += velocity.X * response.CollisionTime;
         body.Y += velocity.Y * response.CollisionTime;
 
-        float remaining = 1.0f - response.CollisionTime;
-
-        velocity *= remaining;
+        velocity *= response.RemaininTime;
 
         float normalVelocity = Vector2.Dot(velocity, response.Normal);
 
