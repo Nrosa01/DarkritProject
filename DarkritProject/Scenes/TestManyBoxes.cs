@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
@@ -22,6 +23,13 @@ internal class TestManyBoxes : Scene
     static bool paused = false;
     static bool render = true;
 
+    enum ItemType
+    {
+        Player,
+        Wall1,
+        Wall2
+    };
+
     AnimatedSprite slimeAnimation;
     Vector2 position = new Vector2(-200, 0);
     Vector2 previousPosition;
@@ -33,8 +41,8 @@ internal class TestManyBoxes : Scene
     InputAction moveRight;
     FontSystem _fontSystem;
     Camera camera = new();
-    Handle<RectangleF> playerHandle;
-    Darkrit.Physics.Boxy2D.World world;
+    Handle<Body<ItemType>> playerHandle;
+    Darkrit.Physics.Boxy2D.World<ItemType> world;
 
     public override void Initialize()
     {
@@ -52,10 +60,10 @@ internal class TestManyBoxes : Scene
         slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
 
         world = new();
-        world.Create(new Vector2(0, 0), new Vector2(100, 20));
-        world.Create(new Vector2(0, 0), new Vector2(30, 150));
+        world.Create(new Vector2(0, 0), new Vector2(600, 20), (uint)CollisionLayer.World, userData: ItemType.Wall1);
+        world.Create(new Vector2(0, 0), new Vector2(30, 200), (uint)CollisionLayer.World, userData: ItemType.Wall2);
 
-        playerHandle = world.Create(position, slimeAnimation.Size);
+        playerHandle = world.Create(position, slimeAnimation.Size, (uint)CollisionLayer.None, (uint)CollisionLayer.World, userData: ItemType.Player);
 
         moveUp = Core.Input.CreateAction("Move Up").AddBindings([
             new KeyboardBinding(Key.Up),
@@ -131,10 +139,16 @@ internal class TestManyBoxes : Scene
 
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
-        var response = world.Move(playerHandle, position);
-        position = world.Get(playerHandle).Location;
-        if (response.HasCollision)
-            Log.Info("Collision");
+        var hasCollision = world.Move(playerHandle, position, Test.Slide);
+        position = world.Get(playerHandle).Bounds.Location;
+        if (hasCollision)
+        {
+            var latestCollisions = world.LastCollsions;
+            foreach (var item in latestCollisions)
+            {
+                Log.Info($"Collision with {world.Get(item.Handle).UserData}");
+            }
+        }
     }
 
     bool useInterpolation = true;

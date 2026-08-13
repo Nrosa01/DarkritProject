@@ -13,9 +13,9 @@ using Darkrit.Physics.Boxy2D;
 
 namespace Darkrit.DataStructures;
 
-public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
+public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> where T : new()
 {
-    public delegate void IterationAction(ref T item);
+    public delegate void IterationAction(Handle<T> handle, ref T item);
 
     readonly GrowableArray<HandleItem<T>> _items;
     private readonly Stack<int> _deletedItems = new();
@@ -89,7 +89,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
     public ref T Get(Handle<T> handle)
     {
         Debug.Assert(IsValid(handle));
-        return ref _items[handle.Id].Item;
+        return ref this[handle];
     }
 
 
@@ -97,6 +97,8 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
     public bool IsValid(Handle<T> handle) => handle.Id > 0 && handle.Id < _items.Count && _items[handle.Id].Handle == handle;
 
     public ref T this[int index] => ref _items[index].Item;
+
+    public ref T this[Handle<T> handle] => ref _items[handle.Id].Item;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Remove(Handle<T> handle)
@@ -111,27 +113,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Iterate(IterationAction action)
-    {
-        var i = 0;
-        while (i < _items.Count)
-        {
-            if (Skip(_items[i].Handle))
-            {
-                i++;
-                continue;
-            }
-
-            action.Invoke(ref _items[i].Item);
-            i++;
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Skip(Handle<T> handle) => handle.Id == 0;
-
-    public struct Enumerator : IEnumerator<T>
+    public struct Enumerator : IEnumerator<HandleItem<T>>, IEnumerator<T>
     {
         private readonly GrowableArray<HandleItem<T>> _items;
         private int _index;
@@ -142,17 +124,10 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
             _index = -1;
         }
 
-        public readonly ref T Current
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _items[_index].Item;
-        }
+        public readonly ref HandleItem<T> Current => ref _items[_index];
 
-        readonly T IEnumerator<T>.Current
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _items[_index].Item;
-        }
+        readonly HandleItem<T> IEnumerator<HandleItem<T>>.Current => _items[_index];
+        readonly T IEnumerator<T>.Current => _items[_index].Item;
 
         readonly object IEnumerator.Current => Current;
 
@@ -173,6 +148,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : new()
         public readonly void Dispose() { }
     }
 
+    IEnumerator<HandleItem<T>> IEnumerable<HandleItem<T>>.GetEnumerator() => GetEnumerator();
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public Enumerator GetEnumerator() => new(_items);

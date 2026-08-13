@@ -8,29 +8,12 @@ namespace Darkrit.Physics.Boxy2D;
 public delegate void CollisionAction(
     ref RectangleF body,
     ref Vector2 velocity,
-    CollisionResponse collisionResponse
+    CollisionInfo collisionResponse
 );
-
-public readonly struct CollisionResponse
-{
-    public readonly float CollisionTime { get; init; }
-
-    public readonly float RemaininTime => 1.0f - CollisionTime;
-
-    public readonly Vector2 Normal { get; init; }
-
-    public readonly static CollisionResponse NoCollision = new() { HasCollision = false, CollisionTime = -1.0f };
-
-    public CollisionResponse()
-    {
-    }
-
-    public bool HasCollision { get; init; } = false;
-}
 
 public class CollisionFunctions
 {
-    public static CollisionResponse SweptAABB(RectangleF r1, RectangleF r2, Vector2 delta)
+    public static CollisionInfo SweptAABB(RectangleF r1, RectangleF r2, Vector2 delta)
     {
         Vector2 halfSize = new(
             r1.Width * 0.5f,
@@ -78,13 +61,13 @@ public class CollisionFunctions
                 // If the center is outside the interval,
                 // there will never be a point in the extended AABB
                 if (pos <= min || pos >= max)
-                    return CollisionResponse.NoCollision;
+                    return CollisionInfo.NoCollision;
             }
         }
 
         // There is no intersection with the segmnet [0, 1]
         if (firstExit <= lastEntry || firstExit <= 0.0f || lastEntry >= 1.0f)
-            return CollisionResponse.NoCollision;
+            return CollisionInfo.NoCollision;
 
         Vector2 hitPosition = center + delta * lastEntry;
 
@@ -102,7 +85,7 @@ public class CollisionFunctions
         else
             normal = new Vector2(0.0f, dy > 0 ? 1.0f : -1.0f);
 
-        return new CollisionResponse
+        return new CollisionInfo
         {
             HasCollision = true,
             CollisionTime = lastEntry,
@@ -113,7 +96,7 @@ public class CollisionFunctions
 
 public static class CollisionResponses
 {
-    public static void Push(ref RectangleF _, ref Vector2 velocity, CollisionResponse collisionResponde)
+    public static void Push(ref RectangleF _, ref Vector2 velocity, CollisionInfo collisionResponde)
     {
         float magnitude = MathF.Sqrt((velocity.X * velocity.X + velocity.Y * velocity.Y)) * collisionResponde.RemaininTime;
         float dotprod = velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X;
@@ -125,17 +108,27 @@ public static class CollisionResponses
         velocity.Y = dotprod * collisionResponde.Normal.X * magnitude;
     }
 
-    public static void Slide(ref RectangleF _, ref Vector2 velocity, CollisionResponse collisionResponde)
+    public static void Slide(ref RectangleF body, ref Vector2 velocity, CollisionInfo response)
     {
-        float dotprod = (velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X) * collisionResponde.RemaininTime;
-        velocity.X = dotprod * collisionResponde.Normal.Y;
-        velocity.Y = dotprod * collisionResponde.Normal.X;
+        body.X += velocity.X * response.CollisionTime;
+        body.Y += velocity.Y * response.CollisionTime;
+
+        float remaining = 1.0f - response.CollisionTime;
+
+        velocity *= remaining;
+
+        float normalVelocity = Vector2.Dot(velocity, response.Normal);
+
+        if (normalVelocity < 0.0f)
+            velocity -= response.Normal * normalVelocity;
     }
 
-    public static void Stop(ref RectangleF r1, ref Vector2 velocity, CollisionResponse collisionResponde)
+    public static void Stop(ref RectangleF r1, ref Vector2 velocity, CollisionInfo collisionResponde)
     {
         r1.X += velocity.X * collisionResponde.CollisionTime;
         r1.Y += velocity.Y * collisionResponde.CollisionTime;
+
+        velocity = Vector2.Zero;
     }
 }
 

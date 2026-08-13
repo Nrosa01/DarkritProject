@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Darkrit.Base;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,7 +22,23 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
         _items = new T[capacity];
     }
 
+    public GrowableArray() : this(4) { }
+
     public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsSpan(0, _count);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Clear()
+    {
+        if (_count == 0)
+            return;
+
+        // If T is a struct that doesn't hold any ref, there is no need to clear it
+        // This can save some performance on big collections in hotpath
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            Array.Clear(_items, 0, _count);
+
+        _count = 0;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(T item)
@@ -53,17 +70,9 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
             _index = -1;
         }
 
-        public readonly ref T Current
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _items[_index];
-        }
+        public readonly ref T Current => ref _items[_index];
 
-        readonly T IEnumerator<T>.Current
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _items[_index];
-        }
+        readonly T IEnumerator<T>.Current => _items[_index];
 
         readonly object IEnumerator.Current => Current;
 
@@ -92,13 +101,5 @@ public sealed class GrowableArray<T> : IEnumerable<T>, IEnumerable
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public ref T this[int index]
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            Debug.Assert(index >= 0 && index < Count);
-            return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_items), index);
-        }
-    }
+    public ref T this[int index] => ref _items[index];
 }

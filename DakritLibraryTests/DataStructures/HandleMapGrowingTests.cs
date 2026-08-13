@@ -57,6 +57,27 @@ public class HandleMapGrowingTests
     }
 
     [Fact]
+    public void ForeachRefHandleItem_ModifiesItem()
+    {
+        var set = new HandleMapGrowing<int>
+        {
+            1,
+            2,
+            3
+        };
+
+        foreach (ref var entry in set)
+            entry.Item *= 10;
+
+        var values = new List<int>();
+
+        foreach (var entry in set)
+            values.Add(entry.Item);
+
+        Assert.Equal([10, 20, 30], values);
+    }
+
+    [Fact]
     public void Get_ReturnsStoredItem()
     {
         var item = 0;
@@ -168,46 +189,6 @@ public class HandleMapGrowingTests
     }
 
     [Fact]
-    public void Enumerate_ReturnsAllValidItems()
-    {
-        var item1 = 0;
-        var item2 = 4;
-        var item3 = -7;
-
-        set.Add(item1);
-        set.Add(item2);
-        set.Add(item3);
-
-        var result = set.ToList();
-
-        Assert.Equal(3, result.Count);
-        Assert.Contains(item1, result);
-        Assert.Contains(item2, result);
-        Assert.Contains(item3, result);
-    }
-
-    [Fact]
-    public void Enumerate_DoesNotReturnRemovedItems()
-    {
-        var item1 = 0;
-        var item2 = 3;
-        var item3 = -7;
-
-        var handle1 = set.Add(item1);
-        set.Add(item2);
-        set.Add(item3);
-
-        set.Remove(handle1);
-
-        var result = set.ToList();
-
-        Assert.Equal(2, result.Count);
-        Assert.DoesNotContain(item1, result);
-        Assert.Contains(item2, result);
-        Assert.Contains(item3, result);
-    }
-
-    [Fact]
     public void Iterate_VisitsAllValidItems()
     {
         var item1 = 0;
@@ -220,10 +201,11 @@ public class HandleMapGrowingTests
 
         var count = 0;
 
-        set.Iterate((ref int item) =>
+        foreach (var item in set)
         {
             count++;
-        });
+            Assert.True(set.IsValid(item.Handle));
+        }
 
         Assert.Equal(3, count);
     }
@@ -243,10 +225,11 @@ public class HandleMapGrowingTests
 
         var count = 0;
 
-        set.Iterate((ref int item) =>
+        foreach (var item in set)
         {
             count++;
-        });
+            Assert.True(set.IsValid(item.Handle));
+        }
 
         Assert.Equal(2, count);
     }

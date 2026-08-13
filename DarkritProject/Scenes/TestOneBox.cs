@@ -35,10 +35,10 @@ internal class TestOneBox : Scene
     InputAction moveRight;
     FontSystem _fontSystem;
     Camera camera = new();
-    Handle<RectangleF> playerHandle;
-    Darkrit.Physics.Boxy2D.World world;
+    Handle<Body<Empty>> playerHandle;
+    Darkrit.Physics.Boxy2D.World<Empty> world;
     bool collisionThisFrame = false;
-    private Handle<RectangleF> obstacleHandle;
+    private Handle<Body<Empty>> obstacleHandle;
 
     public override void Initialize()
     {
@@ -132,14 +132,14 @@ internal class TestOneBox : Scene
         //position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
         desiredPosition = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
 
-        var result = CollisionFunctions.SweptAABB(world.Get(playerHandle), world.Get(obstacleHandle), desiredPosition - position);
+        var result = CollisionFunctions.SweptAABB(world.Get(playerHandle).Bounds, world.Get(obstacleHandle).Bounds, desiredPosition - position);
         collisionThisFrame = result.HasCollision;
 
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
-        var response = world.Move(playerHandle, position);
-        position = world.Get(playerHandle).Location;
-        if (response.HasCollision)
+        var collided = world.Move(playerHandle, position);
+        position = world.Get(playerHandle).Bounds.Location;
+        if (collided)
             Log.Info("Collision");
     }
 
