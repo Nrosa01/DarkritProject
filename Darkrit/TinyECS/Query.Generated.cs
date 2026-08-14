@@ -11,7 +11,7 @@ public partial class Registry
   public void Query<T1>(QueryDelegate<T1> action)
       where T1 : struct
   {
-      var store1 = Assure<T1>();
+      var store1 = GetStore<T1>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -36,7 +36,7 @@ public partial class Registry
   public void QueryParallel<T1>(QueryDelegate<T1> action)
       where T1 : struct
   {
-      var store1 = Assure<T1>();
+      var store1 = GetStore<T1>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -67,8 +67,8 @@ public partial class Registry
       where T1 : struct
       where T2 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -116,8 +116,8 @@ public partial class Registry
       where T1 : struct
       where T2 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -172,9 +172,9 @@ public partial class Registry
       where T2 : struct
       where T3 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -247,9 +247,9 @@ public partial class Registry
       where T2 : struct
       where T3 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -330,10 +330,10 @@ public partial class Registry
       where T3 : struct
       where T4 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -433,10 +433,10 @@ public partial class Registry
       where T3 : struct
       where T4 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -545,11 +545,11 @@ public partial class Registry
       where T4 : struct
       where T5 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -678,11 +678,11 @@ public partial class Registry
       where T4 : struct
       where T5 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -821,12 +821,12 @@ public partial class Registry
       where T5 : struct
       where T6 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
-      var store6 = Assure<T6>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
+      var store6 = GetStore<T6>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -986,12 +986,12 @@ public partial class Registry
       where T5 : struct
       where T6 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
-      var store6 = Assure<T6>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
+      var store6 = GetStore<T6>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -1162,13 +1162,13 @@ public partial class Registry
       where T6 : struct
       where T7 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
-      var store6 = Assure<T6>();
-      var store7 = Assure<T7>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
+      var store6 = GetStore<T6>();
+      var store7 = GetStore<T7>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -1361,13 +1361,13 @@ public partial class Registry
       where T6 : struct
       where T7 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
-      var store6 = Assure<T6>();
-      var store7 = Assure<T7>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
+      var store6 = GetStore<T6>();
+      var store7 = GetStore<T7>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -1572,14 +1572,14 @@ public partial class Registry
       where T7 : struct
       where T8 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
-      var store6 = Assure<T6>();
-      var store7 = Assure<T7>();
-      var store8 = Assure<T8>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
+      var store6 = GetStore<T6>();
+      var store7 = GetStore<T7>();
+      var store8 = GetStore<T8>();
 
       var leader = 0;
       var leaderCount = store1.Count;
@@ -1807,14 +1807,14 @@ public partial class Registry
       where T7 : struct
       where T8 : struct
   {
-      var store1 = Assure<T1>();
-      var store2 = Assure<T2>();
-      var store3 = Assure<T3>();
-      var store4 = Assure<T4>();
-      var store5 = Assure<T5>();
-      var store6 = Assure<T6>();
-      var store7 = Assure<T7>();
-      var store8 = Assure<T8>();
+      var store1 = GetStore<T1>();
+      var store2 = GetStore<T2>();
+      var store3 = GetStore<T3>();
+      var store4 = GetStore<T4>();
+      var store5 = GetStore<T5>();
+      var store6 = GetStore<T6>();
+      var store7 = GetStore<T7>();
+      var store8 = GetStore<T8>();
 
       var leader = 0;
       var leaderCount = store1.Count;

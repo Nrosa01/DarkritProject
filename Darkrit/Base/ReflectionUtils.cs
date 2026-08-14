@@ -44,4 +44,32 @@ internal class ReflectionUtils
                 baseType.IsAssignableFrom(t) &&
                 t != baseType)];
     }
+
+    public static int CountDerivedTypes<T>()
+    {
+        var baseType = typeof(T);
+        var count = 0;
+
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            Type[] types;
+
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = [.. ex.Types.OfType<Type>()];
+            }
+
+            foreach (var type in types)
+            {
+                if (!type.IsAbstract && type != baseType && baseType.IsAssignableFrom(type))
+                    count++;
+            }
+        }
+
+        return count;
+    }
 }

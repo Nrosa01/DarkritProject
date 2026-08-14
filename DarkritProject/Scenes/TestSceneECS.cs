@@ -1,4 +1,5 @@
 using Darkrit.Graphics.InstancedQuadRenderer;
+using Darkrit.TinyECS;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -30,11 +31,11 @@ internal class TestSceneECS : Scene
     static readonly int WindowsWidth = Core.GraphicsDevice.Viewport.Width;
     static readonly int WindowsHeight = Core.GraphicsDevice.Viewport.Height;
 
-    record struct Square(int Size);
+    record struct Square(int Size) : IComponent;
 
-    record struct Position(float X, float Y);
-    record struct Velocity(float X, float Y);
-    record struct Fart(int Power);
+    record struct Position(float X, float Y) : IComponent;
+    record struct Velocity(float X, float Y) : IComponent;
+    record struct Fart(int Power) : IComponent;
 
     public override void Initialize()
     {

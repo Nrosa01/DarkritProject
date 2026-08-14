@@ -67,7 +67,7 @@ string ActionParameters(int count)
 void GenerateStores(int count)
 {
     for (int i = 1; i <= count; i++)
-        sb.AppendLine($"      var store{i} = Assure<T{i}>();");
+        sb.AppendLine($"      var store{i} = GetStore<T{i}>();");
 }
 
 void GenerateLeaderSelection(int count)

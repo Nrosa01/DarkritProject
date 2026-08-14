@@ -16,12 +16,18 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Darkrit.Base;
 
 namespace Darkrit.TinyECS;
 
+public interface IComponent
+{
+
+}
+
 public record struct Entity(Int32 Id, Int32 Generation);
 
-public static class TypeId
+public static class ComponentTypeId
 {
     private static int _nextId;
 
@@ -29,18 +35,21 @@ public static class TypeId
     {
         return Interlocked.Increment(ref _nextId) - 1;
     }
+
+    public static int Count => _nextId - 1;
 }
 
-public static class TypeId<T>
+public static class ComponentTypeId<T>
 {
-    public static readonly int Id = TypeId.Next();
+    public static readonly int Id = ComponentTypeId.Next();
 }
 
-public partial class Registry(int maxEntities)
+public partial class Registry
 {
-    private readonly Dictionary<int, IComponentStore> data = [];
+    private readonly IComponentStore[] data;
     private readonly Stack<int> deletedEntities = new();
-    private readonly int[] generations = new int[maxEntities];
+    private readonly int maxEntities;
+    private readonly int[] generations;
     private Int32 nextEntity = 0;
 
     private Int32 NextEntityId()
@@ -51,15 +60,18 @@ public partial class Registry(int maxEntities)
             return (++nextEntity % maxEntities);
     }
 
-    public ComponentStore<T> Assure<T>()
+    public Registry(int maxEntities)
     {
-        var type = TypeId<T>.Id;
-        if (data.TryGetValue(type, out var store)) return (ComponentStore<T>)data[type];
+        var typeCount = ReflectionUtils.CountDerivedTypes<IComponent>();
+        data = new IComponentStore[typeCount];
 
-        var newStore = new ComponentStore<T>(maxEntities);
-        data[type] = newStore;
-        return newStore;
+        generations = new int[maxEntities];
+        this.maxEntities = maxEntities;
     }
+
+    public Registry() : this(1000) { }
+
+    public ComponentStore<T> GetStore<T>() => (ComponentStore<T>)(data[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(maxEntities));
 
     public Entity Create()
     {
@@ -71,7 +83,7 @@ public partial class Registry(int maxEntities)
     {
         if (!Exists(entity)) return false;
 
-        foreach (var store in data.Values)
+        foreach (var store in data)
             store.RemoveIfContains(entity.Id);
 
         deletedEntities.Push(entity.Id);
@@ -81,15 +93,15 @@ public partial class Registry(int maxEntities)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool Exists(Entity entity) => generations[entity.Id] == entity.Generation;
 
-    public void AddComponent<T>(Entity entity, T component) => Assure<T>().Add(entity.Id, component);
+    public void AddComponent<T>(Entity entity, T component) => GetStore<T>().Add(entity.Id, component);
 
-    public ref T GetComponent<T>(Entity entity) => ref Assure<T>().Get(entity.Id);
+    public ref T GetComponent<T>(Entity entity) => ref GetStore<T>().Get(entity.Id);
 
     public bool TryGetComponent<T>(Entity entity, ref T component)
     {
         if (!Exists(entity)) return false;
 
-        var store = Assure<T>();
+        var store = GetStore<T>();
         if (store.Contains(entity.Id))
         {
             component = store.Get(entity.Id);
@@ -99,5 +111,5 @@ public partial class Registry(int maxEntities)
         return false;
     }
 
-    public void RemoveComponent<T>(Entity entity) => Assure<T>().RemoveIfContains(entity.Id);
+    public void RemoveComponent<T>(Entity entity) => GetStore<T>().RemoveIfContains(entity.Id);
 }
