@@ -108,26 +108,26 @@ public class World<T>
 
 
     /// <summary>
-    /// Attemps to move the body associated with <paramref name="handle"/> to <paramref name="targetPosition"/>
+    /// Attemps to move the body associated with <paramref name="handle"/> <paramref name="velocity"/> units
     /// It uses <see cref="CollisionResponses.Stop(ref RectangleF, ref Vector2, CollisionInfo)"/> as solver
     /// This method is a shorthand of <see cref="Move(Handle{Body{T}}, Vector2, CollisionFilterFunction{T}, int, bool)"/>
     /// </summary>
     /// <param name="handle">Handle to the item to move</param>
-    /// <param name="targetPosition">Desired position the body at <paramref name="handle"/> should move</param>
+    /// <param name="velocity">Motion that the body will try to move</param>
     /// <returns>True if there was a collision</returns>
-    public bool Move(Handle<Body<T>> handle, Vector2 targetPosition) => Move(handle, targetPosition, CollisionFilters<T>.Response(CollisionResponses.Stop), 1);
+    public bool Move(Handle<Body<T>> handle, ref Vector2 velocity) => Move(handle, ref velocity, CollisionFilters<T>.Response(CollisionResponses.Stop), 1);
 
     /// <summary>
-    /// Attemps to move the body associated with <paramref name="handle"/> to <paramref name="targetPosition"/>
+    /// Attemps to move the body associated with <paramref name="handle"/> <paramref name="velocity"/> units
     /// </summary>
     /// <param name="handle">Handle to the item to move</param>
-    /// <param name="targetPosition">Desired position the body at <paramref name="handle"/> should move</param>
+    /// <param name="velocity">Motion that the body will try to move</param>
     /// <param name="collisionFilter">Filter function that decides how each collision is handled</param>
     /// <param name="maxCollisions">Some <see cref="CollisionResponseFunction"/> need many iterations to be solved.
     /// This parameter limits the amount of iterations that can be done</param>
     /// <param name="testOnly">If <paramref name="testOnly"/> is true, the body does not move but the would-be collision information is given.</param>
     /// <returns>True if there was a collision</returns>
-    public bool Move(Handle<Body<T>> handle, Vector2 targetPosition, CollisionFilterFunction<T> collisionFilter, int maxCollisions = 5, bool testOnly = false)
+    public bool Move(Handle<Body<T>> handle, ref Vector2 velocity, CollisionFilterFunction<T> collisionFilter, int maxCollisions = 5, bool testOnly = false)
     {
         Debug.Assert(collisionFilter != null);
         Debug.Assert(_bodies.IsValid(handle));
@@ -137,7 +137,6 @@ public class World<T>
         ref Body<T> body = ref _bodies[handle];
 
         RectangleF bounds = body.Bounds;
-        Vector2 velocity = targetPosition - body.Bounds.Location;
         CollisionInfo lastCollision = CollisionInfo.NoCollision;
 
         for (int iteration = 0; iteration < maxCollisions; iteration++)

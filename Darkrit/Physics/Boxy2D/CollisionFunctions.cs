@@ -9,7 +9,7 @@ public delegate void CollisionResponseFunction(ref RectangleF body, ref Vector2 
 
 public class CollisionFunctions
 {
-    public static CollisionInfo SweptAABB(RectangleF r1, RectangleF r2, Vector2 delta)
+    public static CollisionInfo SweptAABB(RectangleF r1, RectangleF r2, Vector2 motion)
     {
         Vector2 halfSize = new(
             r1.Width * 0.5f,
@@ -37,7 +37,7 @@ public class CollisionFunctions
         for (int axis = 0; axis < 2; axis++)
         {
             float pos = axis == 0 ? center.X : center.Y;
-            float movement = axis == 0 ? delta.X : delta.Y;
+            float movement = axis == 0 ? motion.X : motion.Y;
 
             float min = axis == 0 ? expanded.Left : expanded.Top;
             float max = axis == 0 ? expanded.Right : expanded.Bottom;
@@ -65,7 +65,7 @@ public class CollisionFunctions
         if (firstExit <= lastEntry || firstExit <= 0.0f || lastEntry >= 1.0f)
             return CollisionInfo.NoCollision;
 
-        Vector2 hitPosition = center + delta * lastEntry;
+        Vector2 hitPosition = center + motion * lastEntry;
 
         // Normal
         float dx = hitPosition.X - expanded.Left - expanded.Width * 0.5f;

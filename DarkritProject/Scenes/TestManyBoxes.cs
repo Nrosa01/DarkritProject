@@ -33,7 +33,7 @@ internal class TestManyBoxes : Scene
     AnimatedSprite slimeAnimation;
     Vector2 position = new Vector2(-200, 0);
     Vector2 previousPosition;
-    Vector2 velocity;
+    Vector2 direction;
     private float speed = 500f;
     InputAction moveUp;
     InputAction moveDown;
@@ -57,7 +57,7 @@ internal class TestManyBoxes : Scene
         // Create the animated sprite for the slime from the atlas.
         
         slimeAnimation = atlas.CreateAnimatedSprite("slime-animation");
-        slimeAnimation.Scale = new Vector2(4.0f, 4.0f);
+        slimeAnimation.Scale = new Vector2(2.0f, 2.0f);
 
         world = new();
         world.Create(new Vector2(0, 0), new Vector2(600, 20), (uint)CollisionLayer.World, userData: ItemType.Wall1);
@@ -113,33 +113,35 @@ internal class TestManyBoxes : Scene
 
         if (moveUp.IsPressed)
         {
-            velocity.Y = -1;
+            direction.Y = -1;
         }
         else if (moveDown.IsPressed)
         {
-            velocity.Y = 1;
+            direction.Y = 1;
         }
         else
-            velocity.Y = 0;
+            direction.Y = 0;
 
         if (moveLeft.IsPressed)
         {
-            velocity.X = -1;
+            direction.X = -1;
         }
         else if (moveRight.IsPressed)
         {
-            velocity.X = 1;
+            direction.X = 1;
         }
         else
-            velocity.X = 0;
+            direction.X = 0;
 
-        Vector2 goalPosition = position + velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        Vector2 goalPosition = position + direction.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         //position = camera.ScreenToWorld(Core.Input.GetMousePosition(), Core.Viewport) - new Vector2(slimeAnimation.Width * 0.5f, slimeAnimation.Height * 0.5f);
 
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
-        var hasCollision = world.Move(playerHandle, goalPosition, CollisionFilters<ItemType>.Slide);
+        Vector2 motion = direction.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        var hasCollision = world.Move(playerHandle, ref motion, CollisionFilters<ItemType>.Slide);
+        direction = motion / direction.Normalized / (float)gameTime.ElapsedGameTime.TotalSeconds;
         position = world.Get(playerHandle).Bounds.Location;
         if (hasCollision)
         {

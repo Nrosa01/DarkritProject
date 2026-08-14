@@ -137,7 +137,8 @@ internal class TestOneBox : Scene
 
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
-        var collided = world.Move(playerHandle, position);
+        Vector2 motion = velocity.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        var collided = world.Move(playerHandle, ref motion);
         position = world.Get(playerHandle).Bounds.Location;
         if (collided)
             Log.Info("Collision");
