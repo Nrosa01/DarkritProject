@@ -4,9 +4,7 @@
 
 using Darkrit.Base;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 
 namespace Darkrit.EntityModel;
 

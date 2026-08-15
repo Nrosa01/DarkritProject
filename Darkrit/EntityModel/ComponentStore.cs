@@ -1,11 +1,8 @@
 ﻿using Darkrit.Base;
 using Darkrit.DataStructures;
-using Darkrit.TinyECS;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Darkrit.EntityModel;
 
@@ -58,28 +55,22 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
         if (!IsUpdateable) return;
 
         foreach (ref var item in Components)
-        {
             item.Item.Update(gameTime);
-        }
     }
 
     public void FixedUpdate(GameTime gameTime)
     {
         if (!IsUpdateable) return;
 
-        foreach (ref var item in Components)
-        {
-            item.Item.FixedUpdate(gameTime);
-        }
+        foreach (ref var handleItem in Components)
+            handleItem.Item.FixedUpdate(gameTime);
     }
 
     public void Draw(GameTime gameTime)
     {
         if (!IsRenderable) return;
 
-        foreach (ref var item in Components)
-        {
-            item.Item.Draw(gameTime);
-        }
+        foreach (ref var handleItem in Components)
+            handleItem.Item.Draw(gameTime);
     }
 }

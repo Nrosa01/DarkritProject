@@ -6,14 +6,10 @@ using Microsoft.Xna.Framework;
 namespace Darkrit.EntityModel;
 
 [AttributeUsage(AttributeTargets.Struct)]
-public sealed class UpdateableAttribute : Attribute
-{
-}
+public sealed class UpdateableAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Struct)]
-public sealed class RenderableAttribute : Attribute
-{
-}
+public sealed class RenderableAttribute : Attribute { }
 
 public interface IComponent
 {
@@ -28,9 +24,6 @@ public interface IComponent
     /// </summary>
     public bool Enabled { get; set; }
 
-    public static bool Renderable { get; set; } = false;
-    public static bool Updateable { get; set; } = false;
-
     /// <summary>
     /// Whether this component's <see cref="EntityHandle"/> is active in the hierarchy
     /// </summary>
@@ -44,14 +37,9 @@ public interface IComponent
     /// </summary>
     public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierachy; }
 
-    public void Start() { }
+    void Start() { }
 
-    public void Update(GameTime gameTime);
-    public void FixedUpdate(GameTime gameTime);
-    public void Draw(GameTime gameTime);
-}
-
-public struct Component
-{
-
+    void Update(GameTime gameTime) { }
+    void FixedUpdate(GameTime gameTime) { }
+    void Draw(GameTime gameTime) { }
 }

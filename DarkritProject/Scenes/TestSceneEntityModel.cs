@@ -31,26 +31,14 @@ public struct SpriteComponent : IComponent
 
     public AnimatedSprite Sprite;
 
-    public static bool Renderable { get; set; } = true;
-
     public void Start()
     {
         Sprite.Scale = Vector2.One * 4;
     }
 
-    public void FixedUpdate(GameTime gameTime)
-    {
-        Sprite.Update(gameTime);
-    }
+    public void FixedUpdate(GameTime gameTime) => Sprite.Update(gameTime);
 
-    public void Update(GameTime gameTime)
-    {
-    }
-
-    public void Draw(GameTime gameTime)
-    {
-        Sprite.Draw(Core.SpriteBatch, this.Entity.Position);
-    }
+    public void Draw(GameTime gameTime) => Sprite.Draw(Core.SpriteBatch, this.Entity.Position);
 }
 
 [Updateable]
@@ -61,7 +49,6 @@ public struct PlayerController : IComponent
     public bool Enabled { get; set; }
 
     public static bool Updateable { get; set; } = true;
-
 
     InputAction moveUp;
     InputAction moveDown;
@@ -132,15 +119,6 @@ public struct PlayerController : IComponent
 
         this.Entity.Position += direction.Normalized * speed * gameTime.Delta;
     }
-
-    public void Update(GameTime gameTime)
-    {
-    }
-
-    public void Draw(GameTime gameTime)
-    {
-
-    }
 }
 
 public class TestSceneEntityModel : Scene
@@ -153,7 +131,6 @@ public class TestSceneEntityModel : Scene
     {
         TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
-
         entityWorld = new(10);
         player = entityWorld.CreateEntity();
         ref Entity playerRef = ref entityWorld.GetEntity(player);
@@ -164,9 +141,7 @@ public class TestSceneEntityModel : Scene
         playerRef.AddComponent<PlayerController>(new PlayerController());
     }
 
-    public override void Deinitialize()
-    {
-    }
+
 
     public override void Update(GameTime gameTime)
     {
@@ -195,5 +170,9 @@ public class TestSceneEntityModel : Scene
     {
         base.EditorDraw(gameTime);
         camera.EditorDraw();
+    }
+
+    public override void Deinitialize()
+    {
     }
 }
