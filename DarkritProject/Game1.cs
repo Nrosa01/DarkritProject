@@ -1,4 +1,5 @@
 ﻿using Darkrit.Scenes;
+using DarkritGame.Scenes;
 using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameGum;
@@ -53,6 +54,6 @@ public class Game1 : Core
         InitializeGum();
 
         // Start the game with the title scene.
-        ChangeScene(new TestManyBoxes());
+        ChangeScene(new TestSceneEntityModel());
     }
 }

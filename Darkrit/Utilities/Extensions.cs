@@ -25,6 +25,11 @@ public static class GenericExtensions {
 
 public static class Extensions
 {
+    extension(GameTime gameTime)
+    {
+        public float Delta => (float)gameTime.ElapsedGameTime.TotalSeconds;
+    }
+
     extension(Vector2 vector)
     {
         public Vector2 Normalized => vector == Vector2.Zero ? vector : Vector2.Normalize(vector);

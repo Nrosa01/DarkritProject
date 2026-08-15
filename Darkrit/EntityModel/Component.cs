@@ -6,9 +6,11 @@ namespace Darkrit.EntityModel;
 
 public interface IComponent
 {
-    public EntityRegistry World { get; init; }
+    public EntityRegistry World { get; set; }
 
-    public Handle<Entity> EntityHandle { get; init; }
+    public Handle<Entity> EntityHandle { get; set; }
+
+    public ref Entity Entity => ref World.GetEntity(EntityHandle);
 
     /// <summary>
     /// Whether this Component is enabled
@@ -28,8 +30,11 @@ public interface IComponent
     /// </summary>
     public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierachy; }
 
+    public void Start() { }
+
     public void Update(GameTime gameTime);
     public void FixedUpdate(GameTime gameTime);
+    public void Draw(GameTime gameTime);
 }
 
 public struct Component

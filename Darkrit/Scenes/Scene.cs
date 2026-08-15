@@ -70,7 +70,7 @@ public abstract class Scene : IDisposable
     /// Updates this scene.
     /// </summary>
     /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
-    public virtual void FixedUpdate(GameTime gameime) { }
+    public virtual void FixedUpdate(GameTime gameTime) { }
 
     /// <summary>
     /// Draws this scene.

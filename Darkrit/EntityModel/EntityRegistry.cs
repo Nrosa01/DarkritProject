@@ -5,6 +5,7 @@
 using Darkrit.Base;
 using Darkrit.DataStructures;
 using Darkrit.TinyECS;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -32,7 +33,7 @@ public static class ComponentTypeId<T> where T : struct, IComponent
 
 public class EntityRegistry(int initialCapacity)
 {
-    private readonly IComponentStore[] _data = new IComponentStore[ComponentTypeId.Count];
+    private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
 
 
@@ -40,22 +41,56 @@ public class EntityRegistry(int initialCapacity)
 
     public EntityRegistry() : this(1000) { }
 
-    public ComponentStore<T> GetStore<T>() where T : struct, IComponent => (ComponentStore<T>)(_data[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(initialCapacity));
+    public ComponentStore<T> GetStore<T>() where T : struct, IComponent => (ComponentStore<T>)(_componentStores[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(initialCapacity));
 
-    public Handle<Entity> Create() => _entities.Add(new Entity {
-        World = this
-    });
+    public Handle<Entity> CreateEntity()
+    {
+        return _entities.Add(new Entity
+        {
+            World = this,
+            Handle = _entities.PeekNextId()
+        });
+    }
 
     public bool TryDestroyImmediate(Handle<Entity> entity) => _entities.Remove(entity);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
-    public Handle<T> AddComponent<T>() where T : struct, IComponent  => GetStore<T>().Add(default);
-    public Handle<T> AddComponent<T>(T component) where T : struct, IComponent  => GetStore<T>().Add(component);
+    public Handle<T> AddComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent
+    {
+        component.World = this;
+        component.EntityHandle = entityHandle;
+        return GetStore<T>().Add(component);
+    }
 
     //public ref T GetComponent<T>(EntityId entity) => ref GetStore<T>().Get(entity.Id);
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
     public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
+
+    public void Update(GameTime gameTime)
+    {
+        foreach (var store in _componentStores)
+        {
+            store.InitializePendingComponents();
+            store.Update(gameTime);
+        }
+    }
+
+    public void FixedUpdate(GameTime gameTime)
+    {
+        foreach (var store in _componentStores)
+        {
+            store.FixedUpdate(gameTime);
+        }
+    }
+
+    public void Draw(GameTime gameTime)
+    {
+        foreach (var store in _componentStores)
+        {
+            store.Draw(gameTime);
+        }
+    }
 }

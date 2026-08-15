@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using Darkrit.Base;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -14,6 +15,8 @@ public struct Entity
     public EntityRegistry World { get; init; }
 
     readonly Dictionary<int, Handle<IComponent>> componentIds = [];
+
+    internal readonly Handle<Entity> Handle { get; init; }
 
     /// <summary>
     /// Whether this Entity is active in the hierarchy
@@ -28,13 +31,21 @@ public struct Entity
     /// </summary>
     public bool ActiveInHierachy { get; internal set; }
 
+    public Transform Transform;
+
+    public Vector2 Position
+    {
+        get => Transform.Position;
+        set => Transform.Position = value;
+    }
+
     public Entity()
     {
     }
 
     public Handle<T> AddComponent<T>()  where T : struct, IComponent
     {
-        Handle<T> componentHandle = World.AddComponent<T>();
+        Handle<T> componentHandle = World.AddComponent<T>(Handle, default);
 
         if (componentHandle is Handle<IComponent> icomponentHandle)
                 componentIds[ComponentTypeId<T>.Id] = icomponentHandle;
@@ -44,7 +55,10 @@ public struct Entity
 
     public Handle<T> AddComponent<T>(T component) where T : struct, IComponent
     {
-        Handle<T> componentHandle = World.AddComponent(component);
+        component.EntityHandle = Handle;
+        component.World = World;
+
+        Handle<T> componentHandle = World.AddComponent(Handle, component);
 
         if (componentHandle is Handle<IComponent> icomponentHandle)
             componentIds[ComponentTypeId<T>.Id] = icomponentHandle;

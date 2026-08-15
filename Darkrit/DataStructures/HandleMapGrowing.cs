@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Darkrit.Base;
 
@@ -56,12 +57,44 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     /// </summary>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int NextId()
+    private int GetNextId()
     {
         if (_deletedItems.TryPop(out var result))
             return result;
         else
             return (++_nextItem);
+    }
+
+    /// <summary>
+    /// Returns what the next handle would be. Useful if you need to
+    /// store the handle in your returned type but you need to do so
+    /// in the constructor
+    /// </summary>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Handle<T> PeekNextId()
+    {
+        int nextId;
+        if (_deletedItems.TryPeek(out var result))
+            nextId = result;
+        else
+            nextId = (_nextItem + 1);
+
+        
+        if (nextId < _items.Count)
+            return new Handle<T>
+            {
+                Id = nextId,
+                Generation = _items[nextId].Handle.Generation + 1 // Previous generation
+            };
+        else
+        {
+            return new Handle<T>
+            {
+                Id = nextId,
+                Generation = 0
+            };
+        }
     }
 
     /// <summary>
@@ -73,7 +106,7 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<T> Add(T item)
     {
-        var nextId = NextId();
+        var nextId = GetNextId();
 
         if (nextId < _items.Count)
             _items[nextId] = new HandleItem<T>
