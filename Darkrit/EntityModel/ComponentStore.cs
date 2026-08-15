@@ -9,7 +9,8 @@ using System.Text;
 
 namespace Darkrit.EntityModel;
 
-public interface IComponentStore {
+public interface IComponentStore
+{
     public void InitializePendingComponents();
     public void Update(GameTime gameTime);
     public void FixedUpdate(GameTime gameTime);
@@ -18,6 +19,12 @@ public interface IComponentStore {
 
 public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : struct, IComponent
 {
+    private static readonly bool IsUpdateable =
+        typeof(T).IsDefined(typeof(UpdateableAttribute), inherit: false);
+
+    private static readonly bool IsRenderable =
+        typeof(T).IsDefined(typeof(RenderableAttribute), inherit: false);
+
     public readonly HandleMapGrowing<T> Components = new(initialCapacity);
     private Stack<Handle<T>> nonInitializedComponents = new();
 
@@ -48,6 +55,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
 
     public void Update(GameTime gameTime)
     {
+        if (!IsUpdateable) return;
+
         foreach (ref var item in Components)
         {
             item.Item.Update(gameTime);
@@ -56,6 +65,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
 
     public void FixedUpdate(GameTime gameTime)
     {
+        if (!IsUpdateable) return;
+
         foreach (ref var item in Components)
         {
             item.Item.FixedUpdate(gameTime);
@@ -64,6 +75,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
 
     public void Draw(GameTime gameTime)
     {
+        if (!IsRenderable) return;
+
         foreach (ref var item in Components)
         {
             item.Item.Draw(gameTime);

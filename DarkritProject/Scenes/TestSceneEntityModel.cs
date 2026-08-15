@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection.Metadata;
-using System.Text;
-using Darkrit;
+﻿using Darkrit;
 using Darkrit.Base;
-using Darkrit.DevTools.Logger;
 using Darkrit.EntityModel;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
-using Darkrit.Physics.Boxy2D;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
-using FontStashSharp;
-using Gum.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using RenderingLibrary;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 using Key = Microsoft.Xna.Framework.Input.Keys;
 
@@ -30,6 +21,7 @@ public static class ComponentExtensions
     }
 }
 
+[Renderable, Updateable]
 public struct SpriteComponent : IComponent
 {
     public EntityRegistry World { get; set; }
@@ -38,6 +30,8 @@ public struct SpriteComponent : IComponent
     public bool Enabled { get; set; }
 
     public AnimatedSprite Sprite;
+
+    public static bool Renderable { get; set; } = true;
 
     public void Start()
     {
@@ -59,11 +53,15 @@ public struct SpriteComponent : IComponent
     }
 }
 
+[Updateable]
 public struct PlayerController : IComponent
 {
     public EntityRegistry World { get; set; }
     public Handle<Entity> EntityHandle { get; set; }
     public bool Enabled { get; set; }
+
+    public static bool Updateable { get; set; } = true;
+
 
     InputAction moveUp;
     InputAction moveDown;
@@ -149,6 +147,7 @@ public class TestSceneEntityModel : Scene
 {
     EntityRegistry entityWorld;
     Handle<Entity> player;
+    Camera camera = new();
 
     public override void Initialize()
     {
@@ -185,10 +184,16 @@ public class TestSceneEntityModel : Scene
     {
         Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
-        Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, rasterizerState: RasterizerState.CullNone);
+        Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
         entityWorld.Draw(gameTime);
         Core.SpriteBatch.End();
 
         base.Draw(gameTime);
+    }
+
+    public override void EditorDraw(GameTime gameTime)
+    {
+        base.EditorDraw(gameTime);
+        camera.EditorDraw();
     }
 }
