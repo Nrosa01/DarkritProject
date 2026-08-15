@@ -3,9 +3,11 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using Darkrit.Base;
+using Darkrit.DataStructures;
 using Darkrit.TinyECS;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -20,86 +22,40 @@ public static class ComponentTypeId
         return Interlocked.Increment(ref _nextId) - 1;
     }
 
-    public static int Count => _nextId - 1;
+    public static readonly int Count = ReflectionUtils.CountDerivedTypes<IComponent>();
 }
 
-public static class ComponentTypeId<T>
+public static class ComponentTypeId<T> where T : struct, IComponent
 {
     public static readonly int Id = ComponentTypeId.Next();
 }
 
-public class EntityRegistry
+public class EntityRegistry(int initialCapacity)
 {
-    private readonly IComponentStore[] data;
-    private readonly Stack<int> deletedEntities = new();
-    private readonly int maxEntities;
-    private readonly int[] generations;
-    private Int32 nextEntity = 0;
+    private readonly IComponentStore[] _data = new IComponentStore[ComponentTypeId.Count];
+    private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
 
-    private Int32 NextEntityId()
-    {
-        if (deletedEntities.TryPop(out var result))
-            return result;
-        else
-            return (++nextEntity % maxEntities);
-    }
 
-    public EntityRegistry(int maxEntities)
-    {
-        var typeCount = ReflectionUtils.CountDerivedTypes<IComponent>();
-        data = new IComponentStore[typeCount];
-
-        generations = new int[maxEntities];
-        this.maxEntities = maxEntities;
-    }
-
-    public ref Entity GetEntity(Handle<Entity> entityHandle)
-    {
-
-    }
+    public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
 
     public EntityRegistry() : this(1000) { }
 
-    public ComponentStore<T> GetStore<T>() => (ComponentStore<T>)(data[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(maxEntities));
+    public ComponentStore<T> GetStore<T>() where T : struct, IComponent => (ComponentStore<T>)(_data[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(initialCapacity));
 
-    public EntityId Create()
-    {
-        var next = NextEntityId();
-        return new() { Id = next, Generation = generations[next] };
-    }
+    public Handle<Entity> Create() => _entities.Add(new Entity {
+        World = this
+    });
 
-    public bool TryDestroy(EntityId entity)
-    {
-        if (!Exists(entity)) return false;
-
-        foreach (var store in data)
-            store.RemoveIfContains(entity.Id);
-
-        deletedEntities.Push(entity.Id);
-        return true;
-    }
+    public bool TryDestroyImmediate(Handle<Entity> entity) => _entities.Remove(entity);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool Exists(EntityId entity) => generations[entity.Id] == entity.Generation;
+    private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
-    public void AddComponent<T>(EntityId entity, T component) => GetStore<T>().Add(entity.Id, component);
+    public Handle<T> AddComponent<T>() where T : struct, IComponent  => GetStore<T>().Add(default);
+    public Handle<T> AddComponent<T>(T component) where T : struct, IComponent  => GetStore<T>().Add(component);
 
     //public ref T GetComponent<T>(EntityId entity) => ref GetStore<T>().Get(entity.Id);
-    public ref T GetComponent<T>(Handle<T> componentHandle) => ref GetStore<T>().Get(componentHandle);
+    public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
-    public bool TryGetComponent<T>(EntityId entity, ref T component)
-    {
-        if (!Exists(entity)) return false;
-
-        var store = GetStore<T>();
-        if (store.Contains(entity.Id))
-        {
-            component = store.Get(entity.Id);
-            return true;
-        }
-
-        return false;
-    }
-
-    public void RemoveComponent<T>(EntityId entity) => GetStore<T>().RemoveIfContains(entity.Id);
+    public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
 }

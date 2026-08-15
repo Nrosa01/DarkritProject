@@ -26,5 +26,5 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
     public bool Contains(Handle<T> componentHandle) => Components.IsValid(componentHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryRemove(Handle<T> componentHandle) => Components.Remove(componentHandle);
+    public bool TryRemove(Handle<T> componentHandle) => Components.Remove(componentHandle);
 }

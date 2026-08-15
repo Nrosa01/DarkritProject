@@ -9,12 +9,8 @@ using System.Collections.Specialized;
 
 namespace Darkrit.EntityModel;
 
-public record struct EntityId(Int32 Id, Int32 Generation);
-
 public struct Entity
 {
-    public EntityId Id { get; init; }
-
     public EntityRegistry World { get; init; }
 
     readonly Dictionary<int, Handle<IComponent>> componentIds = [];
@@ -36,16 +32,48 @@ public struct Entity
     {
     }
 
+    public Handle<T> AddComponent<T>()  where T : struct, IComponent
+    {
+        Handle<T> componentHandle = World.AddComponent<T>();
+
+        if (componentHandle is Handle<IComponent> icomponentHandle)
+                componentIds[ComponentTypeId<T>.Id] = icomponentHandle;
+
+        return componentHandle;
+    }
+
+    public Handle<T> AddComponent<T>(T component) where T : struct, IComponent
+    {
+        Handle<T> componentHandle = World.AddComponent(component);
+
+        if (componentHandle is Handle<IComponent> icomponentHandle)
+            componentIds[ComponentTypeId<T>.Id] = icomponentHandle;
+
+        return componentHandle;
+    }
+
     public Handle<T> GetComponentHandle<T>() where T : struct, IComponent
     {
         if (componentIds[ComponentTypeId<T>.Id] is Handle<T> handle)
             return handle;
 
-        throw new InvalidOperationException();
+        return Handle<T>.Default;
     }
 
-    public ref T GetComponent<T>() where T : struct, IComponent
+    public ref T GetComponent<T>() where T : struct, IComponent => ref World.GetComponent<T>(GetComponentHandle<T>());
+
+    public bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;
+
+    public bool TryGetComponent<T>(out T component) where T : struct, IComponent
     {
-       return ref World.GetComponent<T>(GetComponentHandle<T>());
+        var handle = GetComponentHandle<T>();
+        if(handle.Id == 0)
+        {
+            component = default;
+            return false;
+        }
+
+        component = World.GetComponent<T>(GetComponentHandle<T>());
+        return true;
     }
 }
