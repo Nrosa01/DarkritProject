@@ -1,79 +1,38 @@
-﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
-// This file is subject to the terms and conditions defined in
-// file 'LICENSE.txt', which is part of this source code package.
-
-// The following code was adapted from: https://github.com/BobbyAnguelov/Esoterica/blob/main/Code/Engine/Entity/EntityComponent.h
-
+﻿
 using Darkrit.Base;
-using Microsoft.Xna.Framework.Content;
-using System.Diagnostics;
+using Microsoft.Xna.Framework;
 
 namespace Darkrit.EntityModel;
 
-public abstract class Component
+public interface IComponent
 {
-    public enum Status
-    {
-        Unloaded = 0,
-        Loading,
-        Loaded,
-        LoadingFailed,
-        Initialized
-    }
+    public EntityRegistry World { get; init; }
 
-    // The unique ID for this component
-    protected ComponentID componentID = ComponentID.Generate();
+    public Handle<Entity> EntityHandle { get; init; }
 
-    // The ID of the entity that owns this component
-    public EntityID EntityID { get; protected set; }
+    /// <summary>
+    /// Whether this Component is enabled
+    /// </summary>
+    public bool Enabled { get; set; }
 
-    // The name of the component
-    public StringID NameID { get; protected set; }
+    /// <summary>
+    /// Whether this component's <see cref="EntityHandle"/> is active in the hierarchy
+    /// </summary>
+    public bool ActiveSelf { get => World.GetEntity(EntityHandle).ActiveSelf; }
 
-    // Component status
-    public Status CurrentStatus { get; protected set; } = Status.Unloaded;
+    /// <summary>
+    /// Whether this component's <see cref="EntityHandle"/> is active in the scene
+    /// Say, Entity A has a child Entity B. B could be active but A 
+    /// be inactive, which would result in B <see cref="ActiveInHierachy"/> be false
+    /// while <see cref="ActiveSelf"/> is true
+    /// </summary>
+    public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierachy; }
 
-    public bool HasLoadingFailed => CurrentStatus == Status.LoadingFailed;
-    public bool IsUnloaded => CurrentStatus == Status.Unloaded;
-    public bool IsLoading => CurrentStatus == Status.Loading;
-    public bool IsLoaded => CurrentStatus == Status.Loaded;
-    public bool IsInitialized => CurrentStatus == Status.Initialized;
+    public void Update(GameTime gameTime);
+    public void FixedUpdate(GameTime gameTime);
+}
 
+public struct Component
+{
 
-    // Registered with its parent entity's local systems
-    protected bool isRegisteredWithEntity = false;
-    // Registered with the global systems in it's parent world
-    protected bool isRegisteredWithWorld = false;
-
-    // Do we allow multiple components of the same type per entity?
-    public virtual bool IsSingletonComponent => true;
-
-    // Request load of all component data - loading takes time
-    protected abstract void Load(ContentManager contentManager);
-
-    // Update loading state, this will check all dependencies
-    protected abstract void UpdateLoading();
-
-    // Request unload of component data, unloading is instant
-    protected abstract void Unload(ContentManager contentManager);
-
-    // Called when an component finishes loading all its resources
-    // Note: this is only called if the loading succeeds and you are guaranteed all resources to be valid and so should assert on that
-    internal void InternalInitialize()
-    {
-        Debug.Assert(EntityID.IsValid && CurrentStatus == Status.Loaded);
-        CurrentStatus = Status.Initialized;
-        Initialize();
-    }
-
-    protected abstract void Initialize();
-
-    // Called just before a component begins unloading
-    internal void InternalShutdown()
-    {
-        Debug.Assert(EntityID.IsValid && CurrentStatus == Status.Initialized);
-        Shutdown();
-    }
-
-    protected abstract void Shutdown();
 }
