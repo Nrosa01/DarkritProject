@@ -72,7 +72,7 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     /// </summary>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<T> PeekNextId()
+    public Handle<T> PeekNextHandle()
     {
         int nextId;
         if (_deletedItems.TryPeek(out var result))

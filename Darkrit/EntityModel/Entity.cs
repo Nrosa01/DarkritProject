@@ -53,9 +53,6 @@ public struct Entity
 
     public Handle<T> AddComponent<T>(T component) where T : struct, IComponent
     {
-        component.EntityHandle = Handle;
-        component.World = World;
-
         Handle<T> componentHandle = World.AddComponent(Handle, component);
 
         if (componentHandle is Handle<IComponent> icomponentHandle)

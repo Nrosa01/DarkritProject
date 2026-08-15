@@ -4,11 +4,7 @@
 
 using Darkrit.Base;
 using Darkrit.DataStructures;
-using Darkrit.TinyECS;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -48,7 +44,7 @@ public class EntityRegistry(int initialCapacity)
         return _entities.Add(new Entity
         {
             World = this,
-            Handle = _entities.PeekNextId()
+            Handle = _entities.PeekNextHandle()
         });
     }
 
@@ -64,7 +60,6 @@ public class EntityRegistry(int initialCapacity)
         return GetStore<T>().Add(component);
     }
 
-    //public ref T GetComponent<T>(EntityId entity) => ref GetStore<T>().Get(entity.Id);
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
     public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
@@ -81,16 +76,12 @@ public class EntityRegistry(int initialCapacity)
     public void FixedUpdate(GameTime gameTime)
     {
         foreach (var store in _componentStores)
-        {
             store.FixedUpdate(gameTime);
-        }
     }
 
     public void Draw(GameTime gameTime)
     {
         foreach (var store in _componentStores)
-        {
             store.Draw(gameTime);
-        }
     }
 }

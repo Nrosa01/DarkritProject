@@ -141,19 +141,9 @@ public class TestSceneEntityModel : Scene
         playerRef.AddComponent<PlayerController>(new PlayerController());
     }
 
+    public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);
 
-
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-        entityWorld.Update(gameTime);
-    }
-
-    public override void FixedUpdate(GameTime gameTime)
-    {
-        base.FixedUpdate(gameTime);
-        entityWorld.FixedUpdate(gameTime);
-    }
+    public override void FixedUpdate(GameTime gameTime) => entityWorld.FixedUpdate(gameTime);
 
     public override void Draw(GameTime gameTime)
     {
@@ -172,7 +162,5 @@ public class TestSceneEntityModel : Scene
         camera.EditorDraw();
     }
 
-    public override void Deinitialize()
-    {
-    }
+    public override void Deinitialize() { }
 }
