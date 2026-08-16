@@ -7,13 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content", "Content\Content.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyFmod", "TinyFmod\TinyFmod.csproj", "{24DDBBA8-EFAC-C81D-20E7-36AC240CF43E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkritGame", "DarkritProject\DarkritGame.csproj", "{3EAEC761-D268-86E9-EE50-C6EC7E62703D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "Game\Game.csproj", "{3EAEC761-D268-86E9-EE50-C6EC7E62703D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DakritTests", "DakritLibraryTests\DakritTests.csproj", "{953652FF-2262-400C-ABD5-6B74AD918540}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dakrit.Tests", "Dakrit.Tests\Dakrit.Tests.csproj", "{953652FF-2262-400C-ABD5-6B74AD918540}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darkrit", "Darkrit\Darkrit.csproj", "{86E45AF0-17FF-8B18-A7FA-094025C1A593}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkritBenchmarks", "DarkritBenchmarks\DarkritBenchmarks.csproj", "{F6E2BBED-2AED-4813-94B4-DD09799ACF4D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darkrit.Benchmarks", "Darkrit.Benchmarks\Darkrit.Benchmarks.csproj", "{F6E2BBED-2AED-4813-94B4-DD09799ACF4D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darkrit.Generator", "Darkrit.Generator\Darkrit.Generator.csproj", "{CD02EE9C-A2AF-7DC3-CE89-9A24E9BE52E2}"
 EndProject
