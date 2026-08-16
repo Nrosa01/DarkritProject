@@ -1,4 +1,4 @@
-﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
@@ -6,6 +6,7 @@ using Darkrit.Base;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Diagnostics;
 
 namespace Darkrit.Editor;
@@ -53,6 +54,8 @@ internal class CoreStats(GraphicsDevice GraphicsDevice)
         ImGui.Text($"CPU Render Time  : {_cpuRenderAverageMs:0.00} ms");
         ImGui.Text($"Memory Usage     : {ProcessStats.Process.WorkingSet64 * 1e-6:F3}MB");
         ImGui.Text($"Peak Memory Usage: {ProcessStats.Process.PeakWorkingSet64 * 1e-6:F3}MB");
+        ImGui.Text($"GC Memory        : {GC.GetTotalMemory(false) * 1e-6:F1}MB");
+        ImGui.Text($"GC Memory Thread : {GC.GetAllocatedBytesForCurrentThread() * 1e-6:F1}MB");
         ImGui.Text($"Draw Calls       : {GraphicsDevice.Metrics.DrawCount}");
         ImGui.Text($"Sprites          : {GraphicsDevice.Metrics.SpriteCount}");
         ImGui.Text($"Primitives       : {GraphicsDevice.Metrics.PrimitiveCount}");
