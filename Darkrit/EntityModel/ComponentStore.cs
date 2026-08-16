@@ -22,7 +22,8 @@ internal struct ComponentMetadata
     internal bool _enabled = false;
     internal bool _initialized = false;
 
-    public readonly bool CanExecute => _enabled && _initialized;
+    public readonly bool CanExecute => true;
+    //public readonly bool CanExecute => _enabled && _initialized;
 
     public ComponentMetadata()
     {
@@ -35,7 +36,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
 
     private static readonly bool IsFixedUpdateable = typeof(T).IsDefined(typeof(FixedUpdateableAttribute), inherit: false);
 
-    private static readonly bool IsRenderable = typeof(T).IsDefined(typeof(RenderableAttribute), inherit: false);
+    private static readonly bool IsDrawable = typeof(T).IsDefined(typeof(DrawableAttribute), inherit: false);
 
     private readonly HandleMapGrowing<T> _components = new(initialCapacity);
     GrowableArray<ComponentMetadata> _componentMetadata = new(initialCapacity);
@@ -96,7 +97,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
 
     public void Draw(GameTime gameTime)
     {
-        if (!IsRenderable) return;
+        if (!IsDrawable) return;
 
         foreach (ref var handleItem in _components)
         {

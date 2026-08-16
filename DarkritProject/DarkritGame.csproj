@@ -40,6 +40,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Darkrit\Darkrit.csproj" />
       <ProjectReference Include="..\TinyFmod\TinyFmod.csproj" />
+	  <ProjectReference Include="..\Darkrit.Generator\Darkrit.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
     <Import Project="..\Content\BuildContent.targets" />
 </Project>

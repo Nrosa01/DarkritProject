@@ -1,5 +1,7 @@
-﻿using Darkrit;
+﻿using System.Diagnostics;
+using Darkrit;
 using Darkrit.Base;
+using Darkrit.DevTools.Logger;
 using Darkrit.EntityModel;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
@@ -13,22 +15,9 @@ using Key = Microsoft.Xna.Framework.Input.Keys;
 
 namespace DarkritGame.Scenes;
 
-public static class ComponentExtensions
+[Component]
+public partial struct SpriteComponent
 {
-    extension(IComponent component)
-    {
-        public ref Entity Entity => ref component.World.GetEntity(component.EntityHandle);
-    }
-}
-
-[Renderable, Updateable]
-public struct SpriteComponent : IComponent
-{
-    public EntityRegistry World { get; set; }
-    public Handle<Entity> EntityHandle { get; set; }
-
-    public bool Enabled { get; set; }
-
     public AnimatedSprite Sprite;
 
     public void Start()
@@ -38,18 +27,15 @@ public struct SpriteComponent : IComponent
 
     public void FixedUpdate(GameTime gameTime) => Sprite.Update(gameTime);
 
-    public void Draw(GameTime gameTime) => Sprite.Draw(Core.SpriteBatch, this.Entity.Position);
+    public void Draw(GameTime gameTime)
+    {
+        Sprite.Draw(Core.SpriteBatch, Entity.Position);
+    }
 }
 
-[Updateable]
-public struct PlayerController : IComponent
+[Component]
+public partial struct PlayerController
 {
-    public EntityRegistry World { get; set; }
-    public Handle<Entity> EntityHandle { get; set; }
-    public bool Enabled { get; set; }
-
-    public static bool Updateable { get; set; } = true;
-
     InputAction moveUp;
     InputAction moveDown;
     InputAction moveLeft;
@@ -117,7 +103,7 @@ public struct PlayerController : IComponent
         else
             direction.X = 0;
 
-        this.Entity.Position += direction.Normalized * speed * gameTime.Delta;
+        Entity.Position += direction.Normalized * speed * gameTime.Delta;
     }
 }
 
@@ -134,11 +120,13 @@ public class TestSceneEntityModel : Scene
         entityWorld = new(10);
         player = entityWorld.CreateEntity();
         ref Entity playerRef = ref entityWorld.GetEntity(player);
-        playerRef.AddComponent<SpriteComponent>(new SpriteComponent
+        var h1 = playerRef.AddComponent<SpriteComponent>(new SpriteComponent
         {
             Sprite = atlas.CreateAnimatedSprite("slime-animation")
         });
-        playerRef.AddComponent<PlayerController>(new PlayerController());
+        var h2 =playerRef.AddComponent<PlayerController>(new PlayerController());
+        Debug.Assert(h1.Id != 0);
+        Debug.Assert(h2.Id != 0);
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);

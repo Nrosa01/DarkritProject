@@ -6,21 +6,25 @@ using Microsoft.Xna.Framework;
 namespace Darkrit.EntityModel;
 
 [AttributeUsage(AttributeTargets.Struct)]
+public sealed class ComponentAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Struct)]
 public sealed class FixedUpdateableAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Struct)]
 public sealed class UpdateableAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Struct)]
-public sealed class RenderableAttribute : Attribute { }
+public sealed class DrawableAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class AutoRegisterAttribute : Attribute { }
 
 public interface IComponent
 {
     public EntityRegistry World { get; set; }
 
     public Handle<Entity> EntityHandle { get; set; }
-
-    public ref Entity Entity => ref World.GetEntity(EntityHandle); 
 
     /// <summary>
     /// Whether this Component is enabled
@@ -40,9 +44,12 @@ public interface IComponent
     /// </summary>
     public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierachy; }
 
-    void Start() { }
+    void Start();
 
-    void Update(GameTime gameTime) { }
-    void FixedUpdate(GameTime gameTime) { }
-    void Draw(GameTime gameTime) { }
+    [AutoRegister]
+    void Update(GameTime gameTime);
+    [AutoRegister]
+    void FixedUpdate(GameTime gameTime);
+    [AutoRegister]
+    void Draw(GameTime gameTime);
 }

@@ -36,6 +36,7 @@ struct ComponentList
     public readonly IReadOnlyList<TypedHandle> Components => _handles;
     public ComponentList()
     {
+        _handles = [];
     }
 
     public readonly void Add<T>(Handle<T> handle) where T : struct, IComponent => _handles.Add(TypedHandle.Create(handle));
@@ -97,7 +98,7 @@ public struct Entity
     public EntityRegistry World { get; init; }
 
     //readonly Dictionary<int, Handle<IComponent>> _componentIds = [];
-    readonly ComponentList _componentList;
+    readonly ComponentList _componentList = new();
 
     internal readonly Handle<Entity> Handle { get; init; }
 
