@@ -24,9 +24,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\TinyFmod\TinyFmod.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="EntityModel\Components\" />
+		<ProjectReference Include="..\Darkrit.Generator\Darkrit.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(PublishDir)' == ''">
 		<DefineConstants>$(DefineConstants);EDITOR_BUILD</DefineConstants>
