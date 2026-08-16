@@ -12,6 +12,8 @@ public interface IComponentStore
     public void Update(GameTime gameTime);
     public void FixedUpdate(GameTime gameTime);
     public void Draw(GameTime gameTime);
+
+    public bool TryRemove(Handle<IComponent> handle);
 }
 
 public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : struct, IComponent
@@ -72,5 +74,14 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
 
         foreach (ref var handleItem in Components)
             handleItem.Item.Draw(gameTime);
+    }
+
+    public bool TryRemove(Handle<IComponent> handle)
+    {
+        return TryRemove(new Handle<T>
+        {
+            Id = handle.Id,
+            Generation = handle.Generation
+        });
     }
 }

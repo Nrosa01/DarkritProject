@@ -5,6 +5,7 @@
 using Darkrit.Base;
 using Darkrit.DataStructures;
 using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -31,6 +32,9 @@ public class EntityRegistry(int initialCapacity)
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
+    private readonly Stack<Handle<Entity>> _entitiesToRemove = [];
+    private readonly Stack<Handle<Entity>> _entitiesToAdd = [];
+
 
 
     public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
@@ -48,12 +52,18 @@ public class EntityRegistry(int initialCapacity)
         });
     }
 
-    public bool TryDestroyImmediate(Handle<Entity> entity) => _entities.Remove(entity);
+    public bool TryDestroyImmediate(Handle<Entity> entity)
+    {
+        _entities[entity].Release();
+        return _entities.Remove(entity);
+    }
+
+    public void QueueFree(Handle<Entity> entity) => _entitiesToRemove.Push(entity);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
-    public Handle<T> AddComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent
+    internal Handle<T> AddComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent
     {
         component.World = this;
         component.EntityHandle = entityHandle;
@@ -63,6 +73,8 @@ public class EntityRegistry(int initialCapacity)
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
     public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
+
+    internal bool RemoveComponent(int typeId, Handle<IComponent> iComponent) => _componentStores[typeId].TryRemove(iComponent);
 
     public void Update(GameTime gameTime)
     {
