@@ -6,6 +6,9 @@ using Microsoft.Xna.Framework;
 namespace Darkrit.EntityModel;
 
 [AttributeUsage(AttributeTargets.Struct)]
+public sealed class FixedUpdateableAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Struct)]
 public sealed class UpdateableAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Struct)]
@@ -17,7 +20,7 @@ public interface IComponent
 
     public Handle<Entity> EntityHandle { get; set; }
 
-    public ref Entity Entity => ref World.GetEntity(EntityHandle);
+    public ref Entity Entity => ref World.GetEntity(EntityHandle); 
 
     /// <summary>
     /// Whether this Component is enabled

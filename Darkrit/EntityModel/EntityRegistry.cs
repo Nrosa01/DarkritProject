@@ -32,8 +32,6 @@ public class EntityRegistry(int initialCapacity)
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
-    private readonly Stack<Handle<Entity>> _entitiesToRemove = [];
-    private readonly Stack<Handle<Entity>> _entitiesToAdd = [];
 
 
 
@@ -52,13 +50,11 @@ public class EntityRegistry(int initialCapacity)
         });
     }
 
-    public bool TryDestroyImmediate(Handle<Entity> entity)
+    public bool Destroy(Handle<Entity> entity)
     {
         _entities[entity].Release();
         return _entities.Remove(entity);
     }
-
-    public void QueueFree(Handle<Entity> entity) => _entitiesToRemove.Push(entity);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
@@ -70,11 +66,17 @@ public class EntityRegistry(int initialCapacity)
         return GetStore<T>().Add(component);
     }
 
+    internal bool RemoveComponent<T>(Handle<Entity> entityHandle, Handle<T> component) where T : struct, IComponent
+    {
+        return GetStore<T>().TryRemove(component);
+    }
+
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
     public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
 
     internal bool RemoveComponent(int typeId, Handle<IComponent> iComponent) => _componentStores[typeId].TryRemove(iComponent);
+    internal bool RemoveComponent(int typeId, Handle iComponent) => _componentStores[typeId].TryRemove(iComponent);
 
     public void Update(GameTime gameTime)
     {

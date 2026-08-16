@@ -7,6 +7,25 @@ using System.Runtime.CompilerServices;
 
 namespace Darkrit.Base;
 
+public readonly struct Handle : IEquatable<Handle>
+{
+    public int Id { get; init; }
+    public int Generation { get; init; }
+
+    public readonly static Handle Default = new() { Id = 0, Generation = 0 };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Equals(Handle other) => Id == other.Id && Generation == other.Generation;
+
+    public static bool operator ==(Handle left, Handle right) => left.Equals(right);
+
+    public static bool operator !=(Handle left, Handle right) => !left.Equals(right);
+
+    public override bool Equals(object obj) => obj is Handle handle && Equals(handle);
+
+    public override int GetHashCode() => HashCode.Combine(Id, Generation);
+}
+
 public readonly struct Handle<T> : IEquatable<Handle<T>>
 {
     public int Id { get; init; }
