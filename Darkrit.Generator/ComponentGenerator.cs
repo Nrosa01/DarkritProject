@@ -46,12 +46,64 @@ public sealed class ComponentGenerator : IIncrementalGenerator
                     public Handle<Entity> EntityHandle { get; set; }
                     public bool Enabled { get; set; }
 
+                    {{GenerateInjectedComponents(component)}}
+
                     {{GenerateMethods(component, iComponent)}}
                 }
                 """;
 
             spc.AddSource($"{typeName}.g.cs", source);
         });
+    }
+
+    private static IEnumerable<INamedTypeSymbol> GetInjectedComponents(INamedTypeSymbol type)
+    {
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() != "Darkrit.EntityModel.InjectComponentAttribute")
+                continue;
+
+            if (attribute.ConstructorArguments.Length == 0)
+                continue;
+
+            if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol component)
+                yield return component;
+        }
+    }
+
+    private static string GenerateInjectedComponents(INamedTypeSymbol type)
+    {
+        StringBuilder builder = new();
+
+        foreach (var component in GetInjectedComponents(type))
+        {
+            var componentName = component.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            var propertyName = component.Name;
+
+            builder.AppendLine($$"""
+            private ComponentStore<{{componentName}}>? _{{propertyName}}Store;
+            private Handle<{{componentName}}> _{{propertyName}}Handle;
+
+            private ComponentStore<{{componentName}}> {{propertyName}}Store =>
+                _{{propertyName}}Store ??= World.GetStore<{{componentName}}>();
+
+            private Handle<{{componentName}}> {{propertyName}}Handle
+            {
+                get
+                {
+                    if (_{{propertyName}}Handle.Id == 0)
+                        _{{propertyName}}Handle = Entity.GetComponentHandle<{{componentName}}>();
+
+                    return _{{propertyName}}Handle;
+                }
+            }
+
+            public ref {{componentName}} {{propertyName}} =>
+                ref {{propertyName}}Store.Get({{propertyName}}Handle);
+            """);
+        }
+
+        return builder.ToString().TrimEnd().Replace("\n", "\n    ");
     }
 
     private static bool HasMethod(INamedTypeSymbol type, string name) => type.GetMembers(name).OfType<IMethodSymbol>().Any(m => !m.IsImplicitlyDeclared);
@@ -76,11 +128,15 @@ public sealed class ComponentGenerator : IIncrementalGenerator
         return builder.ToString().TrimEnd();
     }
 
-    private static string GenerateMethod(INamedTypeSymbol type, string methodName)
+    private static string GenerateMethod(INamedTypeSymbol type, IMethodSymbol method)
     {
-        if (HasMethod(type, methodName)) return string.Empty;
+        if (HasMethod(type, method.Name)) return string.Empty;
 
-        return $"public void {methodName}(GameTime gameTime) {{ }}";
+        var parameters = string.Join(", ", method.Parameters.Select(p =>
+            $"{p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} {p.Name}"
+        ));
+
+        return $"public void {method.Name}({parameters}) {{ }}";
     }
 
     private static string GenerateMethods(INamedTypeSymbol type, INamedTypeSymbol? interfaceType)
@@ -95,7 +151,7 @@ public sealed class ComponentGenerator : IIncrementalGenerator
             if (method.MethodKind != MethodKind.Ordinary)
                 continue;
 
-            var generated = GenerateMethod(type, method.Name);
+            var generated = GenerateMethod(type, method);
 
             if (!string.IsNullOrEmpty(generated))
                 builder.AppendLine(generated);

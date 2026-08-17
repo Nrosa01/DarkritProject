@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
@@ -23,7 +24,7 @@ struct TypedHandle
         handle = new Handle
         {
             Id = handle.Id,
-            Generation = handle.Id
+            Generation = handle.Generation
         },
         type = ComponentTypeId<T>.Id
     };
@@ -171,6 +172,8 @@ public struct Entity
     public Handle<T> GetComponentHandle<T>() where T : struct, IComponent => _componentList.Get<T>();
 
     public ref T GetComponent<T>() where T : struct, IComponent => ref World.GetComponent<T>(GetComponentHandle<T>());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref World.GetComponent<T>(componentHandle);
 
     public bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;

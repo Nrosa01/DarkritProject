@@ -5,6 +5,12 @@ using Microsoft.Xna.Framework;
 
 namespace Darkrit.EntityModel;
 
+[AttributeUsage(AttributeTargets.Struct, AllowMultiple = true)]
+public sealed class InjectComponentAttribute(Type componentType) : Attribute
+{
+    public Type ComponentType { get; } = componentType;
+}
+
 [AttributeUsage(AttributeTargets.Struct)]
 public sealed class ComponentAttribute : Attribute { }
 

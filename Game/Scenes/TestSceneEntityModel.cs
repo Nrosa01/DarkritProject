@@ -1,15 +1,18 @@
-﻿using System.Diagnostics;
-using Darkrit;
+﻿using Darkrit;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
 using Darkrit.EntityModel;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
+using Darkrit.Physics.Boxy2D;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 using Key = Microsoft.Xna.Framework.Input.Keys;
 
@@ -27,10 +30,7 @@ public partial struct SpriteComponent
 
     public void FixedUpdate(GameTime gameTime) => Sprite.Update(gameTime);
 
-    public void Draw(GameTime gameTime)
-    {
-        Sprite.Draw(Core.SpriteBatch, Entity.Position);
-    }
+    public void Draw(GameTime gameTime) => Sprite.Draw(Core.SpriteBatch, Entity.Position);
 }
 
 [Component]
@@ -107,6 +107,61 @@ public partial struct PlayerController
     }
 }
 
+
+[Component]
+[InjectComponent(typeof(SquareRenderer))]
+public partial struct Mover
+{
+    static readonly int WindowsWidth = Core.GraphicsDevice.Viewport.Width;
+    static readonly int WindowsHeight = Core.GraphicsDevice.Viewport.Height;
+
+    Handle<SquareRenderer> squareHandle;
+    ComponentStore<SquareRenderer> store;
+
+    public Vector2 Velocity;
+    public void Start() {
+        //squareHandle = Entity.GetComponentHandle<SquareRenderer>();
+        //store = World.GetStore<SquareRenderer>();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Update(GameTime gameTime)
+    {
+        //var size = Entity.GetComponent<SquareRenderer>().Size;
+        //var size = Entity.GetComponent(squareHandle).Size;
+
+        //store ??= World.GetStore<SquareRenderer>();
+        //store = World.GetStore<SquareRenderer>();
+        //var size = store.Get(squareHandle).Size;
+        var size = SquareRenderer.Size;
+
+        Entity.Transform.Position.X += Velocity.X;
+        Entity.Transform.Position.Y += Velocity.Y;
+
+        if (Entity.Transform.Position.X < 0 || Entity.Transform.Position.X + size > WindowsWidth)
+            Velocity.X *= -1;
+
+        if (Entity.Transform.Position.Y < 0 || Entity.Transform.Position.Y + size > WindowsHeight)
+            Velocity.Y *= -1;
+    }
+}
+
+[Component]
+public partial struct SquareRenderer
+{
+    public int Size;
+    public void Draw(GameTime gameTime)
+    {
+        var pos = Entity.Transform.Position;
+        float r = pos.X - MathF.Floor(pos.X);
+        float g = pos.Y - MathF.Floor(pos.Y);
+
+        var color = new Color(r, g, pos.X);
+        Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, Size, Size), null, color);
+    }
+}
+
+
 public class TestSceneEntityModel : Scene
 {
     EntityRegistry entityWorld;
@@ -118,15 +173,23 @@ public class TestSceneEntityModel : Scene
         TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
         entityWorld = new(10);
-        player = entityWorld.CreateEntity();
-        ref Entity playerRef = ref entityWorld.GetEntity(player);
-        var h1 = playerRef.AddComponent<SpriteComponent>(new SpriteComponent
+        //player = entityWorld.CreateEntity();
+        //ref Entity playerRef = ref entityWorld.GetEntity(player);
+        //playerRef.AddComponent<SpriteComponent>(new SpriteComponent
+        //{
+        //    Sprite = atlas.CreateAnimatedSprite("slime-animation")
+        //});
+        //playerRef.AddComponent<PlayerController>(new PlayerController());
+
+
+        for (var i = 0; i < 10_000; i++)
         {
-            Sprite = atlas.CreateAnimatedSprite("slime-animation")
-        });
-        var h2 =playerRef.AddComponent<PlayerController>(new PlayerController());
-        Debug.Assert(h1.Id != 0);
-        Debug.Assert(h2.Id != 0);
+            var entity = entityWorld.CreateEntity();
+            ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
+
+            instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });
+            instanceEntity.AddComponent(new SquareRenderer { Size = 10 });
+        }
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);

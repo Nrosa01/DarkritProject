@@ -5,7 +5,6 @@
 using Darkrit.Base;
 using Darkrit.DataStructures;
 using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -33,12 +32,11 @@ public class EntityRegistry(int initialCapacity)
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
 
-
-
     public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
 
     public EntityRegistry() : this(1000) { }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ComponentStore<T> GetStore<T>() where T : struct, IComponent => (ComponentStore<T>)(_componentStores[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(initialCapacity));
 
     public Handle<Entity> CreateEntity()
@@ -71,6 +69,7 @@ public class EntityRegistry(int initialCapacity)
         return GetStore<T>().TryRemove(component);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
     public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
@@ -82,20 +81,20 @@ public class EntityRegistry(int initialCapacity)
     {
         foreach (var store in _componentStores)
         {
-            store.InitializePendingComponents();
-            store.Update(gameTime);
+            store?.InitializePendingComponents();
+            store?.Update(gameTime);
         }
     }
 
     public void FixedUpdate(GameTime gameTime)
     {
         foreach (var store in _componentStores)
-            store.FixedUpdate(gameTime);
+            store?.FixedUpdate(gameTime);
     }
 
     public void Draw(GameTime gameTime)
     {
         foreach (var store in _componentStores)
-            store.Draw(gameTime);
+            store?.Draw(gameTime);
     }
 }
