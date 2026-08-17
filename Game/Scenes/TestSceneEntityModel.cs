@@ -1,4 +1,7 @@
-﻿using Darkrit;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Darkrit;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
 using Darkrit.EntityModel;
@@ -8,11 +11,10 @@ using Darkrit.InputSystem.Bindings;
 using Darkrit.Physics.Boxy2D;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
+using DarkritGame.Scenes;
+using Gum.DataTypes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using GamepadButton = Microsoft.Xna.Framework.Input.Buttons;
 using Key = Microsoft.Xna.Framework.Input.Keys;
 
@@ -119,20 +121,10 @@ public partial struct Mover
     ComponentStore<SquareRenderer> store;
 
     public Vector2 Velocity;
-    public void Start() {
-        //squareHandle = Entity.GetComponentHandle<SquareRenderer>();
-        //store = World.GetStore<SquareRenderer>();
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Update(GameTime gameTime)
     {
-        //var size = Entity.GetComponent<SquareRenderer>().Size;
-        //var size = Entity.GetComponent(squareHandle).Size;
-
-        //store ??= World.GetStore<SquareRenderer>();
-        //store = World.GetStore<SquareRenderer>();
-        //var size = store.Get(squareHandle).Size;
         var size = SquareRenderer.Size;
 
         Entity.Transform.Position.X += Velocity.X;

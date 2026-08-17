@@ -81,25 +81,20 @@ public sealed class ComponentGenerator : IIncrementalGenerator
             var propertyName = component.Name;
 
             builder.AppendLine($$"""
-            private ComponentStore<{{componentName}}>? _{{propertyName}}Store;
-            private Handle<{{componentName}}> _{{propertyName}}Handle;
-
-            private ComponentStore<{{componentName}}> {{propertyName}}Store =>
-                _{{propertyName}}Store ??= World.GetStore<{{componentName}}>();
+            private ComponentStore<{{componentName}}> {{propertyName}}Store => field ??= World.GetStore<{{componentName}}>();
 
             private Handle<{{componentName}}> {{propertyName}}Handle
             {
                 get
                 {
-                    if (_{{propertyName}}Handle.Id == 0)
-                        _{{propertyName}}Handle = Entity.GetComponentHandle<{{componentName}}>();
+                    if (field.Id == 0)
+                        field = Entity.GetComponentHandle<{{componentName}}>();
 
-                    return _{{propertyName}}Handle;
+                    return field;
                 }
             }
 
-            public ref {{componentName}} {{propertyName}} =>
-                ref {{propertyName}}Store.Get({{propertyName}}Handle);
+            public ref {{componentName}} {{propertyName}} => ref {{propertyName}}Store.Get({{propertyName}}Handle);
             """);
         }
 

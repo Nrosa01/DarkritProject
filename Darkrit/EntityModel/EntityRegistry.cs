@@ -70,9 +70,9 @@ public class EntityRegistry(int initialCapacity)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
+    internal ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
 
-    public bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
+    internal bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
 
     internal bool RemoveComponent(int typeId, Handle<IComponent> iComponent) => _componentStores[typeId].TryRemove(iComponent);
     internal bool RemoveComponent(int typeId, Handle iComponent) => _componentStores[typeId].TryRemove(iComponent);
