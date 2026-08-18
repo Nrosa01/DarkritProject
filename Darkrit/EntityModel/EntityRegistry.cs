@@ -34,6 +34,9 @@ public class EntityRegistry(int initialCapacity)
 
     public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
 
+    public ref readonly Entity GetEntityReadonly(Handle<Entity> entityHandle) => ref _entities.GetReadonly(entityHandle);
+
+
     public EntityRegistry() : this(1000) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

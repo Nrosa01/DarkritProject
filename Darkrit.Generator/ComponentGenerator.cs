@@ -40,7 +40,7 @@ public sealed class ComponentGenerator : IIncrementalGenerator
                 [StructLayout(LayoutKind.Auto)]
                 public partial struct {{typeName}} : IComponent
                 {
-                    public ref Entity Entity => ref World.GetEntity(EntityHandle); 
+                    public readonly ref Entity Entity => ref World.GetEntity(EntityHandle); 
 
                     public EntityRegistry World { get; set; }
                     public Handle<Entity> EntityHandle { get; set; }

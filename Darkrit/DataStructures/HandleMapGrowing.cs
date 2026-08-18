@@ -184,6 +184,13 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     }
 
     /// <summary>
+    /// Gets the element at the specified handle as a readonly reference
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <returns></returns>
+    public ref readonly T GetReadonly(Handle<T> handle) => ref _items[handle.Id].Item;
+
+    /// <summary>
     /// Removes the item associated with <paramref name="handle"/> if it's valid
     /// </summary>
     /// <param name="handle">The handle that maps to the item being removed</param>

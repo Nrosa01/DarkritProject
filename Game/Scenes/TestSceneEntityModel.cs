@@ -142,7 +142,7 @@ public partial struct Mover
 public partial struct SquareRenderer
 {
     public int Size;
-    public void Draw(GameTime gameTime)
+    public readonly void Draw(GameTime gameTime)
     {
         var pos = Entity.Transform.Position;
         float r = pos.X - MathF.Floor(pos.X);
