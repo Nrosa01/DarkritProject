@@ -32,6 +32,38 @@ public class ComponentStoreTests
         Assert.Empty(dataStore);
     }
 
+    [Fact]
+    public void Store_remove_component_modifies_its_fields()
+    {
+        var handle = dataStore.Add(new());
+        ref var component = ref dataStore.Get(handle);
+        component.firstData = 17;
+        dataStore.TryRemove(handle);
+
+        // Given Entity has a List<T> that is a reference type, when being removed, its set to
+        // default to release that reference
+        Assert.NotEqual(17, component.firstData);
+    }
+
+    [Fact]
+    public void Store_remove_component_after_many_insertions_doesnt_modifies_its_fields()
+    {
+        var handle = dataStore.Add(new());
+        ref var component = ref dataStore.Get(handle);
+        component.firstData = 17;
+
+        for (int i = 0; i < 512; i++)
+            dataStore.Add(new());
+
+        dataStore.TryRemove(handle);
+
+        // Check previous test first
+        // Given the array was resized, the entity that was removed by the handle
+        // is not the same one we are referencing, thus its fields weren't overriden
+        Assert.Equal(17, component.firstData);
+    }
+
+
     // These componentes implement throw on the only method each one implements, if they throw, it's because they're implemneted
 
     [Fact]

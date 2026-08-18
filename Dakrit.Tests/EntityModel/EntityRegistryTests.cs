@@ -33,7 +33,7 @@ public class EntityRegistryTests
     }
 
     [Fact]
-    public void World_remove_entity_modify_its_fields()
+    public void World_remove_entity_modifies_its_fields()
     {
         var handle = world.CreateEntity();
         ref var entity = ref world.GetEntity(handle);
@@ -44,6 +44,26 @@ public class EntityRegistryTests
         // default to release that reference
         Assert.False(entity.ActiveSelf);
     }
+
+    [Fact]
+    public void World_remove_entity_after_many_insertions_doesnt_modifies_its_fields()
+    {
+        var handle = world.CreateEntity();
+        ref var entity = ref world.GetEntity(handle);
+        entity.ActiveSelf = true;
+
+        // Creating so many entities, the array will have to resize many times
+        for (int i = 0; i < 512; i++)
+            world.CreateEntity();
+
+        world.RemoveEntity(handle);
+
+        // Check previous test first
+        // Given the array was resized, the entity that was removed by the handle
+        // is not the same one we are referencing, thus its fields weren't overriden
+        Assert.True(entity.ActiveSelf);
+    }
+
 
     [Fact]
     public void World_entities_get_reused()
