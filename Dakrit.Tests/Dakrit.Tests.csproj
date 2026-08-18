@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Darkrit\Darkrit.csproj" />
+	<ProjectReference Include="..\Darkrit.Generator\Darkrit.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

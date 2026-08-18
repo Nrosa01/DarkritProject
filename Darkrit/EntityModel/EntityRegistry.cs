@@ -2,11 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Darkrit.Base;
 using Darkrit.DataStructures;
 using Microsoft.Xna.Framework;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace Darkrit.EntityModel;
 
@@ -27,10 +29,12 @@ public static class ComponentTypeId<T> where T : struct, IComponent
     public static readonly int Id = ComponentTypeId.Next();
 }
 
-public class EntityRegistry(int initialCapacity)
+public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumerable<HandleItem<Entity>>
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
+
+    public int Count => _entities.Count;
 
     public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
 
@@ -51,7 +55,7 @@ public class EntityRegistry(int initialCapacity)
         });
     }
 
-    public bool Destroy(Handle<Entity> entity)
+    public bool RemoveEntity(Handle<Entity> entity)
     {
         _entities[entity].Release();
         return _entities.Remove(entity);
@@ -100,4 +104,10 @@ public class EntityRegistry(int initialCapacity)
         foreach (var store in _componentStores)
             store?.Draw(gameTime);
     }
+
+    IEnumerator<HandleItem<Entity>> IEnumerable<HandleItem<Entity>>.GetEnumerator() => GetEnumerator();
+    IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public HandleMapGrowing<Entity>.Enumerator GetEnumerator() => _entities.GetEnumerator();
+
 }

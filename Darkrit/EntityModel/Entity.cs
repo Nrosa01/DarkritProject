@@ -91,7 +91,13 @@ struct ComponentList
         return Handle.Default;
     }
 
-    internal void Clear() => _handles.Clear();
+    internal readonly void Clear() => _handles.Clear();
+
+    internal readonly bool Has<T>(Handle<T> componentHandle) where T : struct, IComponent
+    {
+        var typed = TypedHandle.Create(componentHandle);
+        return _handles.Contains(typed);
+    }
 }
 
 public struct Entity
@@ -177,6 +183,7 @@ public struct Entity
     public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref World.GetComponent<T>(componentHandle);
 
     public bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;
+    public bool HasComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => _componentList.Has(componentHandle);
 
     // I have to ensure that out T is a reference and not a value
     public bool TryGetComponent<T>(out T component) where T : struct, IComponent

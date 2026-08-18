@@ -1,8 +1,9 @@
-﻿using Darkrit.Base;
-using Darkrit.DataStructures;
-using Microsoft.Xna.Framework;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Darkrit.Base;
+using Darkrit.DataStructures;
+using Microsoft.Xna.Framework;
 
 namespace Darkrit.EntityModel;
 
@@ -30,7 +31,7 @@ internal struct ComponentMetadata
     }
 }
 
-public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : struct, IComponent
+public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerable<T>, IEnumerable<HandleItem<T>> where T : struct, IComponent
 {
     private static readonly bool IsUpdateable = typeof(T).IsDefined(typeof(UpdateableAttribute), inherit: false);
 
@@ -123,4 +124,9 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore where T : 
             Generation = handle.Generation
         });
     }
+
+    IEnumerator<HandleItem<T>> IEnumerable<HandleItem<T>>.GetEnumerator() => GetEnumerator();
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public HandleMapGrowing<T>.Enumerator GetEnumerator() => _components.GetEnumerator();
 }
