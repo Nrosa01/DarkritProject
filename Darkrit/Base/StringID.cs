@@ -53,6 +53,8 @@ public readonly struct StringID : IEquatable<StringID>
             : null;
     }
 
+    public override string ToString() => GetString() ?? "";
+
     /// <summary>
     /// Constructs a StringID given an existing id.
     /// This method doesn't check that the id is

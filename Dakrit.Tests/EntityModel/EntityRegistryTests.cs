@@ -26,7 +26,7 @@ public class EntityRegistryTests
     [Fact]
     public void World_is_empty_after_removing_last_entity()
     {
-        var handle = world.CreateEntity();
+        var handle = world.CreateEntityByHandle();
         Assert.NotEmpty(world);
         world.RemoveEntity(handle);
         Assert.Empty(world);
@@ -35,7 +35,7 @@ public class EntityRegistryTests
     [Fact]
     public void World_remove_entity_modifies_its_fields()
     {
-        var handle = world.CreateEntity();
+        var handle = world.CreateEntityByHandle();
         ref var entity = ref world.GetEntity(handle);
         entity.ActiveSelf = true;
         world.RemoveEntity(handle);
@@ -48,13 +48,13 @@ public class EntityRegistryTests
     [Fact]
     public void World_remove_entity_after_many_insertions_doesnt_modifies_its_fields()
     {
-        var handle = world.CreateEntity();
+        var handle = world.CreateEntityByHandle();
         ref var entity = ref world.GetEntity(handle);
         entity.ActiveSelf = true;
 
         // Creating so many entities, the array will have to resize many times
         for (int i = 0; i < 512; i++)
-            world.CreateEntity();
+            world.CreateEntityByHandle();
 
         world.RemoveEntity(handle);
 
@@ -68,12 +68,23 @@ public class EntityRegistryTests
     [Fact]
     public void World_entities_get_reused()
     {
-        var handle = world.CreateEntity();
+        var handle = world.CreateEntityByHandle();
         ref var entity = ref world.GetEntity(handle);
-        entity.ActiveSelf = true;
+        entity.ActiveSelf = false;
         world.RemoveEntity(handle);
-        handle = world.CreateEntity();
+        handle = world.CreateEntityByHandle();
         Assert.Equal(1, world.Count);
-        Assert.False(world.GetEntity(handle).ActiveSelf);
+        Assert.True(world.GetEntity(handle).ActiveSelf);
+    }
+
+    [Fact]
+    public void Entity_out_is_a_ref()
+    {
+        var handle = world.CreateEntityByHandle();
+        ref Entity entity = ref world.GetEntity(handle);
+        ref Entity reference = ref world.GetEntity(handle);
+        Assert.True(reference.ActiveSelf);
+        entity.ActiveSelf = false;
+        Assert.False(reference.ActiveSelf);
     }
 }

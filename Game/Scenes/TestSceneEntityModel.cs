@@ -176,7 +176,7 @@ public class TestSceneEntityModel : Scene
 
         for (var i = 0; i < 10_000; i++)
         {
-            var entity = entityWorld.CreateEntity();
+            var entity = entityWorld.CreateEntityByHandle();
             ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
 
             instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });

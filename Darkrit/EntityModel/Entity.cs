@@ -2,11 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
 using Microsoft.Xna.Framework;
@@ -102,17 +101,114 @@ struct ComponentList
 
 public struct Entity
 {
+    public StringID NameID { readonly get; internal set; }
+
+    public string Name
+    {
+        get => NameID.ToString();
+        set => NameID = new(value);
+    }
+
     public EntityRegistry World { get; init; }
 
     //readonly Dictionary<int, Handle<IComponent>> _componentIds = [];
     readonly ComponentList _componentList = new();
 
-    internal readonly Handle<Entity> Handle { get; init; }
+    public readonly Handle<Entity> Handle { get; internal init; }
+
+    internal Handle<Entity> _parent;
+    internal Handle<Entity> _firstChild;
+    internal Handle<Entity> _nextSibling;
+    internal Handle<Entity> _previousSibling;
+
+    public bool SetParent(Handle<Entity> newParent)
+    {
+        if (_parent == newParent)
+            return false;
+
+        UnlinkFromParent();
+
+        if (newParent.Id == 0)
+        {
+            ActiveInHierachy = ActiveSelf;
+            return false;
+        }
+
+        ref Entity parent = ref World.GetEntity(newParent);
+
+        _parent = newParent;
+        _previousSibling = default;
+        _nextSibling = parent._firstChild;
+
+        if (parent._firstChild.Id != 0)
+            World.GetEntity(parent._firstChild)._previousSibling = Handle;
+
+        parent._firstChild = Handle;
+
+        UpdateActiveInHierarchy();
+
+        return true;
+    }
+
+    private void UnlinkFromParent()
+    {
+        if (_parent.Id == 0)
+            return;
+
+        ref Entity parent = ref World.GetEntity(_parent);
+
+        if (_previousSibling.Id != 0)
+            World.GetEntity(_previousSibling)._nextSibling = _nextSibling;
+        else
+            parent._firstChild = _nextSibling;
+
+        if (_nextSibling.Id != 0)
+            World.GetEntity(_nextSibling)._previousSibling = _previousSibling;
+
+        _parent = default;
+        _previousSibling = default;
+        _nextSibling = default;
+    }
+
+    public void UnParent()
+    {
+        UnlinkFromParent();
+        ActiveInHierachy = true;
+    }
 
     /// <summary>
     /// Whether this Entity is active in the hierarchy
     /// </summary>
-    public bool ActiveSelf { get; set; }
+    public bool ActiveSelf
+    {
+        readonly get => field;
+        set
+        {
+            if (field == value)
+                return;
+
+            field = value;
+            UpdateActiveInHierarchy();
+        }
+    }
+
+    private void UpdateActiveInHierarchy()
+    {
+        ActiveInHierachy =
+            ActiveSelf &&
+            (_parent.Id == 0 || World.GetEntity(_parent).ActiveInHierachy);
+
+        var child = _firstChild;
+
+        while (child.Id != 0)
+        {
+            ref Entity entity = ref World.GetEntity(child);
+
+            entity.UpdateActiveInHierarchy();
+
+            child = entity._nextSibling;
+        }
+    }
 
     /// <summary>
     /// Whether this Entity is active in the scene
@@ -120,7 +216,14 @@ public struct Entity
     /// be inactive, which would result in B <see cref="ActiveInHierachy"/> be false
     /// while <see cref="ActiveSelf"/> is true
     /// </summary>
-    public bool ActiveInHierachy { get; internal set; }
+    public bool ActiveInHierachy
+    {
+        get
+        {
+            return ActiveSelf && field;
+        }
+        internal set;
+    }
 
     public Transform Transform;
 
@@ -138,7 +241,10 @@ public struct Entity
 
     public Handle<T> AddComponent<T>(T component) where T : struct, IComponent
     {
-        Handle<T> componentHandle = World.AddComponent(Handle, component);
+        component.World = World;
+        component.EntityHandle = Handle;
+
+        Handle<T> componentHandle = World.CreateComponent(Handle, component);
 
         _componentList.Add<T>(componentHandle);
 
@@ -148,7 +254,7 @@ public struct Entity
     public bool RemoveComponent<T>() where T : struct, IComponent
     {
         Handle removedHandle = _componentList.Remove<T>();
-        if(removedHandle.Id == 0)
+        if (removedHandle.Id == 0)
             return false;
 
         bool worldRemoves = World.RemoveComponent(ComponentTypeId<T>.Id, removedHandle);
@@ -185,20 +291,6 @@ public struct Entity
     public bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;
     public bool HasComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => _componentList.Has(componentHandle);
 
-    // I have to ensure that out T is a reference and not a value
-    public bool TryGetComponent<T>(out T component) where T : struct, IComponent
-    {
-        var handle = GetComponentHandle<T>();
-        if (handle.Id == 0)
-        {
-            component = default;
-            return false;
-        }
-
-        component = World.GetComponent<T>(GetComponentHandle<T>());
-        return true;
-    }
-
     internal readonly void Release()
     {
         foreach (var typedComponent in _componentList.Components)
@@ -206,4 +298,63 @@ public struct Entity
 
         _componentList.Clear();
     }
+
+    public struct ChildEnumerator : IEnumerator<Entity>
+    {
+        private readonly EntityRegistry _world;
+        private readonly Handle<Entity> _firstChild;
+        private Handle<Entity> _current;
+        private bool _started;
+
+        public readonly ref Entity Current => ref _world.GetEntity(_current);
+        readonly Entity IEnumerator<Entity>.Current => _world.GetEntity(_current);
+        readonly object IEnumerator.Current => Current;
+
+        internal ChildEnumerator(EntityRegistry world, Handle<Entity> firstChild)
+        {
+            _world = world;
+            _firstChild = firstChild;
+            _current = default;
+            _started = false;
+        }
+
+        public bool MoveNext()
+        {
+            if (!_started)
+            {
+                _started = true;
+                _current = _firstChild;
+            }
+            else if (_current.Id != 0)
+            {
+                _current = _world.GetEntity(_current)._nextSibling;
+            }
+
+            return _current.Id != 0;
+        }
+
+        public void Reset()
+        {
+            _current = default;
+            _started = false;
+        }
+
+        public void Dispose() { }
+    }
+
+    public readonly struct ChildEnumerable
+    {
+        private readonly EntityRegistry _world;
+        private readonly Handle<Entity> _firstChild;
+
+        internal ChildEnumerable(EntityRegistry world, Handle<Entity> firstChild)
+        {
+            _world = world;
+            _firstChild = firstChild;
+        }
+
+        public ChildEnumerator GetEnumerator() => new(_world, _firstChild);
+    }
+
+    public readonly ChildEnumerable Children => new(World, _firstChild);
 }
