@@ -76,6 +76,7 @@ public class EntityTests
     {
         var handle = world.CreateEntityByHandle();
         ref var entity = ref world.GetEntity(handle);
+        Assert.Equal(0, entity.ChildCount);
         Assert.Equal(0, entity._parent.Id);
         Assert.Equal(0, entity._firstChild.Id);
         Assert.Equal(0, entity._nextSibling.Id);
@@ -90,6 +91,7 @@ public class EntityTests
 
         Assert.Equal(parent, world.GetEntity(child)._parent);
         Assert.Equal(child, world.GetEntity(parent)._firstChild);
+        Assert.Equal(1, world.GetEntity(parent).ChildCount);
     }
 
     [Fact]
@@ -100,11 +102,13 @@ public class EntityTests
         var child2 = world.CreateEntityByHandle();
         var child3 = world.CreateEntityByHandle();
 
-        world.GetEntity(child1).SetParent(parent);
-        world.GetEntity(child2).SetParent(parent);
-        world.GetEntity(child3).SetParent(parent);
+        world.GetEntity(child1).TrySetParentFirst(parent);
+        world.GetEntity(child2).TrySetParentFirst(parent);
+        world.GetEntity(child3).TrySetParentFirst(parent);
 
         ref var p = ref world.GetEntity(parent);
+        
+        Assert.Equal(3, p.ChildCount);
 
         Assert.Equal(child3, p._firstChild);
 
@@ -116,14 +120,138 @@ public class EntityTests
     }
 
     [Fact]
+    public void Can_set_multiple_children_last()
+    {
+        var parent = world.CreateEntityByHandle();
+        var child1 = world.CreateEntityByHandle();
+        var child2 = world.CreateEntityByHandle();
+        var child3 = world.CreateEntityByHandle();
+
+        world.GetEntity(child1).TrySetParent(parent);
+        world.GetEntity(child2).TrySetParent(parent);
+        world.GetEntity(child3).TrySetParent(parent);
+
+        ref var p = ref world.GetEntity(parent);
+
+        Assert.Equal(3, p.ChildCount);
+
+        Assert.Equal(child1, p._firstChild);
+
+        Assert.Equal(0, world.GetEntity(child1)._previousSibling.Id);
+        Assert.Equal(child2, world.GetEntity(child1)._nextSibling);
+
+        Assert.Equal(child1, world.GetEntity(child2)._previousSibling);
+        Assert.Equal(child3, world.GetEntity(child2)._nextSibling);
+
+        Assert.Equal(child2, world.GetEntity(child3)._previousSibling);
+        Assert.Equal(0, world.GetEntity(child3)._nextSibling.Id);
+    }
+
+    [Fact]
+    public void Can_add_child()
+    {
+        var parent = world.CreateEntityByHandle();
+        var child = world.CreateEntityByHandle();
+
+        Assert.True(world.GetEntity(parent).TryAddChild(child));
+
+        Assert.Equal(parent, world.GetEntity(child)._parent);
+        Assert.Equal(child, world.GetEntity(parent)._firstChild);
+        Assert.Equal(1, world.GetEntity(parent).ChildCount);
+    }
+
+    [Fact]
+    public void Can_add_multiple_children_in_order()
+    {
+        var parent = world.CreateEntityByHandle();
+        var child1 = world.CreateEntityByHandle();
+        var child2 = world.CreateEntityByHandle();
+        var child3 = world.CreateEntityByHandle();
+
+        world.GetEntity(parent).TryAddChild(child1);
+        world.GetEntity(parent).TryAddChild(child2);
+        world.GetEntity(parent).TryAddChild(child3);
+
+        Assert.Equal(3, world.GetEntity(parent).ChildCount);
+
+        var children = new List<Handle<Entity>>();
+
+        foreach (var child in world.GetEntity(parent).Children)
+            children.Add(child.Handle);
+
+        Assert.Equal([child1, child2, child3], children);
+    }
+
+    [Fact]
+    public void Can_set_sibling_index()
+    {
+        var parent = world.CreateEntityByHandle();
+        var child1 = world.CreateEntityByHandle();
+        var child2 = world.CreateEntityByHandle();
+        var child3 = world.CreateEntityByHandle();
+
+        world.GetEntity(child1).TrySetParent(parent);
+        world.GetEntity(child2).TrySetParent(parent);
+        world.GetEntity(child3).TrySetParent(parent);
+
+        Assert.Equal(3, world.GetEntity(parent).ChildCount);
+
+        Assert.True(world.GetEntity(child3).TrySetSiblingIndex(0));
+
+        Assert.Equal(3, world.GetEntity(parent).ChildCount);
+
+        var children = new List<Handle<Entity>>();
+
+        foreach (var child in world.GetEntity(parent).Children)
+            children.Add(child.Handle);
+
+        Assert.Equal([child3, child1, child2], children);
+
+        Assert.Equal(0, world.GetEntity(child3)._previousSibling.Id);
+        Assert.Equal(child1, world.GetEntity(child3)._nextSibling);
+
+        Assert.Equal(child3, world.GetEntity(child1)._previousSibling);
+        Assert.Equal(child2, world.GetEntity(child1)._nextSibling);
+
+        Assert.Equal(child1, world.GetEntity(child2)._previousSibling);
+        Assert.Equal(0, world.GetEntity(child2)._nextSibling.Id);
+    }
+
+    [Fact]
+    public void Can_move_sibling_to_last_index()
+    {
+        var parent = world.CreateEntityByHandle();
+        var child1 = world.CreateEntityByHandle();
+        var child2 = world.CreateEntityByHandle();
+        var child3 = world.CreateEntityByHandle();
+
+        world.GetEntity(child1).TrySetParent(parent);
+        world.GetEntity(child2).TrySetParent(parent);
+        world.GetEntity(child3).TrySetParent(parent);
+
+        Assert.Equal(3, world.GetEntity(parent).ChildCount);
+
+        Assert.True(world.GetEntity(child1).TrySetSiblingIndex(2));
+
+        Assert.Equal(3, world.GetEntity(parent).ChildCount);
+
+        var children = new List<Handle<Entity>>();
+
+        foreach (var child in world.GetEntity(parent).Children)
+            children.Add(child.Handle);
+
+        Assert.Equal([child2, child3, child1], children);
+    }
+
+    [Fact]
     public void Destroy_entity_also_destroys_children()
     {
         var parent = world.CreateEntityByHandle();
         var child = world.CreateEntityByHandle();
         var grandChild = world.CreateEntityByHandle();
 
-        world.GetEntity(child).SetParent(parent);
-        world.GetEntity(grandChild).SetParent(child);
+        world.GetEntity(child).TrySetParentFirst(parent);
+        world.GetEntity(grandChild).TrySetParentFirst(child);
 
         Assert.True(world.RemoveEntity(parent));
 
@@ -163,7 +291,7 @@ public class EntityTests
         var parent = world.CreateEntityByHandle();
         var child = world.CreateEntityByHandle();
 
-        world.GetEntity(child).SetParent(parent);
+        world.GetEntity(child).TrySetParentFirst(parent);
 
         world.GetEntity(parent).ActiveSelf = false;
 
@@ -185,7 +313,7 @@ public class EntityTests
         var parent = world.CreateEntityByHandle();
         var child = world.CreateEntityByHandle();
 
-        world.GetEntity(child).SetParent(parent);
+        world.GetEntity(child).TrySetParentFirst(parent);
 
         world.GetEntity(parent).ActiveSelf = false;
         world.GetEntity(child).ActiveSelf = false;
@@ -212,18 +340,18 @@ public class EntityTests
         └── child i
         */
 
-        var parent = world.CreateEntityByHandle();
+        var parent = world.CreateEntityByHandle(new StringID("Parent"));
 
-        var childI = world.CreateEntityByHandle(parent);
-        var childG = world.CreateEntityByHandle(parent);
-        var childH = world.CreateEntityByHandle(childG);
+        var childA = world.CreateEntityByHandle(parent, new StringID("Child a"));
+        var childB = world.CreateEntityByHandle(childA, new StringID("Child b"));
+        var childC = world.CreateEntityByHandle(childA, new StringID("Child c"));
 
-        var childA = world.CreateEntityByHandle(parent);
-        var childC = world.CreateEntityByHandle(childA);
-        var childF = world.CreateEntityByHandle(childC);
-        var childD = world.CreateEntityByHandle(childC);
-        var childE = world.CreateEntityByHandle(childD);
-        var childB = world.CreateEntityByHandle(childA);
+        var childD = world.CreateEntityByHandle(childC, new StringID("Child d"));
+        var childE = world.CreateEntityByHandle(childD, new StringID("Child e"));
+        var childF = world.CreateEntityByHandle(childC, new StringID("Child f"));
+        var childG = world.CreateEntityByHandle(parent, new StringID("Child g"));
+        var childH = world.CreateEntityByHandle(childG, new StringID("Child h"));
+        var childI = world.CreateEntityByHandle(parent, new StringID("Child i"));
 
         ref var parentEntity = ref world.GetEntity(parent);
 
@@ -251,18 +379,18 @@ public class EntityTests
         └── child i
         */
 
-        var parent = world.CreateEntityByHandle();
+        var parent = world.CreateEntityByHandle(new StringID("Parent"));
 
-        var childI = world.CreateEntityByHandle(parent);
-        var childG = world.CreateEntityByHandle(parent);
-        var childH = world.CreateEntityByHandle(childG);
+        var childA = world.CreateEntityByHandle(parent, new StringID("Child a"));
+        var childB = world.CreateEntityByHandle(childA, new StringID("Child b"));
+        var childC = world.CreateEntityByHandle(childA, new StringID("Child c"));
 
-        var childA = world.CreateEntityByHandle(parent);
-        var childC = world.CreateEntityByHandle(childA);
-        var childF = world.CreateEntityByHandle(childC);
-        var childD = world.CreateEntityByHandle(childC);
-        var childE = world.CreateEntityByHandle(childD);
-        var childB = world.CreateEntityByHandle(childA);
+        var childD = world.CreateEntityByHandle(childC, new StringID("Child d"));
+        var childE = world.CreateEntityByHandle(childD, new StringID("Child e"));
+        var childF = world.CreateEntityByHandle(childC, new StringID("Child f"));
+        var childG = world.CreateEntityByHandle(parent, new StringID("Child g"));
+        var childH = world.CreateEntityByHandle(childG, new StringID("Child h"));
+        var childI = world.CreateEntityByHandle(parent, new StringID("Child i"));
 
         var result = new List<Handle<Entity>>();
 

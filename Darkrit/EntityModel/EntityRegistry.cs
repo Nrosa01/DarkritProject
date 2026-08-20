@@ -86,7 +86,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public ref Entity CreateEntity(Handle<Entity> parentHandle)
     {
         ref Entity entity = ref CreateEntity();
-        entity.SetParent(parentHandle);
+        entity.TrySetParent(parentHandle);
         return ref entity;
     }
 
@@ -94,7 +94,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public ref Entity CreateEntity(ref Entity parent)
     {
         ref Entity entity = ref CreateEntity();
-        entity.SetParent(parent.Handle);
+        entity.TrySetParent(parent.Handle);
         return ref entity;
     }
 
@@ -102,7 +102,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public Handle<Entity> CreateEntityByHandle(Handle<Entity> parent)
     {
         var handle = CreateEntityByHandle();
-        GetEntity(handle).SetParent(parent);
+        GetEntity(handle).TrySetParent(parent);
         return handle;
     }
 
@@ -111,7 +111,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public Handle<Entity> CreateEntityByHandle(Handle<Entity> parent, StringID name)
     {
         var handle = CreateEntityByHandle(name);
-        GetEntity(handle).SetParent(parent);
+        GetEntity(handle).TrySetParent(parent);
         return handle;
     }
 
@@ -119,7 +119,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public Handle<Entity> CreateEntityByHandle(ref Entity parent)
     {
         var handle = CreateEntityByHandle();
-        GetEntity(handle).SetParent(parent.Handle);
+        GetEntity(handle).TrySetParent(parent.Handle);
         return handle;
     }
 

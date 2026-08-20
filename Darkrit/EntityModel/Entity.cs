@@ -4,7 +4,6 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
@@ -111,17 +110,20 @@ public struct Entity
 
     public EntityRegistry World { get; init; }
 
-    //readonly Dictionary<int, Handle<IComponent>> _componentIds = [];
     readonly ComponentList _componentList = new();
 
     public readonly Handle<Entity> Handle { get; internal init; }
 
     internal Handle<Entity> _parent;
     internal Handle<Entity> _firstChild;
+    internal Handle<Entity> _lastChild;
     internal Handle<Entity> _nextSibling;
     internal Handle<Entity> _previousSibling;
+    private int _childCount;
 
-    public bool SetParent(Handle<Entity> newParent)
+    public readonly int ChildCount => _childCount;
+
+    public bool TrySetParentFirst(Handle<Entity> newParent)
     {
         if (_parent == newParent)
             return false;
@@ -142,10 +144,139 @@ public struct Entity
 
         if (parent._firstChild.Id != 0)
             World.GetEntity(parent._firstChild)._previousSibling = Handle;
+        else
+            parent._lastChild = Handle;
 
         parent._firstChild = Handle;
+        parent._childCount++;
 
         UpdateActiveInHierarchy();
+
+        return true;
+    }
+
+    public bool TrySetParent(Handle<Entity> newParent)
+    {
+        if (_parent == newParent)
+            return false;
+
+        UnlinkFromParent();
+
+        if (newParent.Id == 0)
+        {
+            ActiveInHierachy = ActiveSelf;
+            return false;
+        }
+
+        _parent = newParent;
+
+        ref Entity parent = ref World.GetEntity(newParent);
+
+        // Insertar al final de los hijos.
+        if (parent._firstChild.Id == 0)
+        {
+            parent._firstChild = Handle;
+            parent._lastChild = Handle;
+            _previousSibling = default;
+            _nextSibling = default;
+        }
+        else
+        {
+            var lastChild = parent._lastChild;
+            ref Entity last = ref World.GetEntity(lastChild);
+
+            last._nextSibling = Handle;
+            _previousSibling = lastChild;
+            _nextSibling = default;
+            parent._lastChild = Handle;
+        }
+
+        parent._childCount++;
+
+        UpdateActiveInHierarchy();
+        return true;
+    }
+
+    public bool TryAddChild(Handle<Entity> child) => World.GetEntity(child).TrySetParent(Handle);
+
+    /// <summary>
+    /// Sets the current entity as the sibling <paramref name="index"/> of its parent
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns>
+    /// False when:
+    /// - Entity had no parent
+    /// - Index was negative
+    /// - Index was higher than parent <see cref="ChildCount"/>
+    /// - Index was the same the entity was already at
+    /// True when:
+    /// - None of the previous happen and the operation modified the entity`s order in the parent
+    /// </returns>
+    public bool TrySetSiblingIndex(int index)
+    {
+        if (_parent.Id == 0 || index < 0)
+            return false;
+
+        ref Entity parent = ref World.GetEntity(_parent);
+
+        if (index >= parent._childCount)
+            return false;
+
+        // Get current index.
+        int currentIndex = 0;
+        var child = parent._firstChild;
+
+        while (child != Handle)
+        {
+            currentIndex++;
+            child = World.GetEntity(child)._nextSibling;
+        }
+
+        if (currentIndex == index)
+            return true;
+
+        // Remove from the list.
+        UnlinkFromParent();
+
+        // Restore child count after unlinking.
+        parent._childCount++;
+
+        // Insert as first child.
+        if (index == 0)
+        {
+            _parent = parent.Handle;
+            _previousSibling = default;
+            _nextSibling = parent._firstChild;
+
+            if (_nextSibling.Id != 0)
+                World.GetEntity(_nextSibling)._previousSibling = Handle;
+            else
+                parent._lastChild = Handle;
+
+            parent._firstChild = Handle;
+
+            return true;
+        }
+
+        // Find the element that will be immediately before this one.
+        var previous = parent._firstChild;
+
+        for (int i = 1; i < index; i++)
+            previous = World.GetEntity(previous)._nextSibling;
+
+        ref Entity previousEntity = ref World.GetEntity(previous);
+        var next = previousEntity._nextSibling;
+
+        _parent = parent.Handle;
+        _previousSibling = previous;
+        _nextSibling = next;
+
+        previousEntity._nextSibling = Handle;
+
+        if (next.Id != 0)
+            World.GetEntity(next)._previousSibling = Handle;
+        else
+            parent._lastChild = Handle;
 
         return true;
     }
@@ -164,6 +295,10 @@ public struct Entity
 
         if (_nextSibling.Id != 0)
             World.GetEntity(_nextSibling)._previousSibling = _previousSibling;
+        else
+            parent._lastChild = _previousSibling;
+
+        parent._childCount--;
 
         _parent = default;
         _previousSibling = default;

@@ -30,19 +30,33 @@ public class TestSceneEntityModelHiearchy : Scene
     {
         TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
+            /*
+            parent
+            ├── child a
+            │   ├── child b
+            │   └── child c
+            │       ├── child d
+            │       │   └── child e
+            │       └── child f
+            ├── child g
+            │   └── child h
+            └── child i
+            */
+
         world = new(10);
         var parent = world.CreateEntityByHandle(new StringID("Parent"));
-
-        var childI = world.CreateEntityByHandle(parent, new StringID("Child i"));
-        var childG = world.CreateEntityByHandle(parent, new StringID("Child g"));
-        var childH = world.CreateEntityByHandle(childG, new StringID("Child h"));
+        world.CreateEntityByHandle(new StringID("Root 2"));
 
         var childA = world.CreateEntityByHandle(parent, new StringID("Child a"));
+        var childB = world.CreateEntityByHandle(childA, new StringID("Child b"));
         var childC = world.CreateEntityByHandle(childA, new StringID("Child c"));
-        var childF = world.CreateEntityByHandle(childC, new StringID("Child f"));
+
         var childD = world.CreateEntityByHandle(childC, new StringID("Child d"));
         var childE = world.CreateEntityByHandle(childD, new StringID("Child e"));
-        var childB = world.CreateEntityByHandle(childA, new StringID("Child b"));
+        var childF = world.CreateEntityByHandle(childC, new StringID("Child f"));
+        var childG = world.CreateEntityByHandle(parent, new StringID("Child g"));
+        var childH = world.CreateEntityByHandle(childG, new StringID("Child h"));
+        var childI = world.CreateEntityByHandle(parent, new StringID("Child i"));
     }
 
     public override void Update(GameTime gameTime) => world.Update(gameTime);
