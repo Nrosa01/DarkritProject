@@ -244,6 +244,61 @@ public class EntityTests
     }
 
     [Fact]
+    public void Entity_doesnt_allow_recursive_parent()
+    {
+        ref Entity parent = ref world.CreateEntity();
+        ref Entity child = ref world.CreateEntity();
+
+        parent.TryAddChild(child.Handle);
+        Assert.False(child.TryAddChild(parent.Handle));
+    }
+
+    [Fact]
+    public void Entity_doesnt_allow_recursive_parent_through_multiple_levels()
+    {
+        ref Entity root = ref world.CreateEntity();
+        ref Entity parent = ref world.CreateEntity();
+        ref Entity child = ref world.CreateEntity();
+        ref Entity leaf = ref world.CreateEntity();
+
+        root.TryAddChild(parent.Handle);
+        parent.TryAddChild(child.Handle);
+        child.TryAddChild(leaf.Handle);
+
+        Assert.True(leaf.TrySetParent(root.Handle));
+    }
+
+    [Fact]
+    public void Entity_doesnt_allow_to_add_parent_as_child()
+    {
+        ref Entity root = ref world.CreateEntity();
+        ref Entity parent = ref world.CreateEntity();
+        ref Entity child = ref world.CreateEntity();
+        ref Entity leaf = ref world.CreateEntity();
+
+        root.TryAddChild(parent.Handle);
+        parent.TryAddChild(child.Handle);
+        child.TryAddChild(leaf.Handle);
+
+        Assert.False(leaf.TryAddChild(root.Handle));
+    }
+
+    [Fact]
+    public void Entity_doesnt_allow_reparenting_to_descendant()
+    {
+        ref Entity root = ref world.CreateEntity();
+        ref Entity parent = ref world.CreateEntity();
+        ref Entity child = ref world.CreateEntity();
+        ref Entity leaf = ref world.CreateEntity();
+
+        root.TryAddChild(parent.Handle);
+        parent.TryAddChild(child.Handle);
+        child.TryAddChild(leaf.Handle);
+
+        Assert.False(root.TrySetParent(leaf.Handle));
+    }
+
+    [Fact]
     public void Destroy_entity_also_destroys_children()
     {
         var parent = world.CreateEntityByHandle();

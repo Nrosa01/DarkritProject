@@ -1,7 +1,8 @@
-﻿// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
+// Darkrit - Copyright (C) Nicolás Rosa (@nrosa01)
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -11,22 +12,6 @@ using Microsoft.Xna.Framework;
 using Handle = Darkrit.Base.Handle;
 
 namespace Darkrit.EntityModel;
-
-struct TypedHandle
-{
-    public Handle handle;
-    public int type;
-
-    public static TypedHandle Create<T>(Handle<T> handle) where T : struct, IComponent => new()
-    {
-        handle = new Handle
-        {
-            Id = handle.Id,
-            Generation = handle.Generation
-        },
-        type = ComponentTypeId<T>.Id
-    };
-}
 
 struct ComponentList
 {
@@ -125,7 +110,7 @@ public struct Entity
 
     public bool TrySetParentFirst(Handle<Entity> newParent)
     {
-        if (_parent == newParent)
+        if (_parent == newParent || WouldCreateCycle(newParent))
             return false;
 
         UnlinkFromParent();
@@ -157,7 +142,7 @@ public struct Entity
 
     public bool TrySetParent(Handle<Entity> newParent)
     {
-        if (_parent == newParent)
+        if(_parent == newParent || WouldCreateCycle(newParent))
             return false;
 
         UnlinkFromParent();
@@ -195,6 +180,27 @@ public struct Entity
 
         UpdateActiveInHierarchy();
         return true;
+    }
+
+    private bool WouldCreateCycle(Handle<Entity> newParent)
+    {
+        if (newParent.Id == 0)
+            return false;
+
+        if (newParent == Handle)
+            return true;
+
+        var current = newParent;
+
+        while (current.Id != 0)
+        {
+            if (current == Handle)
+                return true;
+
+            current = World.GetEntity(current)._parent;
+        }
+
+        return false;
     }
 
     public bool TryAddChild(Handle<Entity> child) => World.GetEntity(child).TrySetParent(Handle);
