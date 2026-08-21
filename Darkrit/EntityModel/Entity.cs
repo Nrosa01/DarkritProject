@@ -5,11 +5,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
+using Darkrit.Math;
 using Microsoft.Xna.Framework;
 using Handle = Darkrit.Base.Handle;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Matrix = Microsoft.Xna.Framework.Matrix;
 
 namespace Darkrit.EntityModel;
 
@@ -372,19 +376,146 @@ public struct Entity
     /// </summary>
     public bool ActiveInHierachy
     {
-        get
-        {
-            return ActiveSelf && field;
-        }
+        get => ActiveSelf && field;
         internal set;
     }
 
-    public Transform2D Transform;
+    private ulong _lastWriteTick;
+    private ulong _renderFrame;
+
+    private Transform2D _previous;
+    private Transform2D _current;
+    private Transform2D _renderTransform;
+
+    private void EnsureCurrentTick()
+    {
+        if (_lastWriteTick != World.Tick)
+        {
+            _previous = _current;
+            _lastWriteTick = World.Tick;
+        }
+    }
+
+    public Transform2D Transform
+    {
+        get
+        {
+            if (World.IsDrawing)
+                return RenderTransform;
+
+            return _current;
+        }
+
+        set
+        {
+            EnsureCurrentTick();
+            _current = value;
+        }
+    }
 
     public Vector2 Position
     {
-        get => Transform.Position;
-        set => Transform.Position = value;
+        get
+        {
+            if (World.IsDrawing)
+                return RenderTransform.Position;
+
+            return _current.Position;
+        }
+
+        set
+        {
+            EnsureCurrentTick();
+            _current.Position = value;
+        }
+    }
+
+    public float Rotation
+    {
+        get
+        {
+            if (World.IsDrawing)
+                return RenderTransform.Rotation;
+
+            return _current.Rotation;
+        }
+
+        set
+        {
+            EnsureCurrentTick();
+            _current.Rotation = value;
+        }
+    }
+
+    public float RotationDegrees
+    {
+        get => MathHelper.ToDegrees(_current.Rotation);
+
+        set
+        {
+            EnsureCurrentTick();
+            _current.Rotation = MathHelper.ToRadians(value);
+        }
+    }
+
+    public Vector2 Scale
+    {
+        get
+        {
+            if (World.IsDrawing)
+                return RenderTransform.Scale;
+            
+            return _current.Scale;
+        }
+
+        set
+        {
+            EnsureCurrentTick();
+            _current.Scale = value;
+        }
+    }
+
+    public void Teleport(Vector2 position)
+    {
+        _current.Position = position;
+        _previous.Position = position;
+        _renderTransform.Position = position;
+    }
+
+    public void ResetInterpolation()
+    {
+        _previous = _current;
+        _renderFrame = ulong.MaxValue;
+    }
+
+    private Transform2D RenderTransform
+    {
+        get
+        {
+            if (_renderFrame != World.RenderFrame)
+            {
+                _renderTransform = Interpolate(_previous, _current, World.FixedUpdateAlpha);
+                _renderFrame = World.RenderFrame;
+            }
+
+            return _renderTransform;
+        }
+    }
+
+    private static Transform2D Interpolate(Transform2D previous, Transform2D current,float alpha)
+    {
+        return new Transform2D
+        {
+            Position = Vector2.Lerp(previous.Position, current.Position, alpha),
+            Rotation = LerpAngle(previous.Rotation, current.Rotation, alpha),
+            Scale = Vector2.Lerp(previous.Scale,current.Scale,alpha)
+        };
+    }
+
+    private static float LerpAngle(float from, float to, float alpha)
+    {
+        float delta = MathF.IEEERemainder(to - from, MathF.Tau);
+        return from + delta * alpha;
     }
 
     public Entity()

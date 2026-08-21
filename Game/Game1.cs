@@ -54,6 +54,6 @@ public class Game1 : Core
         InitializeGum();
 
         // Start the game with the title scene.
-        ChangeScene(new TestSceneEntityModelHiearchy());
+        ChangeScene(new TestSceneEntityModel());
     }
 }

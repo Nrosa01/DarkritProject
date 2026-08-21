@@ -129,10 +129,10 @@ public partial struct Mover
 
         Entity.Position += Velocity;
 
-        if (Entity.Transform.Position.X < 0 || Entity.Transform.Position.X + size > WindowsWidth)
+        if (Entity.Position.X < 0 || Entity.Position.X + size > WindowsWidth)
             Velocity.X *= -1;
 
-        if (Entity.Transform.Position.Y < 0 || Entity.Transform.Position.Y + size > WindowsHeight)
+        if (Entity.Position.Y < 0 || Entity.Position.Y + size > WindowsHeight)
             Velocity.Y *= -1;
     }
 }

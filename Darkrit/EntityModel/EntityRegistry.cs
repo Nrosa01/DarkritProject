@@ -145,6 +145,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
 
     public int Count => _entities.Count;
 
+    public ulong Tick { get; internal set; }
+    public ulong RenderFrame { get; internal set; }
+    public float FixedUpdateAlpha => Core.FixedUpdateAlpha;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
 
@@ -314,6 +318,8 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
 
     public void FixedUpdate(GameTime gameTime)
     {
+        Tick++;
+
         if (UseHierarchyScheduler)
         {
             OrderHierachyIfDirty();
@@ -330,8 +336,13 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         }
     }
 
+    public bool IsDrawing { get; private set; }
+
     public void Draw(GameTime gameTime)
     {
+        RenderFrame++;
+        IsDrawing = true;
+
         if (UseHierarchyScheduler)
         {
             OrderHierachyIfDirty();
@@ -346,6 +357,8 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
                 store.Draw(gameTime);
             }
         }
+
+        IsDrawing = false;
     }
 
     IEnumerator<HandleItem<Entity>> IEnumerable<HandleItem<Entity>>.GetEnumerator() => GetEnumerator();

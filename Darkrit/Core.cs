@@ -64,7 +64,7 @@ public class Core : Game
     /// </summary>
     public static Input Input { get; private set; }
 
-    public EngineUpdateLayer InputUpdateLayer { get; set; } = EngineUpdateLayer.FIXED_UPDATE;
+    public EngineUpdateLayer InputUpdateLayer { get; set; } = EngineUpdateLayer.UPDATE;
 
     // TODO: Create a wrapper over the FMOD api
     public static FmodStudio FMOD { get; private set; }

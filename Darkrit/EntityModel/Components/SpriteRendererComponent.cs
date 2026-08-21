@@ -10,6 +10,5 @@ public partial struct SpriteRendererComponent
 {
     public void Draw(GameTime gameTime)
     {
-        var t = Entity.Transform;
     }
 }
