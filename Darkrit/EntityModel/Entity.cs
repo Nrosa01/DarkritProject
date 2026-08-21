@@ -85,6 +85,8 @@ struct ComponentList
 
 public struct Entity
 {
+    public int Flags;
+
     public StringID NameID { readonly get; internal set; }
 
     public string Name
