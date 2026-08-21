@@ -25,7 +25,7 @@ public partial struct SpriteComponent
 {
     public AnimatedSprite Sprite;
 
-    public void Start()
+    public void OnAdd()
     {
         Sprite.Scale = Vector2.One * 4;
     }
@@ -50,7 +50,7 @@ public partial struct PlayerController
     {
     }
 
-    public void Start()
+    public void OnAdd()
     {
         moveUp = Core.Input.CreateAction("Move Up").AddBindings([
             new KeyboardBinding(Key.Up),

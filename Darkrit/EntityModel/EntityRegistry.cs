@@ -290,6 +290,8 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         return _componentStores[typeId].TryRemove(iComponent);
     }
 
+    internal void ComponentEnabledCallback(bool entityEnabled, int type, Handle handle) => _componentStores[type].ComponentEnabledCallback(entityEnabled, handle);
+
     public void Update(GameTime gameTime)
     {
         if (UseHierarchyScheduler)

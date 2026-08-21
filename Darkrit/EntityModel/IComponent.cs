@@ -55,7 +55,7 @@ public interface IComponent
     /// </summary>
     public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierachy; }
 
-    void Start();
+    void OnAdd();
 
     [AutoRegister]
     void Update(GameTime gameTime);
@@ -63,4 +63,8 @@ public interface IComponent
     void FixedUpdate(GameTime gameTime);
     [AutoRegister]
     void Draw(GameTime gameTime);
+
+    void OnEnable();
+    void OnDisable();
+    void OnRemove();
 }

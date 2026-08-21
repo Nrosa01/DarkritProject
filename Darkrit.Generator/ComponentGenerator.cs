@@ -44,7 +44,21 @@ public sealed class ComponentGenerator : IIncrementalGenerator
 
                     public EntityRegistry World { get; set; }
                     public Handle<Entity> EntityHandle { get; set; }
-                    public bool Enabled { get; set; }
+                    public bool Enabled
+                    {
+                        get; 
+                        set
+                        {
+                            if (field == value)
+                                return;
+
+                            field = value;
+                            if (field)
+                                OnEnable();
+                            else
+                                OnDisable();
+                        }
+                    }
 
                     {{GenerateInjectedComponents(component)}}
 

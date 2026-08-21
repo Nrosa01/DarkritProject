@@ -17,6 +17,7 @@ public interface IComponentStore
 
     public bool TryRemove(Handle<IComponent> handle);
     public bool TryRemove(Handle handle);
+    public void ComponentEnabledCallback(bool status, Handle handle);
     void UpdateComponent(Handle handle, GameTime gameTime);
     public void FixedUpdateComponent(Handle handle, GameTime gameTime);
     void DrawComponent(Handle handle, GameTime gameTime);
@@ -75,14 +76,15 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     public void InitializePendingComponents()
     {
         while (nonInitializedComponents.TryPop(out Handle<T> handle))
-            _components[handle].Start();
+            _components[handle].OnAdd();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<T> Add(T value)
     {
         var handle = _components.Add(value);
-        nonInitializedComponents.Push(handle);
+        _components.At(handle.Id).OnAdd();
+        //nonInitializedComponents.Push(handle);
 
         if (handle.Id < _componentMetadata.Count)
             _componentMetadata[handle.Id] = default;
@@ -99,7 +101,12 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     public bool Contains(Handle<T> componentHandle) => _components.IsValid(componentHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryRemove(Handle<T> componentHandle) => _components.Remove(componentHandle);
+    public bool TryRemove(Handle<T> componentHandle)
+    {
+        _components.At(componentHandle.Id).OnDisable();
+        _components.At(componentHandle.Id).OnRemove();
+        return _components.Remove(componentHandle);
+    }
 
     public void Update(GameTime gameTime)
     {
@@ -150,6 +157,19 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
             Id = handle.Id,
             Generation = handle.Generation
         });
+    }
+
+    public void ComponentEnabledCallback(bool status, Handle handle)
+    {
+        ref var component = ref _components.At(handle.Id);
+
+        if (component.Enabled)
+        {
+            if (status)
+                component.OnEnable();
+            else
+                component.OnDisable();
+        }
     }
 
     IEnumerator<HandleItem<T>> IEnumerable<HandleItem<T>>.GetEnumerator() => GetEnumerator();

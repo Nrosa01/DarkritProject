@@ -339,7 +339,7 @@ public struct Entity
     /// </summary>
     public bool ActiveSelf
     {
-        readonly get => field;
+        readonly get;
         set
         {
             if (field == value)
@@ -376,8 +376,14 @@ public struct Entity
     /// </summary>
     public bool ActiveInHierachy
     {
-        get => ActiveSelf && field;
-        internal set;
+        readonly get => ActiveSelf && field;
+        internal set 
+        {
+            field = value;
+
+            foreach (var typedComponent in _componentList.Components)
+                World.ComponentEnabledCallback(field, typedComponent.type, typedComponent.handle);
+        }
     }
 
     private ulong _lastWriteTick;
