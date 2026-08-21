@@ -449,19 +449,11 @@ public class EntityTests
 
         var result = new List<Handle<Entity>>();
 
-        void Visit(Handle<Entity> handle)
-        {
-            foreach (var child in world.GetEntity(handle).Children)
-            {
-                result.Add(child.Handle);
-                Visit(child.Handle);
-            }
-        }
-
-        Visit(parent);
+        world.TraverseHierarchy(parent, result.Add);
 
         Assert.Equal(
             [
+            parent,
             childA,
             childB,
             childC,
@@ -473,5 +465,32 @@ public class EntityTests
             childI
             ],
             result);
+    }
+
+    [Fact]
+    public void Hierarchy_based_update_propagates_parent_changes()
+    {
+        world.UseHierarchyScheduler = true;
+
+        ref var a = ref world.CreateEntity();
+        a.AddComponent<ComponentWithValueData>();
+        ref var b = ref world.CreateEntity(a.Handle);
+        b.AddComponent<ComponentWithValueData>();
+        ref var c = ref world.CreateEntity(a.Handle);
+        c.AddComponent<ComponentWithValueData>();
+
+        world.Update(default);
+        
+        Assert.Equal(2, a.GetComponent<ComponentWithValueData>().firstData);
+        Assert.Equal(3, b.GetComponent<ComponentWithValueData>().firstData);
+        Assert.Equal(3, c.GetComponent<ComponentWithValueData>().firstData);
+
+        c.TrySetParent(b.Handle);
+
+        world.Update(default);
+
+        Assert.Equal(3, a.GetComponent<ComponentWithValueData>().firstData);
+        Assert.Equal(4, b.GetComponent<ComponentWithValueData>().firstData);
+        Assert.Equal(5, c.GetComponent<ComponentWithValueData>().firstData);
     }
 }

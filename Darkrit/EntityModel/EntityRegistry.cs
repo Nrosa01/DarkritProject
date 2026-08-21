@@ -2,15 +2,17 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using Darkrit.Base;
+using Darkrit.DataStructures;
+using Darkrit.DevTools.Logger;
+using Darkrit.Physics.Boxy2D;
+using Hexa.NET.ImGui;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Darkrit.Base;
-using Darkrit.DataStructures;
-using Hexa.NET.ImGui;
-using Microsoft.Xna.Framework;
 
 namespace Darkrit.EntityModel;
 
@@ -35,6 +37,88 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
+
+    private readonly GrowableArray<TypedHandle> _updateNodes = [];
+    private readonly GrowableArray<TypedHandle> _fixedUpdateNodes = [];
+    private readonly GrowableArray<TypedHandle> _drawNodes = [];
+
+    bool _useHierachyScheduler;
+    /// <summary>
+    /// If true, means the hierachy will update components based
+    /// on the hierarchy order, useful if you need components from parent entity 
+    /// to update before children
+    /// 
+    /// If component order doesn't matter, better disable this for performance
+    /// </summary>
+    public bool UseHierarchyScheduler
+    {
+        get => _useHierachyScheduler;
+        set
+        {
+            if (_useHierachyScheduler == value) return;
+
+            _useHierachyScheduler = value;
+            if (!_useHierachyScheduler)
+                ClearUpdateLists();
+            else
+                MarkHierarchyDirty();
+        }
+    }
+
+    bool _isDirty;
+
+    private void UpdateComponentUpdateLists()
+    {
+        Log.Info("Updating Component Lists");
+
+        ClearUpdateLists();
+
+        foreach (ref var item in this)
+        {
+            // Top level
+            if (!item.Item.HasParent)
+            {
+                TraverseHierarchy(item.Handle, (ref entity) =>
+                {
+                    foreach (var typedComponent in entity.Components)
+                    {
+                        if (_componentStores[typedComponent.type].IsUpdateable)
+                            _updateNodes.Add(typedComponent);
+
+                        if (_componentStores[typedComponent.type].IsFixedUpdateable)
+                            _fixedUpdateNodes.Add(typedComponent);
+
+                        if (_componentStores[typedComponent.type].IsDrawable)
+                            _drawNodes.Add(typedComponent);
+                    }
+                });
+            }
+        }
+
+        //Log.Info($""" 
+        //Amount of update nodes is {_updateNodes.Count}
+        //Amount of fixed update nodes is {_fixedUpdateNodes.Count}
+        //Amount of drawable nodes is {_drawNodes.Count}
+        //""");
+    }
+
+    private void ClearUpdateLists()
+    {
+        _updateNodes.Clear();
+        _fixedUpdateNodes.Clear();
+        _drawNodes.Clear();
+    }
+
+    internal void MarkHierarchyDirty() => _isDirty = true;
+
+    private void OrderHierachyIfDirty()
+    {
+        if (_isDirty)
+        { 
+            UpdateComponentUpdateLists();
+            _isDirty = false;
+        }
+    }
 
     public int Count => _entities.Count;
 
@@ -148,42 +232,94 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal Handle<T> CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent => GetStore<T>().Add(component);
+    internal Handle<T> CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent
+    {
+        MarkHierarchyDirty();
+        return GetStore<T>().Add(component);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool RemoveComponent<T>(Handle<Entity> entityHandle, Handle<T> component) where T : struct, IComponent => GetStore<T>().TryRemove(component);
+    internal bool RemoveComponent<T>(Handle<Entity> entityHandle, Handle<T> component) where T : struct, IComponent
+    {
+        MarkHierarchyDirty();
+        return GetStore<T>().TryRemove(component);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => GetStore<T>().TryRemove(componentHandle);
-    
+    internal bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent
+    {
+        MarkHierarchyDirty();
+        return GetStore<T>().TryRemove(componentHandle);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool RemoveComponent(int typeId, Handle<IComponent> iComponent) => _componentStores[typeId].TryRemove(iComponent);
-    
+    internal bool RemoveComponent(int typeId, Handle<IComponent> iComponent)
+    {
+        MarkHierarchyDirty();
+        return _componentStores[typeId].TryRemove(iComponent);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool RemoveComponent(int typeId, Handle iComponent) => _componentStores[typeId].TryRemove(iComponent);
+    internal bool RemoveComponent(int typeId, Handle iComponent)
+    {
+        MarkHierarchyDirty();
+        return _componentStores[typeId].TryRemove(iComponent);
+    }
 
     public void Update(GameTime gameTime)
     {
-        foreach (var store in _componentStores)
+        if (UseHierarchyScheduler)
         {
-            store?.InitializePendingComponents();
-            store?.Update(gameTime);
+            OrderHierachyIfDirty();
+
+            // This should be different in this version but I don't have it yet
+            foreach (var store in _componentStores)
+                store?.InitializePendingComponents();
+
+            foreach (var item in _updateNodes)
+                _componentStores[item.type].UpdateComponent(item.handle, gameTime);
+        }
+        else
+        {
+            foreach (var store in _componentStores)
+            {
+                store?.InitializePendingComponents();
+                store?.Update(gameTime);
+            }
         }
     }
 
     public void FixedUpdate(GameTime gameTime)
     {
-        foreach (var store in _componentStores)
-            store?.FixedUpdate(gameTime);
+        if (UseHierarchyScheduler)
+        {
+            OrderHierachyIfDirty();
+            foreach (var item in _fixedUpdateNodes)
+                _componentStores[item.type].FixedUpdateComponent(item.handle, gameTime);
+        }
+        else
+        {
+            foreach (var store in _componentStores)
+                store?.FixedUpdate(gameTime);
+        }
     }
 
     public void Draw(GameTime gameTime)
     {
-        foreach (var store in _componentStores)
-            store?.Draw(gameTime);
+        if (UseHierarchyScheduler)
+        {
+            OrderHierachyIfDirty();
+            foreach (var item in _drawNodes)
+                _componentStores[item.type].DrawComponent(item.handle, gameTime);
+        }
+        else
+        {
+            foreach (var store in _componentStores)
+                store?.Draw(gameTime);
+        }
     }
 
     IEnumerator<HandleItem<Entity>> IEnumerable<HandleItem<Entity>>.GetEnumerator() => GetEnumerator();
@@ -191,19 +327,102 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public HandleMapGrowing<Entity>.Enumerator GetEnumerator() => _entities.GetEnumerator();
 
+    internal delegate void EntityVisitor(ref Entity entity);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void TraverseHierarchy(Handle<Entity> root, EntityVisitor action)
+    {
+        var current = root;
+
+        while (current.Id != 0)
+        {
+            ref var entity = ref GetEntity(current);
+
+            action(ref entity);
+
+            if (entity._firstChild.Id != 0)
+            {
+                current = entity._firstChild;
+                continue;
+            }
+
+            while (current.Id != 0)
+            {
+                ref var currentEntity = ref GetEntity(current);
+
+                if (currentEntity._nextSibling.Id != 0)
+                {
+                    current = currentEntity._nextSibling;
+                    break;
+                }
+
+                current = currentEntity._parent;
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void TraverseHierarchy(Handle<Entity> root, Action<Handle<Entity>> action)
+    {
+        var current = root;
+
+        while (current.Id != 0)
+        {
+            ref var entity = ref GetEntity(current);
+
+            action(current);
+
+            if (entity._firstChild.Id != 0)
+            {
+                current = entity._firstChild;
+                continue;
+            }
+
+            while (current.Id != 0)
+            {
+                ref var currentEntity = ref GetEntity(current);
+
+                if (currentEntity._nextSibling.Id != 0)
+                {
+                    current = currentEntity._nextSibling;
+                    break;
+                }
+
+                current = currentEntity._parent;
+            }
+        }
+    }
+
     public bool IsValid(Handle<Entity> entity) => _entities.IsValid(entity);
 
     public void EditorDraw()
     {
+        ImGui.Begin("World");
+        bool tmp = _useHierachyScheduler;
+        if (ImGui.Checkbox("Use hierarchy", ref tmp))
+            UseHierarchyScheduler = tmp;
+        ImGui.End();
+
+        if (_entities.Count > 50) 
+            return;
+
         ImGui.Begin("Entities");
-        
+
         void DrawEntity(Handle<Entity> handle)
         {
+            var style = ImGui.GetStyle();
+
+            style.IndentSpacing = 16.0f;
+            style.TreeLinesSize = 1.0f;
+            style.TreeLinesRounding = 0.0f;
+
             ref Entity entity = ref GetEntity(handle);
 
             bool hasChildren = entity._firstChild.Id != 0;
 
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.OpenOnArrow;
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.SpanAvailWidth | 
+                                       ImGuiTreeNodeFlags.OpenOnArrow |
+                                       ImGuiTreeNodeFlags.DrawLinesFull;
 
             if (hasChildren)
                 flags |= ImGuiTreeNodeFlags.DefaultOpen;

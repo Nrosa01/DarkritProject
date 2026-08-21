@@ -50,6 +50,18 @@ partial struct ComponentWithValueData
     public int firstData = 1;
     public int secondData = 2;
 
+    public void Update(GameTime gameTime)
+    {
+        if(Entity.HasParent)
+        {
+            firstData = Entity.Parent.GetComponent<ComponentWithValueData>().firstData + 1;
+        }
+        else
+        {
+            firstData++;
+        }
+    }
+
     public ComponentWithValueData()
     {
     }

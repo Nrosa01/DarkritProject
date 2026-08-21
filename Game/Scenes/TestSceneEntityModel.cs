@@ -203,6 +203,7 @@ public class TestSceneEntityModel : Scene
     {
         base.EditorDraw(gameTime);
         camera.EditorDraw();
+        entityWorld.EditorDraw();
     }
 
     public override void Deinitialize() { }

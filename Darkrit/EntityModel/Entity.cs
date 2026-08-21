@@ -97,6 +97,8 @@ public struct Entity
 
     readonly ComponentList _componentList = new();
 
+    public readonly IReadOnlyList<TypedHandle> Components => _componentList.Components;
+
     public readonly Handle<Entity> Handle { get; internal init; }
 
     internal Handle<Entity> _parent;
@@ -105,6 +107,10 @@ public struct Entity
     internal Handle<Entity> _nextSibling;
     internal Handle<Entity> _previousSibling;
     private int _childCount;
+
+    public ref Entity Parent => ref World.GetEntity(_parent);
+
+    public readonly bool HasParent => _parent.Id != 0;
 
     public readonly int ChildCount => _childCount;
 
@@ -135,8 +141,8 @@ public struct Entity
         parent._firstChild = Handle;
         parent._childCount++;
 
+        World.MarkHierarchyDirty();
         UpdateActiveInHierarchy();
-
         return true;
     }
 
@@ -178,6 +184,7 @@ public struct Entity
 
         parent._childCount++;
 
+        World.MarkHierarchyDirty();
         UpdateActiveInHierarchy();
         return true;
     }
@@ -261,6 +268,7 @@ public struct Entity
 
             parent._firstChild = Handle;
 
+            World.MarkHierarchyDirty();
             return true;
         }
 
@@ -284,6 +292,7 @@ public struct Entity
         else
             parent._lastChild = Handle;
 
+        World.MarkHierarchyDirty();
         return true;
     }
 
@@ -309,6 +318,8 @@ public struct Entity
         _parent = default;
         _previousSibling = default;
         _nextSibling = default;
+
+        World.MarkHierarchyDirty();
     }
 
     public void UnParent()
@@ -378,7 +389,7 @@ public struct Entity
     {
     }
 
-    public Handle<T> AddComponent<T>() where T : struct, IComponent => AddComponent<T>(default);
+    public Handle<T> AddComponent<T>() where T : struct, IComponent => AddComponent<T>(new());
 
     public Handle<T> AddComponent<T>(T component) where T : struct, IComponent
     {

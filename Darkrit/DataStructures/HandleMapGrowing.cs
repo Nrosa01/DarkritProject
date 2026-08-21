@@ -164,6 +164,9 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     /// <returns></returns>
     private ref T this[int index] => ref _items[index].Item;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T At(int index) => ref this[index];
+
     /// <summary>
     /// Gets or sets the element at the specified handle. 
     /// </summary>

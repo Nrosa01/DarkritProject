@@ -16,12 +16,22 @@ public interface IComponentStore
 
     public bool TryRemove(Handle<IComponent> handle);
     public bool TryRemove(Handle handle);
+    void UpdateComponent(Handle handle, GameTime gameTime);
+    public void FixedUpdateComponent(Handle handle, GameTime gameTime);
+    void DrawComponent(Handle handle, GameTime gameTime);
+
+    bool IsUpdateable { get; }
+    bool IsFixedUpdateable { get; }
+    bool IsDrawable { get; }
 }
 
 internal struct ComponentMetadata
 {
     internal bool _enabled = false;
     internal bool _initialized = false;
+
+    public TypedHandle Previous;
+    public TypedHandle Next;
 
     public readonly bool CanExecute => true;
     //public readonly bool CanExecute => _enabled && _initialized;
@@ -38,6 +48,14 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     private static readonly bool IsFixedUpdateable = typeof(T).IsDefined(typeof(FixedUpdateableAttribute), inherit: false);
 
     private static readonly bool IsDrawable = typeof(T).IsDefined(typeof(DrawableAttribute), inherit: false);
+
+    /// <inheritdoc/>
+    bool IComponentStore.IsUpdateable => IsUpdateable;
+
+    /// <inheritdoc/>
+    bool IComponentStore.IsFixedUpdateable => IsFixedUpdateable;
+
+    bool IComponentStore.IsDrawable => IsDrawable;
 
     private readonly HandleMapGrowing<T> _components = new(initialCapacity);
     GrowableArray<ComponentMetadata> _componentMetadata = new(initialCapacity);
@@ -129,4 +147,13 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public HandleMapGrowing<T>.Enumerator GetEnumerator() => _components.GetEnumerator();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void UpdateComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).Update(gameTime);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void FixedUpdateComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).FixedUpdate(gameTime);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).Draw(gameTime);
 }
