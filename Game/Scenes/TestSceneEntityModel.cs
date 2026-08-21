@@ -127,8 +127,7 @@ public partial struct Mover
     {
         var size = SquareRenderer.Size;
 
-        Entity.Transform.Position.X += Velocity.X;
-        Entity.Transform.Position.Y += Velocity.Y;
+        Entity.Position += Velocity;
 
         if (Entity.Transform.Position.X < 0 || Entity.Transform.Position.X + size > WindowsWidth)
             Velocity.X *= -1;
@@ -144,7 +143,7 @@ public partial struct SquareRenderer
     public int Size;
     public readonly void Draw(GameTime gameTime)
     {
-        var pos = Entity.Transform.Position;
+        var pos = Entity.Position;
         float r = pos.X - MathF.Floor(pos.X);
         float g = pos.Y - MathF.Floor(pos.Y);
 
@@ -165,13 +164,20 @@ public class TestSceneEntityModel : Scene
         TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
         entityWorld = new(10);
-        //player = entityWorld.CreateEntity();
-        //ref Entity playerRef = ref entityWorld.GetEntity(player);
-        //playerRef.AddComponent<SpriteComponent>(new SpriteComponent
-        //{
-        //    Sprite = atlas.CreateAnimatedSprite("slime-animation")
-        //});
-        //playerRef.AddComponent<PlayerController>(new PlayerController());
+        player = entityWorld.CreateEntity().Handle;
+        ref Entity playerRef = ref entityWorld.GetEntity(player);
+        playerRef.Name = "Player";
+        playerRef.AddComponent<SpriteComponent>(new SpriteComponent
+        {
+            Sprite = atlas.CreateAnimatedSprite("slime-animation")
+        });
+        playerRef.AddComponent<PlayerController>(new PlayerController());
+        ref Entity square = ref entityWorld.CreateEntity("Square");
+        square.AddComponent<SquareRenderer>();
+        ref var s = ref square.GetComponent<SquareRenderer>();
+        s.Size = 25;
+        square.Position = playerRef.Position;
+        square.TrySetParent(player);
 
 
         for (var i = 0; i < 10_000; i++)

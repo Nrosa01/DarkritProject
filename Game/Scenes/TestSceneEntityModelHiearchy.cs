@@ -47,16 +47,16 @@ public class TestSceneEntityModelHiearchy : Scene
         var parent = world.CreateEntityByHandle(new StringID("Parent"));
         world.CreateEntityByHandle(new StringID("Root 2"));
 
-        var childA = world.CreateEntityByHandle(parent, new StringID("Child a"));
-        var childB = world.CreateEntityByHandle(childA, new StringID("Child b"));
-        var childC = world.CreateEntityByHandle(childA, new StringID("Child c"));
+        var childA = world.CreateEntityByHandle(parent, "Child a");
+        var childB = world.CreateEntityByHandle(childA, "Child b");
+        var childC = world.CreateEntityByHandle(childA, "Child c");
 
-        var childD = world.CreateEntityByHandle(childC, new StringID("Child d"));
-        var childE = world.CreateEntityByHandle(childD, new StringID("Child e"));
-        var childF = world.CreateEntityByHandle(childC, new StringID("Child f"));
-        var childG = world.CreateEntityByHandle(parent, new StringID("Child g"));
-        var childH = world.CreateEntityByHandle(childG, new StringID("Child h"));
-        var childI = world.CreateEntityByHandle(parent, new StringID("Child i"));
+        var childD = world.CreateEntityByHandle(childC, "Child d");
+        var childE = world.CreateEntityByHandle(childD, "Child e");
+        var childF = world.CreateEntityByHandle(childC, "Child f");
+        var childG = world.CreateEntityByHandle(parent, "Child g");
+        var childH = world.CreateEntityByHandle(childG, "Child h");
+        var childI = world.CreateEntityByHandle(parent, "Child i");
     }
 
     public override void Update(GameTime gameTime) => world.Update(gameTime);

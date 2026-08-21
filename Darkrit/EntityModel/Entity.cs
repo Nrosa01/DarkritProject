@@ -377,7 +377,7 @@ public struct Entity
         internal set;
     }
 
-    public Transform Transform;
+    public Transform2D Transform;
 
     public Vector2 Position
     {

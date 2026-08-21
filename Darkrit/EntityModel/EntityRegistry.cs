@@ -135,16 +135,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public ComponentStore<T> GetStore<T>() where T : struct, IComponent => (ComponentStore<T>)(_componentStores[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(initialCapacity));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<Entity> CreateEntityByHandle()
-    {
-        return _entities.Add(new Entity
-        {
-            World = this,
-            Handle = _entities.PeekNextHandle(),
-            ActiveSelf = true,
-            ActiveInHierachy = true,
-        });
-    }
+    public Handle<Entity> CreateEntityByHandle(string name = "") => CreateEntityByHandle(new StringID(name));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(StringID name)
@@ -160,49 +151,40 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref Entity CreateEntity()
+    public ref Entity CreateEntity(string name = "")
     {
-        Handle<Entity> handle = CreateEntityByHandle();
+        Handle<Entity> handle = CreateEntityByHandle(new StringID(name));
         return ref GetEntity(handle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref Entity CreateEntity(Handle<Entity> parentHandle)
+    public ref Entity CreateEntity(Handle<Entity> parentHandle, string name = "")
     {
-        ref Entity entity = ref CreateEntity();
+        ref Entity entity = ref CreateEntity(name);
         entity.TrySetParent(parentHandle);
         return ref entity;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref Entity CreateEntity(ref Entity parent)
+    public ref Entity CreateEntity(ref Entity parent, string name = "")
     {
-        ref Entity entity = ref CreateEntity();
+        ref Entity entity = ref CreateEntity(name);
         entity.TrySetParent(parent.Handle);
         return ref entity;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<Entity> CreateEntityByHandle(Handle<Entity> parent)
+    public Handle<Entity> CreateEntityByHandle(Handle<Entity> parent, string name = "")
     {
-        var handle = CreateEntityByHandle();
-        GetEntity(handle).TrySetParent(parent);
-        return handle;
-    }
-
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<Entity> CreateEntityByHandle(Handle<Entity> parent, StringID name)
-    {
-        var handle = CreateEntityByHandle(name);
+        var handle = CreateEntityByHandle(new StringID(name));
         GetEntity(handle).TrySetParent(parent);
         return handle;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<Entity> CreateEntityByHandle(ref Entity parent)
+    public Handle<Entity> CreateEntityByHandle(ref Entity parent, string name = "")
     {
-        var handle = CreateEntityByHandle();
+        var handle = CreateEntityByHandle(new StringID(name));
         GetEntity(handle).TrySetParent(parent.Handle);
         return handle;
     }
