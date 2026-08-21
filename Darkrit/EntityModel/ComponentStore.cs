@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Darkrit.Base;
 using Darkrit.DataStructures;
@@ -23,6 +24,8 @@ public interface IComponentStore
     bool IsUpdateable { get; }
     bool IsFixedUpdateable { get; }
     bool IsDrawable { get; }
+
+    int Priority { get; }
 }
 
 internal struct ComponentMetadata
@@ -48,6 +51,10 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     private static readonly bool IsFixedUpdateable = typeof(T).IsDefined(typeof(FixedUpdateableAttribute), inherit: false);
 
     private static readonly bool IsDrawable = typeof(T).IsDefined(typeof(DrawableAttribute), inherit: false);
+    
+    private static readonly bool OverridesPriority = typeof(T).IsDefined(typeof(PriorityAttribute), inherit: false);
+    
+    public static readonly int Priority = OverridesPriority ? typeof(T).GetCustomAttribute<PriorityAttribute>(inherit: false).Priority : 0;
 
     /// <inheritdoc/>
     bool IComponentStore.IsUpdateable => IsUpdateable;
@@ -62,6 +69,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     private Stack<Handle<T>> nonInitializedComponents = new();
 
     public int Count => _components.Count;
+
+    int IComponentStore.Priority => Priority;
 
     public void InitializePendingComponents()
     {

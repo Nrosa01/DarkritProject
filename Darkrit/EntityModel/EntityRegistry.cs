@@ -36,11 +36,34 @@ public static class ComponentTypeId<T> where T : struct, IComponent
 public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumerable<HandleItem<Entity>>
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
+    private readonly int[] _componentStoresOrder = new int[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
 
     private readonly GrowableArray<TypedHandle> _updateNodes = [];
     private readonly GrowableArray<TypedHandle> _fixedUpdateNodes = [];
     private readonly GrowableArray<TypedHandle> _drawNodes = [];
+
+    private int _componentStoresCount;
+
+    private void AddStoreOrder(int id)
+    {
+        int priority = _componentStores[id].Priority;
+        int i = _componentStoresCount;
+
+        while (i > 0)
+        {
+            int previousId = _componentStoresOrder[i - 1];
+
+            if (_componentStores[previousId].Priority <= priority)
+                break;
+
+            _componentStoresOrder[i] = previousId;
+            i--;
+        }
+
+        _componentStoresOrder[i] = id;
+        _componentStoresCount++;
+    }
 
     bool _useHierachyScheduler;
     /// <summary>
@@ -132,7 +155,19 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public EntityRegistry() : this(1000) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ComponentStore<T> GetStore<T>() where T : struct, IComponent => (ComponentStore<T>)(_componentStores[ComponentTypeId<T>.Id] ??= new ComponentStore<T>(initialCapacity));
+    public ComponentStore<T> GetStore<T>() where T : struct, IComponent
+    {
+        int id = ComponentTypeId<T>.Id;
+
+        if (_componentStores[id] is not ComponentStore<T> store) // Happens when is null
+        {
+            store = new ComponentStore<T>(initialCapacity);
+            _componentStores[id] = store;
+            AddStoreOrder(id);
+        }
+
+        return store;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(string name = "") => CreateEntityByHandle(new StringID(name));
@@ -257,19 +292,22 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         {
             OrderHierachyIfDirty();
 
-            // This should be different in this version but I don't have it yet
-            foreach (var store in _componentStores)
-                store?.InitializePendingComponents();
+            for (int i = 0; i < _componentStoresCount; i++)
+            {
+                var store = _componentStores[_componentStoresOrder[i]];
+                store.InitializePendingComponents();
+            }
 
             foreach (var item in _updateNodes)
                 _componentStores[item.type].UpdateComponent(item.handle, gameTime);
         }
         else
         {
-            foreach (var store in _componentStores)
+            for (int i = 0; i < _componentStoresCount; i++)
             {
-                store?.InitializePendingComponents();
-                store?.Update(gameTime);
+                var store = _componentStores[_componentStoresOrder[i]];
+                store.InitializePendingComponents();
+                store.Update(gameTime);
             }
         }
     }
@@ -284,8 +322,11 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         }
         else
         {
-            foreach (var store in _componentStores)
-                store?.FixedUpdate(gameTime);
+            for (int i = 0; i < _componentStoresCount; i++)
+            {
+                var store = _componentStores[_componentStoresOrder[i]];
+                store.FixedUpdate(gameTime);
+            }
         }
     }
 
@@ -299,8 +340,11 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         }
         else
         {
-            foreach (var store in _componentStores)
-                store?.Draw(gameTime);
+            for (int i = 0; i < _componentStoresCount; i++)
+            {
+                var store = _componentStores[_componentStoresOrder[i]];
+                store.Draw(gameTime);
+            }
         }
     }
 

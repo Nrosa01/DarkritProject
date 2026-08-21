@@ -87,4 +87,21 @@ public class EntityRegistryTests
         entity.ActiveSelf = false;
         Assert.False(reference.ActiveSelf);
     }
+
+    [Fact]
+    public void Component_update_in_correr_order()
+    {
+        var handle = world.CreateEntityByHandle();
+        ref Entity entity = ref world.GetEntity(handle);
+        var c = entity.AddComponent<ComponentC>(); // priority 1
+        var d = entity.AddComponent<ComponentD>();
+        var b =entity.AddComponent<ComponentB>(); // priority -1
+
+        world.Update(default);
+
+        Assert.Equal(2, entity.GetComponent<ComponentB>().test);
+        Assert.Equal(2, entity.GetComponent<ComponentC>().test);
+        Assert.Equal(3, entity.GetComponent<ComponentD>().test);
+        Assert.Equal(2, entity.GetComponent<ComponentD>().test2);
+    }
 }

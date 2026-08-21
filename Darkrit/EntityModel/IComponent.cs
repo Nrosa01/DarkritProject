@@ -12,6 +12,11 @@ public sealed class InjectComponentAttribute(Type componentType) : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Struct)]
+public sealed class PriorityAttribute(int priorityi) : Attribute {
+    public int Priority { get; } = priorityi;
+}
+
+[AttributeUsage(AttributeTargets.Struct)]
 public sealed class ComponentAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Struct)]

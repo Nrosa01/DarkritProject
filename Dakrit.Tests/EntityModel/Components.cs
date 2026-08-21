@@ -10,10 +10,54 @@ partial struct ComponentA
 }
 
 [Component]
-[InjectComponent(typeof(ComponentA))]
-partial struct ComponentBThatRequiresA
+[Priority(-1)]
+partial struct ComponentB
 {
+    public int test = 1;
 
+    public void Update(GameTime gameTime)
+    {
+        test++;
+    }
+
+    public ComponentB()
+    {
+    }
+}
+
+[Component]
+[Priority(1)]
+partial struct ComponentC
+{
+    public int test = 1;
+
+    public void Update(GameTime gameTime)
+    {
+        test++;
+    }
+
+    public ComponentC()
+    {
+    }
+}
+
+[Component]
+[InjectComponent(typeof(ComponentB))]
+[InjectComponent(typeof(ComponentC))]
+partial struct ComponentD
+{
+    public int test = 1;
+    public int test2 = 1;
+
+    public void Update(GameTime gameTime)
+    {
+        test += ComponentB.test;
+        test2 += ComponentC.test;
+    }
+
+    public ComponentD()
+    {
+    }
 }
 
 [Component]
