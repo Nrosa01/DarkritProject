@@ -129,7 +129,7 @@ public struct Entity
 
         if (newParent.Id == 0)
         {
-            ActiveInHierachy = ActiveSelf;
+            ActiveInHierarchy = ActiveSelf;
             return false;
         }
 
@@ -161,7 +161,7 @@ public struct Entity
 
         if (newParent.Id == 0)
         {
-            ActiveInHierachy = ActiveSelf;
+            ActiveInHierarchy = ActiveSelf;
             return false;
         }
 
@@ -331,7 +331,7 @@ public struct Entity
     public void UnParent()
     {
         UnlinkFromParent();
-        ActiveInHierachy = true;
+        ActiveInHierarchy = true;
     }
 
     /// <summary>
@@ -352,9 +352,9 @@ public struct Entity
 
     private void UpdateActiveInHierarchy()
     {
-        ActiveInHierachy =
+        ActiveInHierarchy =
             ActiveSelf &&
-            (_parent.Id == 0 || World.GetEntity(_parent).ActiveInHierachy);
+            (_parent.Id == 0 || World.GetEntity(_parent).ActiveInHierarchy);
 
         var child = _firstChild;
 
@@ -371,18 +371,21 @@ public struct Entity
     /// <summary>
     /// Whether this Entity is active in the scene
     /// Say, Entity A has a child Entity B. B could be active but A 
-    /// be inactive, which would result in B <see cref="ActiveInHierachy"/> be false
+    /// be inactive, which would result in B <see cref="ActiveInHierarchy"/> be false
     /// while <see cref="ActiveSelf"/> is true
     /// </summary>
-    public bool ActiveInHierachy
+    public bool ActiveInHierarchy
     {
         readonly get => ActiveSelf && field;
         internal set 
         {
+            if (field == value)
+                return;
+
             field = value;
 
             foreach (var typedComponent in _componentList.Components)
-                World.ComponentEnabledCallback(field, typedComponent.type, typedComponent.handle);
+                World.EntityActiveInHierarchyChanged(ActiveInHierarchy, typedComponent.type, typedComponent.handle);
         }
     }
 
