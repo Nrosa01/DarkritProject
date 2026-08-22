@@ -5,8 +5,20 @@ namespace DakritTests.DataStructures;
 
 public class HandleMapGrowingTests
 {
+    struct Item : IHandle<Item>
+    {
+        public Handle<Item> Handle { get; set; }
+        public int value = 0;
+
+        public Item()
+        {
+        }
+
+        public static implicit operator Item(int item) => new() { value = item };
+    }
+
     const int CAPACITY = 5;
-    private readonly HandleMapGrowing<int> set;
+    private readonly HandleMapGrowing<Item> set;
 
     public HandleMapGrowingTests()
     {
@@ -43,7 +55,7 @@ public class HandleMapGrowingTests
     [Fact]
     public void Add_GrowsBeyondInitialCapacity()
     {
-        var handles = new List<Handle<int>>();
+        var handles = new List<Handle<Item>>();
 
         for (var i = 0; i < CAPACITY + 5; i++)
         {
@@ -59,7 +71,7 @@ public class HandleMapGrowingTests
     [Fact]
     public void ForeachRefHandleItem_ModifiesItem()
     {
-        var set = new HandleMapGrowing<int>
+        var set = new HandleMapGrowing<Item>
         {
             1,
             2,
@@ -67,25 +79,14 @@ public class HandleMapGrowingTests
         };
 
         foreach (ref var entry in set)
-            entry.Item *= 10;
+            entry.value *= 10;
 
         var values = new List<int>();
 
         foreach (var entry in set)
-            values.Add(entry.Item);
+            values.Add(entry.value);
 
         Assert.Equal([10, 20, 30], values);
-    }
-
-    [Fact]
-    public void Get_ReturnsStoredItem()
-    {
-        var item = 0;
-        var handle = set.Add(item);
-
-        ref var result = ref set.Get(handle);
-
-        Assert.Equal(item, result);
     }
 
     [Fact]
@@ -105,7 +106,7 @@ public class HandleMapGrowingTests
     [Fact]
     public void IsValid_ReturnsFalseForUnknownHandle()
     {
-        var handle = new Handle<int>
+        var handle = new Handle<Item>
         {
             Id = 1,
             Generation = 0
@@ -283,18 +284,18 @@ public class HandleMapGrowingTests
     [Fact]
     public void Get_ReturnsReferenceToSameStoredItem()
     {
-        var original = 0;
+        var original = new Item { value = 0 };
         var handle = set.Add(original);
 
         ref var item = ref set.Get(handle);
 
-        Assert.Equal(original, item);
+        Assert.Equal(original.value, item.value);
     }
 
     [Fact]
     public void IsValid_ReturnsFalseForNegativeId()
     {
-        var handle = new Handle<int>
+        var handle = new Handle<Item>
         {
             Id = -1,
             Generation = 0
@@ -306,7 +307,7 @@ public class HandleMapGrowingTests
     [Fact]
     public void IsValid_ReturnsFalseForIdOutsideRange()
     {
-        var handle = new Handle<int>
+        var handle = new Handle<Item>
         {
             Id = 1,
             Generation = 0
@@ -316,7 +317,7 @@ public class HandleMapGrowingTests
 
         set.Add(0);
 
-        var outOfRangeHandle = new Handle<int>
+        var outOfRangeHandle = new Handle<Item>
         {
             Id = 2,
             Generation = 0

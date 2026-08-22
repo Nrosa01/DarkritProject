@@ -18,9 +18,9 @@ namespace Darkrit.DataStructures;
 /// and most operations are O(1)
 /// </summary>
 /// <typeparam name="T">The type of the object to be stored in a <see cref="HandleItem{T}"/></typeparam>
-public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> where T : new()
+public class HandleMapGrowing<T> : IEnumerable<T> where T : IHandle<T>, new()
 {
-    readonly GrowableArray<HandleItem<T>> _items;
+    readonly GrowableArray<T> _items;
     private readonly Stack<int> _deletedItems = new();
 
     /// <summary>
@@ -50,7 +50,7 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     /// Creates a ReadOnlySpan over the contained elements
     /// </summary>
     /// <returns>The ReadOnlySpan view</returns>
-    public ReadOnlySpan<HandleItem<T>> Items => _items.AsReadOnlySpan();
+    public ReadOnlySpan<T> Items => _items.AsReadOnlySpan();
 
     /// <summary>
     /// Gets the next valid id, it reuses ids from deleted items
@@ -109,26 +109,22 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
         var nextId = GetNextId();
 
         if (nextId < _items.Count)
-            _items[nextId] = new HandleItem<T>
+        {
+            item.Handle = new Handle<T>
             {
-                Handle = new Handle<T>
-                {
-                    Id = nextId,
-                    Generation = _items[nextId].Handle.Generation + 1 // Previous generation
-                },
-                Item = item
+                Id = nextId,
+                Generation = _items[nextId].Handle.Generation + 1 // Previous generation
             };
+            _items[nextId] = item;
+        }
         else
         {
-            _items.Add(new HandleItem<T>
+            item.Handle = new Handle<T>
             {
-                Handle = new Handle<T>
-                {
-                    Id = nextId,
-                    Generation = 0
-                },
-                Item = item
-            });
+                Id = nextId,
+                Generation = 0
+            };
+            _items.Add(item);
         }
 
         return _items[nextId].Handle;
@@ -162,7 +158,7 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     /// </summary>
     /// <param name="index">The zero-based index of the element to get or set.</param>
     /// <returns></returns>
-    private ref T this[int index] => ref _items[index].Item;
+    private ref T this[int index] => ref _items[index];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T At(int index) => ref this[index];
@@ -182,7 +178,7 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
         get
         {
             Debug.Assert(IsValid(handle));
-            return ref _items[handle.Id].Item;
+            return ref _items[handle.Id];
         }
     }
 
@@ -191,7 +187,7 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public ref readonly T GetReadonly(Handle<T> handle) => ref _items[handle.Id].Item;
+    public ref readonly T GetReadonly(Handle<T> handle) => ref _items[handle.Id];
 
     /// <summary>
     /// Removes the item associated with <paramref name="handle"/> if it's valid
@@ -208,30 +204,32 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
         item.Handle = item.Handle with { Id = 0 };
 
         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-            item.Item = default; // Sets to null if it contains a reference type
+            item = default; // Sets to null if it contains a reference type
 
         _deletedItems.Push(handle.Id);
         return true;
     }
 
-    public struct Enumerator : IEnumerator<HandleItem<T>>, IEnumerator<T>
+    /// <inheritdoc/>
+    public struct Enumerator : IEnumerator<T>
     {
-        private readonly GrowableArray<HandleItem<T>> _items;
+        private readonly GrowableArray<T> _items;
         private int _index;
 
-        internal Enumerator(GrowableArray<HandleItem<T>> items)
+        internal Enumerator(GrowableArray<T> items)
         {
             _items = items;
             _index = -1;
         }
 
-        public readonly ref HandleItem<T> Current => ref _items[_index];
+        /// <inheritdoc/>
+        public readonly ref T Current => ref _items[_index];
 
-        readonly HandleItem<T> IEnumerator<HandleItem<T>>.Current => _items[_index];
-        readonly T IEnumerator<T>.Current => _items[_index].Item;
+        readonly T IEnumerator<T>.Current => _items[_index];
 
         readonly object IEnumerator.Current => Current;
 
+        /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
@@ -244,13 +242,15 @@ public class HandleMapGrowing<T> : IEnumerable<HandleItem<T>>, IEnumerable<T> wh
             return false;
         }
 
+        /// <inheritdoc/>
         public void Reset() => _index = -1;
 
+        /// <inheritdoc/>
         public readonly void Dispose() { }
     }
 
-    IEnumerator<HandleItem<T>> IEnumerable<HandleItem<T>>.GetEnumerator() => GetEnumerator();
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    /// <inheritdoc/>
     public Enumerator GetEnumerator() => new(_items);
 }

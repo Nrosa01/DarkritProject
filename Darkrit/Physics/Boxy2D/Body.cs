@@ -1,4 +1,5 @@
-﻿using Darkrit.Math;
+﻿using Darkrit.Base;
+using Darkrit.Math;
 
 namespace Darkrit.Physics.Boxy2D;
 
@@ -6,8 +7,10 @@ namespace Darkrit.Physics.Boxy2D;
 /// Item of <see cref="World{T}"/>
 /// </summary>
 /// <typeparam name="T">The type of the custom <see cref="UserData"/>. If none is wanted use an empty struct</typeparam>
-public struct Body<T>
+public struct Body<T> : IHandle<Body<T>>
 {
+    public Handle<Body<T>> Handle { get; set; }
+
     /// <summary>
     /// Actual AABB collider, readonly. To modify use <see cref="World{T}"/> methods
     /// </summary>

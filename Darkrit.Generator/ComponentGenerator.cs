@@ -38,8 +38,10 @@ public sealed class ComponentGenerator : IIncrementalGenerator
 
                 {{GenerateAttributes(component, iComponent)}}
                 [StructLayout(LayoutKind.Auto)]
-                public partial struct {{typeName}} : IComponent
+                public partial struct {{typeName}} : IComponent, IHandle<{{typeName}}>
                 {
+                    public Handle<{{typeName}}> Handle { get; set; }
+
                     public readonly ref Entity Entity => ref World.GetEntity(EntityHandle); 
 
                     public EntityRegistry World { get; set; }

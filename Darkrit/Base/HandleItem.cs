@@ -8,11 +8,13 @@ namespace Darkrit.Base;
 /// Agrupation of an item and its handle that represents it in a container
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public struct HandleItem<T> : IHandle<T> where T : new()
+public struct HandleItem<T> : IHandle<HandleItem<T>> where T : new()
 {
-    public readonly static HandleItem<T> Default = new() { Handle = Handle<T>.Default, Item = default };
+    public readonly static HandleItem<T> Default = new() { Handle = Handle<HandleItem<T>>.Default, Item = default };
 
-    public Handle<T> Handle { get; set; }
+    public Handle<HandleItem<T>> Handle { get; set; }
 
     public T Item;
+
+    //public static implicit operator HandleItem<T>(T item) => new() { Item = item };
 }

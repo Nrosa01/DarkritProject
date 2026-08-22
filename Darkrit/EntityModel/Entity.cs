@@ -87,7 +87,7 @@ struct ComponentList
     }
 }
 
-public struct Entity
+public struct Entity : IHandle<Entity>
 {
     public int Flags;
 
@@ -105,7 +105,7 @@ public struct Entity
 
     public readonly IReadOnlyList<TypedHandle> Components => _componentList.Components;
 
-    public readonly Handle<Entity> Handle { get; internal init; }
+    public Handle<Entity> Handle { get; set; }
 
     internal Handle<Entity> _parent;
     internal Handle<Entity> _firstChild;
@@ -531,9 +531,9 @@ public struct Entity
     {
     }
 
-    public Handle<T> AddComponent<T>() where T : struct, IComponent => AddComponent<T>(new());
+    public Handle<T> AddComponent<T>() where T : struct, IComponent, IHandle<T> => AddComponent<T>(new());
 
-    public Handle<T> AddComponent<T>(T component) where T : struct, IComponent
+    public Handle<T> AddComponent<T>(T component) where T : struct, IComponent, IHandle<T>
     {
         component.World = World;
         component.EntityHandle = Handle;
@@ -560,7 +560,7 @@ public struct Entity
         return worldRemoves && entityRemoves;
     }
 
-    public bool RemoveComponent<T>(Handle<T> handle) where T : struct, IComponent
+    public bool RemoveComponent<T>(Handle<T> handle) where T : struct, IComponent, IHandle<T>
     {
         bool worldRemoves = World.RemoveComponent<T>(handle);
         var removedHandle = _componentList.Remove<T>(handle);
@@ -577,10 +577,10 @@ public struct Entity
 
     public Handle<T> GetComponentHandle<T>() where T : struct, IComponent => _componentList.Get<T>();
 
-    public ref T GetComponent<T>() where T : struct, IComponent => ref World.GetComponent<T>(GetComponentHandle<T>());
+    public ref T GetComponent<T>() where T : struct, IComponent, IHandle<T> => ref World.GetComponent<T>(GetComponentHandle<T>());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref World.GetComponent<T>(componentHandle);
+    public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent, IHandle<T> => ref World.GetComponent<T>(componentHandle);
 
     public bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;
     public bool HasComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => _componentList.Has(componentHandle);

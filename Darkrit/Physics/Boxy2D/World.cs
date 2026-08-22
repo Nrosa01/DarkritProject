@@ -147,16 +147,16 @@ public class World<T>
             CollisionInfo closestCollision = CollisionInfo.ValidFurthestCollision;
             Handle<Body<T>> lastCollisionHandle = Handle<Body<T>>.Default;
 
-            foreach (HandleItem<Body<T>> item in _bodies)
+            foreach (ref Body<T> item in _bodies)
             {
                 if (item.Handle == handle)
                     continue;
 
                 // Assymetric checks for now. Might make this a config setting in the future
-                if ((body.Mask & item.Item.Layer) == 0 /*|| (item.Item.Mask & body.Layer) == 0*/)
+                if ((body.Mask & item.Layer) == 0 /*|| (item.Item.Mask & body.Layer) == 0*/)
                     continue;
 
-                var response = CollisionFunctions.SweptAABB(bounds, item.Item.Bounds, velocity);
+                var response = CollisionFunctions.SweptAABB(bounds, item.Bounds, velocity);
 
                 if (response.HasCollision && response.CollisionTime < closestCollision.CollisionTime)
                 {
@@ -191,7 +191,7 @@ public class World<T>
     public void Draw(SpriteBatch spriteBatch)
     {
         foreach (var item in _bodies)
-            spriteBatch.Draw(item.Item.Bounds, Color.Red, 0.5f);
+            spriteBatch.Draw(item.Bounds, Color.Red, 0.5f);
     }
 }
 

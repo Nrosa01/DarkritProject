@@ -33,7 +33,7 @@ public static class ComponentTypeId<T> where T : struct, IComponent
     public static readonly int Id = ComponentTypeId.Next();
 }
 
-public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumerable<HandleItem<Entity>>
+public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly int[] _componentStoresOrder = new int[ComponentTypeId.Count];
@@ -99,7 +99,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         foreach (ref var item in this)
         {
             // Top level
-            if (!item.Item.HasParent)
+            if (!item.HasParent)
             {
                 TraverseHierarchy(item.Handle, (ref entity) =>
                 {
@@ -159,7 +159,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     public EntityRegistry() : this(1000) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ComponentStore<T> GetStore<T>() where T : struct, IComponent
+    public ComponentStore<T> GetStore<T>() where T : struct, IComponent, IHandle<T>
     {
         int id = ComponentTypeId<T>.Id;
 
@@ -253,24 +253,24 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
     private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal Handle<T> CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent
+    internal Handle<T> CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent, IHandle<T>
     {
         MarkHierarchyDirty();
         return GetStore<T>().Add(component);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool RemoveComponent<T>(Handle<Entity> entityHandle, Handle<T> component) where T : struct, IComponent
+    internal bool RemoveComponent<T>(Handle<Entity> entityHandle, Handle<T> component) where T : struct, IComponent, IHandle<T>
     {
         MarkHierarchyDirty();
         return GetStore<T>().TryRemove(component);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => ref GetStore<T>().Get(componentHandle);
+    internal ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent, IHandle<T> => ref GetStore<T>().Get(componentHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent
+    internal bool RemoveComponent<T>(Handle<T> componentHandle) where T : struct, IComponent, IHandle<T>
     {
         MarkHierarchyDirty();
         return GetStore<T>().TryRemove(componentHandle);
@@ -382,7 +382,6 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         IsDrawing = false;
     }
 
-    IEnumerator<HandleItem<Entity>> IEnumerable<HandleItem<Entity>>.GetEnumerator() => GetEnumerator();
     IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public HandleMapGrowing<Entity>.Enumerator GetEnumerator() => _entities.GetEnumerator();
@@ -505,10 +504,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
             }
         }
 
-        foreach (ref HandleItem<Entity> item in this)
+        foreach (ref Entity item in this)
         {
-            if (item.Item._parent.Id == 0)
-                DrawEntity(item.Item.Handle);
+            if (item._parent.Id == 0)
+                DrawEntity(item.Handle);
         }
 
         ImGui.End();

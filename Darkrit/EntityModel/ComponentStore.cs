@@ -47,7 +47,7 @@ internal struct ComponentMetadata
     }
 }
 
-public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerable<T>, IEnumerable<HandleItem<T>> where T : struct, IComponent
+public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerable<T> where T : struct, IComponent, IHandle<T>
 {
     private static readonly bool IsUpdateable = typeof(T).IsDefined(typeof(UpdateableAttribute), inherit: false);
     
@@ -119,7 +119,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         foreach (ref var handleItem in _components)
         {
             if (_componentMetadata[handleItem.Handle.Id].CanExecute)
-                handleItem.Item.Update(gameTime);
+                handleItem.Update(gameTime);
         }
     }
 
@@ -130,7 +130,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         foreach (ref var handleItem in _components)
         {
             if (_componentMetadata[handleItem.Handle.Id].CanExecute)
-                handleItem.Item.LateUpdate(gameTime);
+                handleItem.LateUpdate(gameTime);
         }
     }
 
@@ -141,7 +141,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         foreach (ref var handleItem in _components)
         {
             if (_componentMetadata[handleItem.Handle.Id].CanExecute)
-                handleItem.Item.FixedUpdate(gameTime);
+                handleItem.FixedUpdate(gameTime);
         }
     }
 
@@ -152,7 +152,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         foreach (ref var handleItem in _components)
         {
             if (_componentMetadata[handleItem.Handle.Id].CanExecute)
-                handleItem.Item.Draw(gameTime);
+                handleItem.Draw(gameTime);
         }
     }
 
@@ -189,7 +189,6 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         }
     }
 
-    IEnumerator<HandleItem<T>> IEnumerable<HandleItem<T>>.GetEnumerator() => GetEnumerator();
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public HandleMapGrowing<T>.Enumerator GetEnumerator() => _components.GetEnumerator();
