@@ -53,14 +53,16 @@ public sealed class ComponentGenerator : IIncrementalGenerator
                                 return;
 
                             field = value;
+
+                            if (!Entity.ActiveInHierarchy) return;
+
                             if (field)
                                 OnEnable();
                             else
                                 OnDisable();
                         }
-                    }
-
-                    {{GenerateInjectedComponents(component)}}
+                    } = true;
+                    {{GenerateConstructor(component)}}{{GenerateInjectedComponents(component)}}
 
                     {{GenerateMethods(component, iComponent)}}
                 }
@@ -115,6 +117,15 @@ public sealed class ComponentGenerator : IIncrementalGenerator
         return builder.ToString().TrimEnd().Replace("\n", "\n    ");
     }
 
+    private static string GenerateConstructor(INamedTypeSymbol type)
+    {
+        if (HasConstructor(type))
+            return string.Empty;
+
+        return $"public {type.Name}() {{ }}";
+    }
+
+    private static bool HasConstructor(INamedTypeSymbol type) => type.InstanceConstructors.Any(c => !c.IsImplicitlyDeclared);
     private static bool HasMethod(INamedTypeSymbol type, string name) => type.GetMembers(name).OfType<IMethodSymbol>().Any(m => !m.IsImplicitlyDeclared);
     private static string GenerateAttributes(INamedTypeSymbol type, INamedTypeSymbol? interfaceType)
     {

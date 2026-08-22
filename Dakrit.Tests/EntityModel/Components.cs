@@ -42,6 +42,23 @@ partial struct ComponentC
 }
 
 [Component]
+partial struct ActivatableComponent
+{
+    public int enabledTimes = 0;
+    public int disabledTimes = 0;
+
+    public void OnEnable()
+    {
+        enabledTimes++;
+    }
+
+    public void OnDisable()
+    {
+        disabledTimes++;
+    }
+}
+
+[Component]
 [InjectComponent(typeof(ComponentB))]
 [InjectComponent(typeof(ComponentC))]
 partial struct ComponentD

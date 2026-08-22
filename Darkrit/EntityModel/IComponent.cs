@@ -53,7 +53,7 @@ public interface IComponent
     /// be inactive, which would result in B <see cref="ActiveInHierachy"/> be false
     /// while <see cref="ActiveSelf"/> is true
     /// </summary>
-    public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierachy; }
+    public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierarchy; }
 
     void OnAdd();
 

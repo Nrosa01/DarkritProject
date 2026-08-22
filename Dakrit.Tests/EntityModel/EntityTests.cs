@@ -329,15 +329,15 @@ public class EntityTests
 
         entity.ActiveSelf = true;
 
-        Assert.True(world.GetEntity(parent).ActiveInHierachy);
-        Assert.True(world.GetEntity(child).ActiveInHierachy);
-        Assert.True(world.GetEntity(grandChild).ActiveInHierachy);
+        Assert.True(world.GetEntity(parent).ActiveInHierarchy);
+        Assert.True(world.GetEntity(child).ActiveInHierarchy);
+        Assert.True(world.GetEntity(grandChild).ActiveInHierarchy);
 
         world.GetEntity(parent).ActiveSelf = false;
 
-        Assert.False(world.GetEntity(parent).ActiveInHierachy);
-        Assert.False(world.GetEntity(child).ActiveInHierachy);
-        Assert.False(world.GetEntity(grandChild).ActiveInHierachy);
+        Assert.False(world.GetEntity(parent).ActiveInHierarchy);
+        Assert.False(world.GetEntity(child).ActiveInHierarchy);
+        Assert.False(world.GetEntity(grandChild).ActiveInHierarchy);
     }
 
     [Fact]
@@ -351,15 +351,15 @@ public class EntityTests
         world.GetEntity(parent).ActiveSelf = false;
 
         Assert.False(world.GetEntity(parent).ActiveSelf);
-        Assert.False(world.GetEntity(parent).ActiveInHierachy);
+        Assert.False(world.GetEntity(parent).ActiveInHierarchy);
 
         Assert.True(world.GetEntity(child).ActiveSelf);
-        Assert.False(world.GetEntity(child).ActiveInHierachy);
+        Assert.False(world.GetEntity(child).ActiveInHierarchy);
 
         world.GetEntity(parent).ActiveSelf = true;
 
-        Assert.True(world.GetEntity(parent).ActiveInHierachy);
-        Assert.True(world.GetEntity(child).ActiveInHierachy);
+        Assert.True(world.GetEntity(parent).ActiveInHierarchy);
+        Assert.True(world.GetEntity(child).ActiveInHierarchy);
     }
 
     [Fact]
@@ -376,7 +376,7 @@ public class EntityTests
         world.GetEntity(child).ActiveSelf = true;
 
         Assert.True(world.GetEntity(child).ActiveSelf);
-        Assert.False(world.GetEntity(child).ActiveInHierachy);
+        Assert.False(world.GetEntity(child).ActiveInHierarchy);
     }
 
     [Fact]
@@ -492,5 +492,57 @@ public class EntityTests
         Assert.Equal(3, a.GetComponent<ComponentWithValueData>().firstData);
         Assert.Equal(4, b.GetComponent<ComponentWithValueData>().firstData);
         Assert.Equal(5, c.GetComponent<ComponentWithValueData>().firstData);
+    }
+
+    [Fact]
+    public void Component_OnEnable_and_OnDisable_are_called()
+    {
+        ref var entity = ref world.CreateEntity("A");
+        ref var entityb = ref world.CreateEntity(entity.Handle, "B");
+        entityb.AddComponent<ActivatableComponent>();
+        ref var component = ref entityb.GetComponent<ActivatableComponent>();
+        Assert.Equal(0, component.enabledTimes);
+        Assert.Equal(0, component.disabledTimes);
+        
+        // Make sure that it doesn't call when it was already enabled
+        component.Enabled = true;
+        Assert.Equal(0, component.enabledTimes);
+        
+        // When parents are active, disable should trigger the OnDisable callback
+        component.Enabled = false;
+        Assert.Equal(0, component.enabledTimes);
+        Assert.Equal(1, component.disabledTimes);
+
+        // When parents are active and script was disabled, enable should trigger the OnEnable callback
+        component.Enabled = true;
+        Assert.Equal(1, component.enabledTimes);
+        Assert.Equal(1, component.disabledTimes);
+
+        // Component OnDisable should be called when a parent entity is disabled
+        entity.ActiveSelf = false;
+        Assert.Equal(1, component.enabledTimes);
+        Assert.Equal(2, component.disabledTimes);
+
+        // Nothing should happen here
+        entityb.ActiveSelf = false;
+        Assert.Equal(1, component.enabledTimes);
+        Assert.Equal(2, component.disabledTimes); // Falla aquí
+
+        // Nothing should happen here because b is disabled
+        entity.ActiveSelf = true;
+        Assert.Equal(1, component.enabledTimes);
+        Assert.Equal(2, component.disabledTimes);
+
+        // Nothing should happen hnere because b is disabled
+        component.Enabled = true;
+        component.Enabled = false;
+        component.Enabled = true;
+        Assert.Equal(1, component.enabledTimes);
+        Assert.Equal(2, component.disabledTimes);
+
+        // Given parents are enabled and component is enabled, OnEnable should trigger now
+        entityb.ActiveSelf = true;
+        Assert.Equal(2, component.enabledTimes);
+        Assert.Equal(2, component.disabledTimes);
     }
 }

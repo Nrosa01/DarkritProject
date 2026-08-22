@@ -1,1 +1,1 @@
-dotnet publish .\DarkritProject\DarkritGame.csproj -c Release -r win-x64 -p:PublishReadyToRun=false -p:TieredCompilation=false --self-contained -p:DebugType=none -p:DebugSymbols=false -p:CopyOutputSymbolsToPublishDirectory=false -p:DefineConstants=PUBLISH
+dotnet publish .\Game\Game.csproj -c Release -r win-x64 -p:PublishReadyToRun=false -p:TieredCompilation=false --self-contained -p:DebugType=none -p:DebugSymbols=false -p:CopyOutputSymbolsToPublishDirectory=false -p:DefineConstants=PUBLISH

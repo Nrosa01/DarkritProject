@@ -17,7 +17,7 @@ public interface IComponentStore
 
     public bool TryRemove(Handle<IComponent> handle);
     public bool TryRemove(Handle handle);
-    public void ComponentEnabledCallback(bool status, Handle handle);
+    public void EntityActiveInHierarchyChanged(bool status, Handle handle);
     void UpdateComponent(Handle handle, GameTime gameTime);
     public void FixedUpdateComponent(Handle handle, GameTime gameTime);
     void DrawComponent(Handle handle, GameTime gameTime);
@@ -159,9 +159,11 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         });
     }
 
-    public void ComponentEnabledCallback(bool status, Handle handle)
+    public void EntityActiveInHierarchyChanged(bool status, Handle handle)
     {
         ref var component = ref _components.At(handle.Id);
+
+        if (!component.Enabled) return;
 
         if (component.Enabled)
         {

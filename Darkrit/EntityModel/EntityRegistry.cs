@@ -185,7 +185,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
             World = this,
             Handle = _entities.PeekNextHandle(),
             ActiveSelf = true,
-            ActiveInHierachy = true,
+            ActiveInHierarchy = true,
         });
     }
 
@@ -290,7 +290,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         return _componentStores[typeId].TryRemove(iComponent);
     }
 
-    internal void ComponentEnabledCallback(bool entityEnabled, int type, Handle handle) => _componentStores[type].ComponentEnabledCallback(entityEnabled, handle);
+    internal void EntityActiveInHierarchyChanged(bool entityEnabled, int type, Handle handle) => _componentStores[type].EntityActiveInHierarchyChanged(entityEnabled, handle);
 
     public void Update(GameTime gameTime)
     {
