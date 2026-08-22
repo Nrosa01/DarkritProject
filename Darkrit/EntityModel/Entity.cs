@@ -13,7 +13,6 @@ using Darkrit.Math;
 using Microsoft.Xna.Framework;
 using Handle = Darkrit.Base.Handle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
-using Matrix = Microsoft.Xna.Framework.Matrix;
 
 namespace Darkrit.EntityModel;
 
@@ -87,6 +86,11 @@ struct ComponentList
     }
 }
 
+/// <summary>
+/// Fundamental unit of the entity model
+/// Entities contain handles to componentes, as well as to other entities
+/// An entity is an intrusive list that creates an acyclic undirected graph
+/// </summary>
 public struct Entity : IHandle<Entity>
 {
     /// <summary>
@@ -115,8 +119,12 @@ public struct Entity : IHandle<Entity>
 
     readonly ComponentList _componentList = new();
 
+    /// <summary>
+    /// Readonly list of the components this entity has
+    /// </summary>
     public readonly IReadOnlyList<TypedHandle> Components => _componentList.Components;
 
+    /// <inheritdoc/>
     public Handle<Entity> Handle { get; set; }
 
     internal Handle<Entity> _parent;
@@ -126,12 +134,34 @@ public struct Entity : IHandle<Entity>
     internal Handle<Entity> _previousSibling;
     private int _childCount;
 
-    public ref Entity Parent => ref World.GetEntity(_parent);
+    /// <summary>
+    /// Reference fo the parent entity. If the entity doesn't have
+    /// a parent this returns an Invalid entity
+    /// </summary>
+    public readonly ref Entity Parent => ref World.GetEntity(_parent);
 
+    /// <summary>
+    /// Whether this entity has parent or not
+    /// </summary>
     public readonly bool HasParent => _parent.Id != 0;
 
+    /// <summary>
+    /// Number of children this entity has
+    /// </summary>
     public readonly int ChildCount => _childCount;
 
+
+    /// <summary>
+    /// Sets a new parent to this entity
+    /// Returns false if the parent is the same or if it would create a cycle
+    /// Let's say you have Entity A, B and C
+    /// If you make B chil of A, you can't make A child of A
+    /// If you make b child of A, and C child of B, you can't make A child of C
+    /// 
+    /// The entity will be the first one in the children list of the new parent
+    /// </summary>
+    /// <param name="newParent"></param>
+    /// <returns>Returns false if the parent is the same or if it would create a cycle</returns>
     public bool TrySetParentFirst(Handle<Entity> newParent)
     {
         if (_parent == newParent || WouldCreateCycle(newParent))
@@ -164,6 +194,17 @@ public struct Entity : IHandle<Entity>
         return true;
     }
 
+    /// <summary>
+    /// Sets a new parent to this entity
+    /// Returns false if the parent is the same or if it would create a cycle
+    /// Let's say you have Entity A, B and C
+    /// If you make B chil of A, you can't make A child of A
+    /// If you make b child of A, and C child of B, you can't make A child of C
+    /// 
+    /// The entity will be the last one in the children list of the new parent
+    /// </summary>
+    /// <param name="newParent"></param>
+    /// <returns>Returns false if the parent is the same or if it would create a cycle</returns>
     public bool TrySetParent(Handle<Entity> newParent)
     {
         if(_parent == newParent || WouldCreateCycle(newParent))
@@ -207,7 +248,15 @@ public struct Entity : IHandle<Entity>
         return true;
     }
 
-    private bool WouldCreateCycle(Handle<Entity> newParent)
+
+    /// <summary>
+    /// Check to avoid cyclic graph when parenting
+    /// It just checks that the new parent is not any 
+    /// of the parents of this entity in the hiearchy
+    /// </summary>
+    /// <param name="newParent"></param>
+    /// <returns></returns>
+    private readonly bool WouldCreateCycle(Handle<Entity> newParent)
     {
         if (newParent.Id == 0)
             return false;
@@ -228,7 +277,14 @@ public struct Entity : IHandle<Entity>
         return false;
     }
 
-    public bool TryAddChild(Handle<Entity> child) => World.GetEntity(child).TrySetParent(Handle);
+    /// <summary>
+    /// Adds an entity as a child of this one
+    /// Under the hood is just calls the set parent of the child to set this entity as its parent
+    /// </summary>
+    /// <param name="child"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool TryAddChild(Handle<Entity> child) => World.GetEntity(child).TrySetParent(Handle);
 
     /// <summary>
     /// Sets the current entity as the sibling <paramref name="index"/> of its parent
@@ -314,6 +370,12 @@ public struct Entity : IHandle<Entity>
         return true;
     }
 
+    /// <summary>
+    /// This is the private helper that unparents the entity
+    /// It's used to aid in other operations, but not exposed because
+    /// unparenting from everything needs to update the <see cref="ActiveInHierarchy"/>
+    /// status, so that's why <see cref="UnParent"/> exists
+    /// </summary>
     private void UnlinkFromParent()
     {
         if (_parent.Id == 0)
@@ -340,6 +402,11 @@ public struct Entity : IHandle<Entity>
         World.MarkHierarchyDirty();
     }
 
+    /// <summary>
+    /// Unparents this entity, making it top level at the current <see cref="EntityRegistry"/>
+    /// This is the same state entities are when they're created without a parent
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void UnParent()
     {
         UnlinkFromParent();
@@ -388,6 +455,7 @@ public struct Entity : IHandle<Entity>
     /// </summary>
     public bool ActiveInHierarchy
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ActiveSelf && field;
         internal set 
         {
@@ -408,6 +476,7 @@ public struct Entity : IHandle<Entity>
     private Transform2D _current;
     private Transform2D _renderTransform;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCurrentTick()
     {
         if (_lastWriteTick != World.Tick)
@@ -417,6 +486,11 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+    /// <summary>
+    /// The transform of this entity
+    /// This returns a copy, to modify the position,
+    /// rotation or scale use the direct properties
+    /// </summary>
     public Transform2D Transform
     {
         get
@@ -434,8 +508,12 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+    /// <summary>
+    /// Gets/Sets this entity position
+    /// </summary>
     public Vector2 Position
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (World.IsDrawing)
@@ -444,6 +522,7 @@ public struct Entity : IHandle<Entity>
             return _current.Position;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             EnsureCurrentTick();
@@ -451,8 +530,12 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+    /// <summary>
+    /// Gets/Set this entity rotation in radians
+    /// </summary>
     public float Rotation
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (World.IsDrawing)
@@ -461,6 +544,7 @@ public struct Entity : IHandle<Entity>
             return _current.Rotation;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             EnsureCurrentTick();
@@ -468,10 +552,15 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+    /// <summary>
+    /// Gets/Set this entity rotation in degrees
+    /// </summary>
     public float RotationDegrees
     {
-        get => MathHelper.ToDegrees(_current.Rotation);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => MathHelper.ToDegrees(_current.Rotation);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             EnsureCurrentTick();
@@ -479,8 +568,13 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+
+    /// <summary>
+    /// Gets/Set this entity scale
+    /// </summary>
     public Vector2 Scale
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (World.IsDrawing)
@@ -488,7 +582,7 @@ public struct Entity : IHandle<Entity>
             
             return _current.Scale;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             EnsureCurrentTick();
@@ -496,6 +590,12 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+    /// <summary>
+    /// Teleports this entity to the position <paramref name="position"/>
+    /// bypassing physics interpolation
+    /// </summary>
+    /// <param name="position"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Teleport(Vector2 position)
     {
         _current.Position = position;
@@ -503,6 +603,10 @@ public struct Entity : IHandle<Entity>
         _renderTransform.Position = position;
     }
 
+    /// <summary>
+    /// Resets physics interpolation for this frame
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ResetInterpolation()
     {
         _previous = _current;
@@ -523,6 +627,7 @@ public struct Entity : IHandle<Entity>
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Transform2D Interpolate(Transform2D previous, Transform2D current,float alpha)
     {
         return new Transform2D
@@ -533,19 +638,35 @@ public struct Entity : IHandle<Entity>
         };
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float LerpAngle(float from, float to, float alpha)
     {
         float delta = MathF.IEEERemainder(to - from, MathF.Tau);
         return from + delta * alpha;
     }
 
+    /// <summary>
+    /// Creates an entity without name, flags and 0 components
+    /// </summary>
     public Entity()
     {
     }
 
-    public ref T AddComponent<T>() where T : struct, IComponent, IHandle<T> => ref AddComponent<T>(new());
+    /// <summary>
+    /// Adds a component to the entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly ref T AddComponent<T>() where T : struct, IComponent, IHandle<T> => ref AddComponent<T>(new());
 
-    public ref T AddComponent<T>(T component) where T : struct, IComponent, IHandle<T>
+    /// <summary>
+    /// Adds a component to the entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="component"></param>
+    /// <returns></returns>
+    public readonly ref T AddComponent<T>(T component) where T : struct, IComponent, IHandle<T>
     {
         component.World = World;
         component.EntityHandle = Handle;
@@ -556,7 +677,12 @@ public struct Entity : IHandle<Entity>
         return ref componentRef;
     }
 
-    public bool RemoveComponent<T>() where T : struct, IComponent
+    /// <summary>
+    /// Removes the first occurrence of the component of type T from this entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public readonly bool RemoveComponent<T>() where T : struct, IComponent
     {
         Handle removedHandle = _componentList.Remove<T>();
         if (removedHandle.Id == 0)
@@ -571,7 +697,13 @@ public struct Entity : IHandle<Entity>
         return worldRemoves && entityRemoves;
     }
 
-    public bool RemoveComponent<T>(Handle<T> handle) where T : struct, IComponent, IHandle<T>
+    /// <summary>
+    /// Removes the component whose handle is <paramref name="handle"/> from this entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="handle"></param>
+    /// <returns></returns>
+    public readonly bool RemoveComponent<T>(Handle<T> handle) where T : struct, IComponent, IHandle<T>
     {
         bool worldRemoves = World.RemoveComponent<T>(handle);
         var removedHandle = _componentList.Remove<T>(handle);
@@ -586,16 +718,52 @@ public struct Entity : IHandle<Entity>
         return worldRemoves && entityRemoves;
     }
 
-    public Handle<T> GetComponentHandle<T>() where T : struct, IComponent => _componentList.Get<T>();
+    /// <summary>
+    /// Gets the handle to the first occurence of the component of type T
+    /// Returns an invalid handle if the component wasn't in the entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly Handle<T> GetComponentHandle<T>() where T : struct, IComponent => _componentList.Get<T>();
 
-    public ref T GetComponent<T>() where T : struct, IComponent, IHandle<T> => ref World.GetComponent<T>(GetComponentHandle<T>());
+    /// <summary>
+    /// Gets the first occurrence of the component of type T
+    /// Returns an invalid component if it wasn't present in this entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly ref T GetComponent<T>() where T : struct, IComponent, IHandle<T> => ref World.GetComponent<T>(GetComponentHandle<T>());
+
+    /// <summary>
+    /// Gets the component whose handle is <paramref name="componentHandle"/> from this entity
+    /// Returns an invalid component if none was found
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="componentHandle"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent, IHandle<T> => ref World.GetComponent<T>(componentHandle);
+
+    /// <summary>
+    /// Checks if the entity has a component of type T
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;
+
+    /// <summary>
+    /// Checks if the entity has the component pointed by <paramref name="componentHandle"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="componentHandle"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool HasComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => _componentList.Has(componentHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T GetComponent<T>(Handle<T> componentHandle) where T : struct, IComponent, IHandle<T> => ref World.GetComponent<T>(componentHandle);
-
-    public bool HasComponent<T>() where T : struct, IComponent => GetComponentHandle<T>().Id != 0;
-    public bool HasComponent<T>(Handle<T> componentHandle) where T : struct, IComponent => _componentList.Has(componentHandle);
-
     internal readonly void Release()
     {
         foreach (var typedComponent in _componentList.Components)
@@ -604,6 +772,7 @@ public struct Entity : IHandle<Entity>
         _componentList.Clear();
     }
 
+    /// <inheritdoc/>
     public struct ChildEnumerator : IEnumerator<Entity>
     {
         private readonly EntityRegistry _world;
@@ -611,6 +780,7 @@ public struct Entity : IHandle<Entity>
         private Handle<Entity> _current;
         private bool _started;
 
+        /// <inheritdoc/>
         public readonly ref Entity Current => ref _world.GetEntity(_current);
         readonly Entity IEnumerator<Entity>.Current => _world.GetEntity(_current);
         readonly object IEnumerator.Current => Current;
@@ -623,6 +793,7 @@ public struct Entity : IHandle<Entity>
             _started = false;
         }
 
+        /// <inheritdoc/>
         public bool MoveNext()
         {
             if (!_started)
@@ -638,15 +809,18 @@ public struct Entity : IHandle<Entity>
             return _current.Id != 0;
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
             _current = default;
             _started = false;
         }
 
-        public void Dispose() { }
+        /// <inheritdoc/>
+        public readonly void Dispose() { }
     }
 
+    /// <inheritdoc/>
     public readonly struct ChildEnumerable
     {
         private readonly EntityRegistry _world;
@@ -658,8 +832,10 @@ public struct Entity : IHandle<Entity>
             _firstChild = firstChild;
         }
 
+        /// <inheritdoc/>
         public ChildEnumerator GetEnumerator() => new(_world, _firstChild);
     }
 
+    /// <inheritdoc/>
     public readonly ChildEnumerable Children => new(World, _firstChild);
 }

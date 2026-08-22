@@ -305,7 +305,7 @@ public class EntityTests
         world.GetEntity(child).TrySetParentFirst(parent);
         world.GetEntity(grandChild).TrySetParentFirst(child);
 
-        Assert.True(world.RemoveEntity(parent));
+        Assert.True(world.TryRemoveEntity(parent));
 
         Assert.Equal(0, world.GetEntityReadonly(parent).Handle.Id);
         Assert.Equal(0, world.GetEntityReadonly(child).Handle.Id);

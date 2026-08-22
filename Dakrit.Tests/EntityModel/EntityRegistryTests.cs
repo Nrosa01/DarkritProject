@@ -28,7 +28,7 @@ public class EntityRegistryTests
     {
         var handle = world.CreateEntityByHandle();
         Assert.NotEmpty(world);
-        world.RemoveEntity(handle);
+        world.TryRemoveEntity(handle);
         Assert.Empty(world);
     }
 
@@ -38,7 +38,7 @@ public class EntityRegistryTests
         var handle = world.CreateEntityByHandle();
         ref var entity = ref world.GetEntity(handle);
         entity.ActiveSelf = true;
-        world.RemoveEntity(handle);
+        world.TryRemoveEntity(handle);
 
         // Given Entity has a List<T> that is a reference type, when being removed, its set to
         // default to release that reference
@@ -56,7 +56,7 @@ public class EntityRegistryTests
         for (int i = 0; i < 512; i++)
             world.CreateEntityByHandle();
 
-        world.RemoveEntity(handle);
+        world.TryRemoveEntity(handle);
 
         // Check previous test first
         // Given the array was resized, the entity that was removed by the handle
@@ -71,7 +71,7 @@ public class EntityRegistryTests
         var handle = world.CreateEntityByHandle();
         ref var entity = ref world.GetEntity(handle);
         entity.ActiveSelf = false;
-        world.RemoveEntity(handle);
+        world.TryRemoveEntity(handle);
         handle = world.CreateEntityByHandle();
         Assert.Equal(1, world.Count);
         Assert.True(world.GetEntity(handle).ActiveSelf);

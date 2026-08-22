@@ -5,7 +5,6 @@
 using Darkrit.Base;
 using Darkrit.DataStructures;
 using Darkrit.DevTools.Logger;
-using Darkrit.Physics.Boxy2D;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using System;
@@ -228,7 +227,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return handle;
     }
 
-    public bool RemoveEntity(Handle<Entity> handle)
+    public bool TryRemoveEntity(Handle<Entity> handle)
     {
         if (!_entities.IsValid(handle))
             return false;
@@ -239,7 +238,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         {
             var next = _entities[child]._nextSibling;
 
-            RemoveEntity(child);
+            TryRemoveEntity(child);
 
             child = next;
         }
