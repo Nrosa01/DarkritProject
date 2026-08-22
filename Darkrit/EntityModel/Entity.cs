@@ -89,16 +89,28 @@ struct ComponentList
 
 public struct Entity : IHandle<Entity>
 {
+    /// <summary>
+    /// Flags to use as needed, ideally assigned from an enum
+    /// </summary>
     public int Flags;
 
+    /// <summary>
+    /// Name of this entity, stored as a single int
+    /// </summary>
     public StringID NameID { readonly get; internal set; }
 
+    /// <summary>
+    /// Gets/Sets the name of the Entity
+    /// </summary>
     public string Name
     {
-        get => NameID.ToString();
+        readonly get => NameID.ToString();
         set => NameID = new(value);
     }
 
+    /// <summary>
+    /// <see cref="EntityRegistry"/> this <see cref="Entity"/> belongs to
+    /// </summary>
     public EntityRegistry World { get; init; }
 
     readonly ComponentList _componentList = new();

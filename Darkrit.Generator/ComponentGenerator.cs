@@ -40,12 +40,21 @@ public sealed class ComponentGenerator : IIncrementalGenerator
                 [StructLayout(LayoutKind.Auto)]
                 public partial struct {{typeName}} : IComponent, IHandle<{{typeName}}>
                 {
+                    /// <inheritdoc/>
                     public Handle<{{typeName}}> Handle { get; set; }
 
+                    /// <summary>
+                    /// A reference to the entity that owns this component
+                    /// </summary>
                     public readonly ref Entity Entity => ref World.GetEntity(EntityHandle); 
 
+                    /// <inheritdoc/>
                     public EntityRegistry World { get; set; }
+                    
+                    /// <inheritdoc/>
                     public Handle<Entity> EntityHandle { get; set; }
+                    
+                    /// <inheritdoc/>
                     public bool Enabled
                     {
                         get; 
@@ -99,8 +108,16 @@ public sealed class ComponentGenerator : IIncrementalGenerator
             var propertyName = component.Name;
 
             builder.AppendLine($$"""
+            /// <summary>
+            /// Direct reference to the specific component store of type <see cref="{{componentName}}"/>
+            /// </summary>
             private ComponentStore<{{componentName}}> {{propertyName}}Store => field ??= World.GetStore<{{componentName}}>();
 
+            /// <summary>
+            /// Property to the component of type of type <see cref="{{componentName}}"/>
+            /// If the component doesn't exist yet in the entity it returns the empty handle
+            /// It's advised to check if the Entity has this handle
+            /// </summary>
             private Handle<{{componentName}}> {{propertyName}}Handle
             {
                 get
@@ -112,6 +129,10 @@ public sealed class ComponentGenerator : IIncrementalGenerator
                 }
             }
 
+            /// <summary>
+            /// Direct reference to the specific component of type <see cref="{{componentName}}"/>
+            /// If the entity doesn't have the component, a default one is returned
+            /// </summary>
             public ref {{componentName}} {{propertyName}} => ref {{propertyName}}Store.Get({{propertyName}}Handle);
             """);
         }
@@ -158,7 +179,10 @@ public sealed class ComponentGenerator : IIncrementalGenerator
             $"{p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} {p.Name}"
         ));
 
-        return $"public void {method.Name}({parameters}) {{ }}";
+        return $$"""
+            /// <inheritdoc/>
+            public void {{method.Name}}({{parameters}}) { }
+            """;
     }
 
     private static string GenerateMethods(INamedTypeSymbol type, INamedTypeSymbol? interfaceType)

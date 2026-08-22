@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Darkrit.Base;
@@ -17,13 +16,29 @@ namespace Darkrit.Base;
 /// </summary>
 public readonly struct StringID : IEquatable<StringID>
 {
+    /// <summary>
+    /// Invalid StringID
+    /// </summary>
     public static readonly StringID Invalid = new(0);
 
     private static readonly ConcurrentDictionary<ulong, string> Cache = [];
 
+    /// <summary>
+    /// ID that represents the internal string of this <see cref="StringID"/>
+    /// </summary>
     public readonly ulong ID;
 
+    /// <summary>
+    /// Default constructor that creates an invalid <seealso cref="StringID"/>
+    /// </summary>
     public StringID() => ID = 0;
+
+    /// <summary>
+    /// Constructs a <see cref="StringID"/> from the <paramref name="str"/>
+    /// For two equal strings, the generate ID is the same as is cached, but
+    /// it's not guaranteed to be the same ID across execution
+    /// </summary>
+    /// <param name="str"></param>
     public StringID(string str)
     {
         if (string.IsNullOrEmpty(str))
@@ -53,6 +68,10 @@ public readonly struct StringID : IEquatable<StringID>
             : null;
     }
 
+    /// <summary>
+    /// Gets the stored name in this <see cref="StringID"/>
+    /// </summary>
+    /// <returns></returns>
     public override string ToString() => GetString() ?? "";
 
     /// <summary>
@@ -65,14 +84,23 @@ public readonly struct StringID : IEquatable<StringID>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StringID(ulong id) => ID = id;
 
+    /// <summary>
+    /// Whether there is valid name in this <see cref="StringID"/>
+    /// </summary>
     public readonly bool IsValid => ID != 0;
+    
+    /// <inheritdoc/>
     public override bool Equals(object obj) => obj is StringID ID && Equals(ID);
 
+    /// <inheritdoc/>
     public static bool operator ==(StringID a, StringID b) => a.ID == b.ID;
 
+    /// <inheritdoc/>
     public static bool operator !=(StringID a, StringID b) => a.ID != b.ID;
 
+    /// <inheritdoc/>
     public readonly override int GetHashCode() => ID.GetHashCode();
 
+    /// <inheritdoc/>
     public readonly bool Equals(StringID other) => other.ID == ID;
 }
