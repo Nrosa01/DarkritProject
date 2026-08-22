@@ -67,6 +67,12 @@ public abstract class Scene : IDisposable
     public virtual void Update(GameTime gameTime) { }
 
     /// <summary>
+    /// Runs after the Update callback of this scene.
+    /// </summary>
+    /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>
+    public virtual void LateUpdate(GameTime gameTime) { }
+
+    /// <summary>
     /// Updates this scene.
     /// </summary>
     /// <param name="gameTime">A snapshot of the timing values for the current frame.</param>

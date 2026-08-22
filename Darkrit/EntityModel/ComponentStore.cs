@@ -21,6 +21,8 @@ public interface IComponentStore
     void UpdateComponent(Handle handle, GameTime gameTime);
     public void FixedUpdateComponent(Handle handle, GameTime gameTime);
     void DrawComponent(Handle handle, GameTime gameTime);
+    void LateUpdate(GameTime gameTime);
+    void LateUpdateComponent(Handle handle, GameTime gameTime);
 
     bool IsUpdateable { get; }
     bool IsFixedUpdateable { get; }
@@ -48,6 +50,8 @@ internal struct ComponentMetadata
 public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerable<T>, IEnumerable<HandleItem<T>> where T : struct, IComponent
 {
     private static readonly bool IsUpdateable = typeof(T).IsDefined(typeof(UpdateableAttribute), inherit: false);
+    
+    private static readonly bool IsLateUpdateable = typeof(T).IsDefined(typeof(LateUpdateableAttribute), inherit: false);
 
     private static readonly bool IsFixedUpdateable = typeof(T).IsDefined(typeof(FixedUpdateableAttribute), inherit: false);
 
@@ -119,6 +123,17 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         }
     }
 
+    public void LateUpdate(GameTime gameTime)
+    {
+        if (!IsLateUpdateable) return;
+
+        foreach (ref var handleItem in _components)
+        {
+            if (_componentMetadata[handleItem.Handle.Id].CanExecute)
+                handleItem.Item.LateUpdate(gameTime);
+        }
+    }
+
     public void FixedUpdate(GameTime gameTime)
     {
         if (!IsFixedUpdateable) return;
@@ -185,4 +200,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).Draw(gameTime);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void LateUpdateComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).LateUpdate(gameTime);
 }

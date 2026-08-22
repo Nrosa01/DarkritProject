@@ -249,6 +249,8 @@ public class Core : Game
 
         HandleFixedUpdate(gameTime);
 
+        s_activeScene?.LateUpdate(gameTime);
+
         s_coreEditor.CoreStats.ProfileEndLogic(gameTime);
 
         base.Update(gameTime);

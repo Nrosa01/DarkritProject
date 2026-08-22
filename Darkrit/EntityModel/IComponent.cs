@@ -26,6 +26,9 @@ public sealed class FixedUpdateableAttribute : Attribute { }
 public sealed class UpdateableAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Struct)]
+public sealed class LateUpdateableAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Struct)]
 public sealed class DrawableAttribute : Attribute { }
 
 [AttributeUsage(AttributeTargets.Method)]
@@ -59,8 +62,13 @@ public interface IComponent
 
     [AutoRegister]
     void Update(GameTime gameTime);
+    
+    [AutoRegister]
+    void LateUpdate(GameTime gameTime);
+
     [AutoRegister]
     void FixedUpdate(GameTime gameTime);
+ 
     [AutoRegister]
     void Draw(GameTime gameTime);
 

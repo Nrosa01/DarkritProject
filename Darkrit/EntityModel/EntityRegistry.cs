@@ -318,6 +318,25 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>, IEnumera
         }
     }
 
+    public void LateUpdate(GameTime gameTime)
+    {
+        if (UseHierarchyScheduler)
+        {
+            OrderHierachyIfDirty();
+
+            foreach (var item in _updateNodes)
+                _componentStores[item.type].LateUpdateComponent(item.handle, gameTime);
+        }
+        else
+        {
+            for (int i = 0; i < _componentStoresCount; i++)
+            {
+                var store = _componentStores[_componentStoresOrder[i]];
+                store.LateUpdate(gameTime);
+            }
+        }
+    }
+
     public void FixedUpdate(GameTime gameTime)
     {
         Tick++;

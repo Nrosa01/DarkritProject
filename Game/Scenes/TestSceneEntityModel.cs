@@ -193,6 +193,7 @@ public class TestSceneEntityModel : Scene
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);
 
     public override void FixedUpdate(GameTime gameTime) => entityWorld.FixedUpdate(gameTime);
+    public override void LateUpdate(GameTime gameTime) => entityWorld.LateUpdate(gameTime);
 
     public override void Draw(GameTime gameTime)
     {
