@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Hexa.NET.ImGui;
-using Microsoft.Xna.Framework;
 
 namespace Darkrit.Editor.MenuBar;
 
