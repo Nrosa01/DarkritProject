@@ -26,19 +26,18 @@ public class ComponentStoreTests
     [Fact]
     public void Store_is_empty_after_removing_last_component()
     {
-        var handle = dataStore.Add(new());
+        ref var component = ref dataStore.Add(new());
         Assert.NotEmpty(dataStore);
-        dataStore.TryRemove(handle);
+        dataStore.TryRemove(component.Handle);
         Assert.Empty(dataStore);
     }
 
     [Fact]
     public void Store_remove_component_modifies_its_fields()
     {
-        var handle = dataStore.Add(new());
-        ref var component = ref dataStore.Get(handle);
+        ref var component = ref dataStore.Add(new());
         component.firstData = 17;
-        dataStore.TryRemove(handle);
+        dataStore.TryRemove(component.Handle);
 
         // Given Entity has a List<T> that is a reference type, when being removed, its set to
         // default to release that reference
@@ -48,14 +47,13 @@ public class ComponentStoreTests
     [Fact]
     public void Store_remove_component_after_many_insertions_doesnt_modifies_its_fields()
     {
-        var handle = dataStore.Add(new());
-        ref var component = ref dataStore.Get(handle);
+        ref var component = ref dataStore.Add(new());
         component.firstData = 17;
 
         for (int i = 0; i < 512; i++)
             dataStore.Add(new());
 
-        dataStore.TryRemove(handle);
+        dataStore.TryRemove(component.Handle);
 
         // Check previous test first
         // Given the array was resized, the entity that was removed by the handle

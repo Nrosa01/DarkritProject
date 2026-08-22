@@ -31,22 +31,6 @@ public interface IComponentStore
     int Priority { get; }
 }
 
-internal struct ComponentMetadata
-{
-    internal bool _enabled = false;
-    internal bool _initialized = false;
-
-    public TypedHandle Previous;
-    public TypedHandle Next;
-
-    public readonly bool CanExecute => true;
-    //public readonly bool CanExecute => _enabled && _initialized;
-
-    public ComponentMetadata()
-    {
-    }
-}
-
 public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerable<T> where T : struct, IComponent, IHandle<T>
 {
     private static readonly bool IsUpdateable = typeof(T).IsDefined(typeof(UpdateableAttribute), inherit: false);
@@ -70,7 +54,6 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     bool IComponentStore.IsDrawable => IsDrawable;
 
     private readonly HandleMapGrowing<T> _components = new(initialCapacity);
-    GrowableArray<ComponentMetadata> _componentMetadata = new(initialCapacity);
     private Stack<Handle<T>> nonInitializedComponents = new();
 
     public int Count => _components.Count;
@@ -84,18 +67,12 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<T> Add(T value)
+    public ref T Add(T value)
     {
         var handle = _components.Add(value);
         _components.At(handle.Id).OnAdd();
-        //nonInitializedComponents.Push(handle);
 
-        if (handle.Id < _componentMetadata.Count)
-            _componentMetadata[handle.Id] = default;
-        else
-            _componentMetadata.Add(default);
-
-        return handle;
+        return ref Get(handle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -118,7 +95,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (_componentMetadata[handleItem.Handle.Id].CanExecute)
+            if (handleItem.Enabled)
                 handleItem.Update(gameTime);
         }
     }
@@ -129,7 +106,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (_componentMetadata[handleItem.Handle.Id].CanExecute)
+            if (handleItem.Enabled)
                 handleItem.LateUpdate(gameTime);
         }
     }
@@ -140,7 +117,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (_componentMetadata[handleItem.Handle.Id].CanExecute)
+            if (handleItem.Enabled)
                 handleItem.FixedUpdate(gameTime);
         }
     }
@@ -151,7 +128,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (_componentMetadata[handleItem.Handle.Id].CanExecute)
+            if (handleItem.Enabled)
                 handleItem.Draw(gameTime);
         }
     }

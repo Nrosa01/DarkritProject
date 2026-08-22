@@ -531,18 +531,17 @@ public struct Entity : IHandle<Entity>
     {
     }
 
-    public Handle<T> AddComponent<T>() where T : struct, IComponent, IHandle<T> => AddComponent<T>(new());
+    public ref T AddComponent<T>() where T : struct, IComponent, IHandle<T> => ref AddComponent<T>(new());
 
-    public Handle<T> AddComponent<T>(T component) where T : struct, IComponent, IHandle<T>
+    public ref T AddComponent<T>(T component) where T : struct, IComponent, IHandle<T>
     {
         component.World = World;
         component.EntityHandle = Handle;
 
-        Handle<T> componentHandle = World.CreateComponent(Handle, component);
+        ref T componentRef = ref World.CreateComponent(Handle, component);
+        _componentList.Add<T>(componentRef.Handle);
 
-        _componentList.Add<T>(componentHandle);
-
-        return componentHandle;
+        return ref componentRef;
     }
 
     public bool RemoveComponent<T>() where T : struct, IComponent

@@ -42,11 +42,8 @@ public class EntityTests
     [Fact]
     public void Can_add_two_components_of_same_type()
     {
-        var handle1 = Entity.AddComponent<ComponentWithValueData>();
-        var handle2 = Entity.AddComponent<ComponentWithValueData>();
-
-        ref var ref1 = ref Entity.GetComponent(handle1);
-        ref var ref2 = ref Entity.GetComponent(handle2);
+        ref var ref1 = ref Entity.AddComponent<ComponentWithValueData>();
+        ref var ref2 = ref Entity.AddComponent<ComponentWithValueData>();
 
         ref1.firstData = 4;
         ref2.firstData = 7;
@@ -58,13 +55,13 @@ public class EntityTests
     [Fact]
     public void Parameterless_get_component_removes_first_ocurrence()
     {
-        var handle1 = Entity.AddComponent<ComponentA>();
-        var handle2 = Entity.AddComponent<ComponentA>();
+        ref var component1 = ref Entity.AddComponent<ComponentA>();
+        ref var component2 = ref Entity.AddComponent<ComponentA>();
 
         Entity.RemoveComponent<ComponentA>();
         Assert.True(Entity.HasComponent<ComponentA>());
-        Assert.True(Entity.HasComponent<ComponentA>(handle2));
-        Assert.False(Entity.HasComponent<ComponentA>(handle1));
+        Assert.False(Entity.HasComponent<ComponentA>(component1.Handle));
+        Assert.True(Entity.HasComponent<ComponentA>(component2.Handle));
     }
 
     ////////////////////////////

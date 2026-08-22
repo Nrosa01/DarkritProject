@@ -253,10 +253,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal Handle<T> CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent, IHandle<T>
+    internal ref T CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent, IHandle<T>
     {
         MarkHierarchyDirty();
-        return GetStore<T>().Add(component);
+        return ref GetStore<T>().Add(component);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
