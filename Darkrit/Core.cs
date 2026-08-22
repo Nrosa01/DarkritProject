@@ -101,10 +101,11 @@ public class Core : Game
     // but I prefer diong the separation
     private readonly GameTime _physicsGameTime = new();
 
-
-    // this value stores how far we are in the current frame. For example, when the 
-    // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
-    // next upcoming frame.
+    /// <summary>
+    /// This value stores how far we are in the current frame. For example, when the 
+    /// value of ALPHA is 0.5, it means we are halfway between the last frame and the 
+    /// next upcoming frame
+    /// </summary>
     public static float FixedUpdateAlpha { get; private set; }  = 0;
 
 

@@ -478,10 +478,10 @@ public struct Entity : IHandle<Entity>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCurrentTick()
     {
-        if (_lastWriteTick != World.Tick)
+        if (_lastWriteTick != World.FixedTick)
         {
             _previous = _current;
-            _lastWriteTick = World.Tick;
+            _lastWriteTick = World.FixedTick;
         }
     }
 
@@ -618,7 +618,7 @@ public struct Entity : IHandle<Entity>
         {
             if (_renderFrame != World.RenderFrame)
             {
-                _renderTransform = Interpolate(_previous, _current, World.FixedUpdateAlpha);
+                _renderTransform = Interpolate(_previous, _current, EntityRegistry.FixedUpdateAlpha);
                 _renderFrame = World.RenderFrame;
             }
 

@@ -170,7 +170,7 @@ public class HandleMapGrowing<T> : IEnumerable<T> where T : IHandle<T>, new()
     /// <para></para>
     /// is valid <seealso cref="IsValid(Handle{T})"/>
     /// </remarks>
-    /// <param name="index">The zero-based index of the element to get or set.</param>
+    /// <param name="handle">The zero-based index of the element to get or set.</param>
     /// <returns></returns>
     public ref T this[Handle<T> handle]
     {

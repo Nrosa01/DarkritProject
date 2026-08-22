@@ -15,23 +15,41 @@ using System.Threading;
 
 namespace Darkrit.EntityModel;
 
+/// <summary>
+/// Static class to assign a unique ID to each component
+/// </summary>
 public static class ComponentTypeId
 {
     private static int _nextId;
 
-    public static int Next()
-    {
-        return Interlocked.Increment(ref _nextId) - 1;
-    }
+    /// <summary>
+    /// Gets a new id
+    /// </summary>
+    /// <returns></returns>
+    public static int Next() => Interlocked.Increment(ref _nextId) - 1;
 
+    /// <summary>
+    /// Total amount of IComponent types
+    /// </summary>
     public static readonly int Count = ReflectionUtils.CountDerivedTypes<IComponent>();
 }
 
+/// <summary>
+/// Generic version that each type uses to generate its IDs
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public static class ComponentTypeId<T> where T : struct, IComponent
 {
+    /// <summary>
+    /// ID of this component
+    /// </summary>
     public static readonly int Id = ComponentTypeId.Next();
 }
 
+/// <summary>
+/// Class tha own entities and components and orchestrates them
+/// </summary>
+/// <param name="initialCapacity"></param>
 public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
@@ -142,21 +160,61 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
     }
 
+    /// <summary>
+    /// Amount of active entities in the world
+    /// </summary>
     public int Count => _entities.Count;
 
-    public ulong Tick { get; internal set; }
-    public ulong RenderFrame { get; internal set; }
-    public float FixedUpdateAlpha => Core.FixedUpdateAlpha;
+    /// <summary>
+    /// Amount of times <see cref="FixedUpdate(GameTime)"/> has executed since the beggining
+    /// </summary>
+    public ulong FixedTick { get; internal set; }
 
+    /// <summary>
+    /// Amount of times <see cref="Update(GameTime)"/> has executed since the beggining
+    /// </summary>
+    public ulong Tick { get; internal set; }
+
+    /// <summary>
+    /// Amount of times <see cref="Draw(GameTime)"/> has executed since the beggining
+    /// </summary>
+    public ulong RenderFrame { get; internal set; }
+
+    /// <summary>
+    /// This value stores how far we are in the current frame. For example, when the 
+    /// value of ALPHA is 0.5, it means we are halfway between the last frame and the 
+    /// next upcoming frame
+    /// </summary>
+    public static float FixedUpdateAlpha => Core.FixedUpdateAlpha;
+
+    /// <summary>
+    /// Gets a entity given a handle. If it doesn't exist it gets a default one
+    /// </summary>
+    /// <param name="entityHandle"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref Entity GetEntity(Handle<Entity> entityHandle) => ref _entities[entityHandle];
 
+
+    /// Gets a entity given a handle. If it doesn't exist it gets a default one
+    /// </summary>
+    /// <param name="entityHandle"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref readonly Entity GetEntityReadonly(Handle<Entity> entityHandle) => ref _entities.GetReadonly(entityHandle);
 
-
+    /// <summary>
+    /// Creates an entity registry with initial capacity of 1000 entities
+    /// </summary>
     public EntityRegistry() : this(1000) { }
 
+
+    /// <summary>
+    /// Gets a component of store of type T
+    /// It creates the store if it didn't exist
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ComponentStore<T> GetStore<T>() where T : struct, IComponent, IHandle<T>
     {
@@ -172,9 +230,20 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return store;
     }
 
+    /// <summary>
+    /// Creates an entity and returns a handle to it
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(string name = "") => CreateEntityByHandle(new StringID(name));
 
+
+    /// <summary>
+    /// Creates an entity and returns a handle to it
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(StringID name)
     {
@@ -188,6 +257,11 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         });
     }
 
+    /// <summary>
+    /// Creates an entity and returns a reference to it
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref Entity CreateEntity(string name = "")
     {
@@ -195,6 +269,13 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return ref GetEntity(handle);
     }
 
+    /// <summary>
+    /// Creates an entity and returns a reference to it
+    /// The created entity will be a child of <paramref name="parentHandle"/>
+    /// </summary>
+    /// <param name="parentHandle"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref Entity CreateEntity(Handle<Entity> parentHandle, string name = "")
     {
@@ -203,6 +284,13 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return ref entity;
     }
 
+    /// <summary>
+    /// Creates an entity and returns a reference to it
+    /// The created entity will be a child of <paramref name="parent"/>
+    /// </summary>
+    /// <param name="parent"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref Entity CreateEntity(ref Entity parent, string name = "")
     {
@@ -211,14 +299,30 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return ref entity;
     }
 
+
+    /// <summary>
+    /// Creates an entity and returns a handle to it
+    /// The created entity will be a child of <paramref name="parentHandle"/>
+    /// </summary>
+    /// <param name="parentHandle"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Handle<Entity> CreateEntityByHandle(Handle<Entity> parent, string name = "")
+    public Handle<Entity> CreateEntityByHandle(Handle<Entity> parentHandle, string name = "")
     {
         var handle = CreateEntityByHandle(new StringID(name));
-        GetEntity(handle).TrySetParent(parent);
+        GetEntity(handle).TrySetParent(parentHandle);
         return handle;
     }
 
+
+    /// <summary>
+    /// Creates an entity and returns a handle to it
+    /// The created entity will be a child of <paramref name="parent"/>
+    /// </summary>
+    /// <param name="parent"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(ref Entity parent, string name = "")
     {
@@ -227,6 +331,11 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return handle;
     }
 
+    /// <summary>
+    /// Removes an entity by its handle
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <returns>True if the entity was removed</returns>
     public bool TryRemoveEntity(Handle<Entity> handle)
     {
         if (!_entities.IsValid(handle))
@@ -248,8 +357,13 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         return _entities.Remove(handle);
     }
 
+    /// <summary>
+    /// Checks if a handle to an entity is valid
+    /// </summary>
+    /// <param name="entityHandle"></param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool Exists(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
+    public bool IsValid(Handle<Entity> entityHandle) => _entities.IsValid(entityHandle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ref T CreateComponent<T>(Handle<Entity> entityHandle, T component) where T : struct, IComponent, IHandle<T>
@@ -291,8 +405,13 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
     internal void EntityActiveInHierarchyChanged(bool entityEnabled, int type, Handle handle) => _componentStores[type].EntityActiveInHierarchyChanged(entityEnabled, handle);
 
+    /// <summary>
+    /// Updates all of the components
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void Update(GameTime gameTime)
     {
+        Tick++;
         if (UseHierarchyScheduler)
         {
             OrderHierachyIfDirty();
@@ -317,6 +436,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
     }
 
+    /// <summary>
+    /// Late Update all components
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void LateUpdate(GameTime gameTime)
     {
         if (UseHierarchyScheduler)
@@ -336,9 +459,13 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
     }
 
+    /// <summary>
+    /// Fixed Update all components
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void FixedUpdate(GameTime gameTime)
     {
-        Tick++;
+        FixedTick++;
 
         if (UseHierarchyScheduler)
         {
@@ -356,8 +483,15 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
     }
 
+    /// <summary>
+    /// True when the <see cref="EntityRegistry"/> is in the middle of the <see cref="Draw(GameTime)"/> callback
+    /// </summary>
     public bool IsDrawing { get; private set; }
 
+    /// <summary>
+    /// Calls Draw on all components
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void Draw(GameTime gameTime)
     {
         RenderFrame++;
@@ -451,8 +585,9 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
     }
 
-    public bool IsValid(Handle<Entity> entity) => _entities.IsValid(entity);
-
+    /// <summary>
+    /// Does the debug render, still WIP
+    /// </summary>
     public void EditorDraw()
     {
         ImGui.Begin("World");

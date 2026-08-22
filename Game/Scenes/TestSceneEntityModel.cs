@@ -141,6 +141,8 @@ public partial struct Mover
 public partial struct SquareRenderer
 {
     public int Size;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly void Draw(GameTime gameTime)
     {
         var pos = Entity.Position;
