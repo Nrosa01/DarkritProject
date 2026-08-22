@@ -6,8 +6,23 @@ using Microsoft.Xna.Framework;
 
 namespace Darkrit.Math;
 
+/// <summary>
+/// 2D non affine transform that provides Position, Scale and Rotation
+/// </summary>
 public struct Transform2D
 {
-    // Affin transform
-    //private Vector2 BasisX, BasisY, Translation;
+    /// <summary>
+    /// Position in space
+    /// </summary>
+    public Vector2 Position;
+
+    /// <summary>
+    /// Scale of the item
+    /// </summary>
+    public Vector2 Scale;
+
+    /// <summary>
+    /// Rotation (in radians)
+    /// </summary>
+    public float Rotation;
 }
