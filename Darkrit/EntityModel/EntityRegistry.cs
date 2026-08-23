@@ -154,7 +154,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     private void OrderHierachyIfDirty()
     {
         if (_isDirty)
-        { 
+        {
             UpdateComponentUpdateLists();
             _isDirty = false;
         }
@@ -681,6 +681,9 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
                 if (row.Depth > 0)
                     ImGui.Indent(row.Depth * style.IndentSpacing);
 
+                if (!entity.ActiveInHierarchy)
+                    ImGui.PushStyleColor(ImGuiCol.Text, new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1f));
+
                 StringID name = entity.NameID;
 
                 if (!name.IsValid)
@@ -698,6 +701,9 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
                 ImGui.TreeNodeEx(name.ToString(), flags);
 
+                if (!entity.ActiveInHierarchy)
+                    ImGui.PopStyleColor();
+
                 if (hasChildren && ImGui.IsItemToggledOpen())
                 {
                     if (isOpen)
@@ -708,7 +714,8 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
                 if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
                 {
-                    // I need to think where to show components
+                    _inspectedEntity = row.Handle;
+                    _inspectorOpen = true;
                 }
 
                 ImGui.PopID();
@@ -719,6 +726,52 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
 
         clipper.End();
+
+        DrawInspector();
+
+        ImGui.End();
+    }
+
+    private Handle<Entity> _inspectedEntity;
+    bool _inspectorOpen = true;
+    private void DrawInspector()
+    {
+        if (!_inspectorOpen || _inspectedEntity.Id == 0 || !IsValid(_inspectedEntity))
+            return;
+
+        ref Entity entity = ref GetEntity(_inspectedEntity);
+
+        if (!ImGui.Begin("Inspector", ref _inspectorOpen))
+        {
+            ImGui.End();
+            return;
+        }
+
+        StringID name = entity.NameID;
+
+        if (!name.IsValid)
+        {
+            if (!_editorFallbackNames.TryGetValue(_inspectedEntity.Id, out name))
+            {
+                name = new StringID($"Entity {_inspectedEntity.Id}");
+                _editorFallbackNames.Add(_inspectedEntity.Id, name);
+            }
+        }
+
+        bool active = entity.ActiveSelf;
+        if (ImGui.Checkbox("Active", ref active))
+            entity.ActiveSelf = active;
+
+        ImGui.SameLine();
+        ImGui.Text(name.ToString());
+
+        ImGui.Separator();
+
+        foreach (TypedHandle component in entity.Components)
+        {
+            IComponentStore store = _componentStores[component.type];
+            store.EditorDraw(component.handle);
+        }
 
         ImGui.End();
     }

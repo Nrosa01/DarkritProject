@@ -2,13 +2,17 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Darkrit.Base;
 using Darkrit.DataStructures;
+using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 namespace Darkrit.EntityModel;
 
@@ -17,6 +21,11 @@ namespace Darkrit.EntityModel;
 /// </summary>
 public interface IComponentStore
 {
+    /// <summary>
+    /// Name of the Component type stored in this store
+    /// </summary>
+    StringID Name { get; }
+
     /// <summary>
     /// Currently unused, initialized recently created componentes
     /// </summary>
@@ -116,6 +125,12 @@ public interface IComponentStore
     /// Priority of the component execution. Lower values means more priority
     /// </summary>
     int Priority { get; }
+
+    /// <summary>
+    /// Draws the IMGUI window for the given component
+    /// </summary>
+    /// <param name="handle"></param>
+    void EditorDraw(Handle handle);
 }
 
 /// <summary>
@@ -138,6 +153,12 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     internal static readonly int Priority = OverridesPriority ? typeof(T).GetCustomAttribute<PriorityAttribute>(inherit: false).Priority : 0;
 
     /// <inheritdoc/>
+    public static readonly StringID NameID = new(typeof(T).Name);
+
+    /// <inheritdoc/>
+    StringID IComponentStore.Name => NameID;
+
+    /// <inheritdoc/>
     bool IComponentStore.IsUpdateable => IsUpdateable;
 
     /// <inheritdoc/>
@@ -147,7 +168,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     bool IComponentStore.IsDrawable => IsDrawable;
 
     private readonly HandleMapGrowing<T> _components = new(initialCapacity);
-    private Stack<Handle<T>> nonInitializedComponents = new();
+    private readonly Stack<Handle<T>> nonInitializedComponents = new();
 
     /// <summary>
     /// Amount of components in use
@@ -199,7 +220,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled)
+            if (handleItem.Enabled && handleItem.ActiveInHierachy)
                 handleItem.Update(gameTime);
         }
     }
@@ -211,7 +232,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled)
+            if (handleItem.Enabled && handleItem.ActiveInHierachy)
                 handleItem.LateUpdate(gameTime);
         }
     }
@@ -223,7 +244,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled)
+            if (handleItem.Enabled && handleItem.ActiveInHierachy)
                 handleItem.FixedUpdate(gameTime);
         }
     }
@@ -235,7 +256,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled)
+            if (handleItem.Enabled && handleItem.ActiveInHierachy)
                 handleItem.Draw(gameTime);
         }
     }
@@ -296,4 +317,159 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LateUpdateComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).LateUpdate(gameTime);
+
+    private static readonly FieldInfo[] EditorFields = [.. typeof(T)
+    .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+    .Where(field =>
+        !field.IsStatic &&
+        GetFieldName(field) != nameof(IComponent.Enabled) &&
+        (field.IsPublic ||
+         field.IsDefined(typeof(ShowInInspectorAttribute)) ||
+         field.IsDefined(typeof(SerializeFieldAttribute)) ||
+         field.Name.Contains("k__BackingField")))];
+
+
+
+    private readonly HashSet<int> _editorExpanded = [];
+
+    /// <inheritdoc/>
+    public void EditorDraw(Handle handle)
+    {
+        ImGui.PushID((int)NameID.ID);
+        ImGui.PushID(handle.Id);
+
+        ref T component = ref _components.At(handle.Id);
+        var wasEnabled = component.Enabled;
+
+        if (!wasEnabled)
+            ImGui.PushStyleColor(ImGuiCol.Text, new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1f));
+
+        int editorFieldCount = GetEditorFieldCount();
+        bool hasFields = editorFieldCount > 0;
+        bool open = hasFields && _editorExpanded.Contains(handle.Id);
+
+        // Draw the header background.
+        System.Numerics.Vector2 headerMin = ImGui.GetCursorScreenPos();
+        float headerHeight = ImGui.GetFrameHeight();
+        float headerWidth = ImGui.GetContentRegionAvail().X;
+
+        ImGui.GetWindowDrawList().AddRectFilled(
+            headerMin,
+            headerMin + new System.Numerics.Vector2(headerWidth, headerHeight),
+            ImGui.GetColorU32(ImGuiCol.Header),
+            16.0f);
+
+        // Expand/collapse button.
+        if (hasFields)
+        {
+            if (ImGui.ArrowButton("##Expand", open ? ImGuiDir.Down : ImGuiDir.Right))
+            {
+                open = !open;
+
+                if (open)
+                    _editorExpanded.Add(handle.Id);
+                else
+                    _editorExpanded.Remove(handle.Id);
+            }
+        }
+        else
+        {
+            ImGui.BeginDisabled();
+            ImGui.ArrowButton("##Expand", ImGuiDir.Right);
+            ImGui.EndDisabled();
+        }
+
+        ImGui.SameLine();
+
+        bool enabled = component.Enabled;
+        if (ImGui.Checkbox("##Enabled", ref enabled))
+            component.Enabled = enabled;
+
+        ImGui.SameLine(0.0f, 6.0f);
+
+        ImGui.Text(NameID.ToString());
+
+        // Component fields.
+        if (open)
+        {
+            foreach (FieldInfo field in EditorFields)
+            {
+                if (IsEditorFieldSupported(field))
+                    DrawField(field, ref component);
+            }
+        }
+
+        if (!wasEnabled)
+            ImGui.PopStyleColor();
+
+        ImGui.PopID();
+        ImGui.PopID();
+    }
+
+    private static string GetFieldName(FieldInfo field)
+    {
+        const string suffix = "k__BackingField";
+
+        if (field.Name.StartsWith('<') && field.Name.EndsWith(suffix))
+            return field.Name[1..^(suffix.Length + 1)];
+
+        return field.Name;
+    }
+
+    private static void DrawField(FieldInfo field, ref T component)
+    {
+        string name = GetFieldName(field);
+        object value = field.GetValue(component);
+
+        if (value is int intValue)
+        {
+            if (ImGui.DragInt(name, ref intValue))
+                field.SetValueDirect(__makeref(component), intValue);
+        }
+        else if (value is float floatValue)
+        {
+            if (ImGui.DragFloat(name, ref floatValue))
+                field.SetValueDirect(__makeref(component), floatValue);
+        }
+        else if (value is bool boolValue)
+        {
+            if (ImGui.Checkbox(name, ref boolValue))
+                field.SetValueDirect(__makeref(component), boolValue);
+        }
+        else if (value is Vector2 vector2Value)
+        {
+            System.Numerics.Vector2 imguiValue = new(vector2Value.X, vector2Value.Y);
+
+            if (ImGui.DragFloat2(name, ref imguiValue))
+            {
+                vector2Value.X = imguiValue.X;
+                vector2Value.Y = imguiValue.Y;
+
+                field.SetValueDirect(__makeref(component), vector2Value);
+            }
+        }
+    }
+
+    private static bool IsEditorFieldSupported(FieldInfo field)
+    {
+        Type type = field.FieldType;
+
+        return type == typeof(int) ||
+               type == typeof(float) ||
+               type == typeof(bool) ||
+               type == typeof(Vector2);
+    }
+
+    private static int GetEditorFieldCount()
+    {
+        int count = 0;
+
+        foreach (FieldInfo field in EditorFields)
+        {
+            if (IsEditorFieldSupported(field))
+                count++;
+        }
+
+        return count;
+    }
 }

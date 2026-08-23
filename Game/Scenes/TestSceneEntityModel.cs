@@ -43,12 +43,9 @@ public partial struct PlayerController
     InputAction moveLeft;
     InputAction moveRight;
 
-    Vector2 direction;
-    private readonly float speed = 500f;
-
-    public PlayerController()
-    {
-    }
+    [ShowInInspector] Vector2 direction;
+    
+    [SerializeField] private readonly float speed = 500f;
 
     public void OnAdd()
     {

@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Runtime.CompilerServices;
 using Darkrit.Base;
 using Microsoft.Xna.Framework;
 
@@ -80,6 +81,22 @@ public sealed class DrawableAttribute : Attribute { }
 internal sealed class AutoRegisterAttribute : Attribute { }
 
 /// <summary>
+/// Marks a private field or property backing field as editable in the editor.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class SerializeFieldAttribute : Attribute
+{
+}
+
+/// <summary>
+/// Marks a private field or property backing field as editable in the editor.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class ShowInInspectorAttribute : Attribute
+{
+}
+
+/// <summary>
 /// Defines all the required properties a component needs
 /// </summary>
 public interface IComponent
@@ -102,7 +119,11 @@ public interface IComponent
     /// <summary>
     /// Whether this component's <see cref="EntityHandle"/> is active in the hierarchy
     /// </summary>
-    public bool ActiveSelf { get => World.GetEntity(EntityHandle).ActiveSelf; }
+    public bool ActiveSelf 
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => World.GetEntity(EntityHandle).ActiveSelf; 
+    }
 
     /// <summary>
     /// Whether this component's <see cref="EntityHandle"/> is active in the scene
@@ -110,7 +131,11 @@ public interface IComponent
     /// be inactive, which would result in B <see cref="ActiveInHierachy"/> be false
     /// while <see cref="ActiveSelf"/> is true
     /// </summary>
-    public bool ActiveInHierachy { get => World.GetEntity(EntityHandle).ActiveInHierarchy; }
+    public bool ActiveInHierachy 
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => World.GetEntity(EntityHandle).ActiveInHierarchy; 
+    }
 
     /// <summary>
     /// Called when the component is added to the entity
