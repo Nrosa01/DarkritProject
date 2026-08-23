@@ -101,6 +101,7 @@ internal class CoreStats(GraphicsDevice GraphicsDevice)
     [Conditional("EDITOR_BUILD")]
     public void Update(GameTime gameTime)
     {
+        _fps = (float)(1.0 / gameTime.ElapsedGameTime.TotalSeconds);
         ProcessStats.Update(gameTime.ElapsedGameTime.TotalSeconds);
     }
 
@@ -116,7 +117,6 @@ internal class CoreStats(GraphicsDevice GraphicsDevice)
         _processTimer.Stop();
 
         _cpuProcessMs = (float)_processTimer.Elapsed.TotalMilliseconds;
-        _fps = (float)(1.0 / (gameTime.ElapsedGameTime.TotalSeconds + _processTimer.Elapsed.TotalSeconds));
 
         _cpuProcessHistory[_historyIndex] = _cpuProcessMs;
         _historyIndex = (_historyIndex + 1) % HistorySize;
@@ -138,7 +138,6 @@ internal class CoreStats(GraphicsDevice GraphicsDevice)
         _frameTimer.Stop();
 
         _cpuRenderMs = (float)_frameTimer.Elapsed.TotalMilliseconds;
-        _fps = (float)(1.0 / (gameTime.ElapsedGameTime.TotalSeconds + _frameTimer.Elapsed.TotalSeconds));
 
         _cpuRenderHistory[_historyIndex] = _cpuRenderMs;
         _historyIndex = (_historyIndex + 1) % HistorySize;
