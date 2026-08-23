@@ -438,7 +438,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
                 foreach (FieldInfo field in EditorFields)
                 {
-                    if (EditorFieldDrawer.IsSupported(field))
+                    if (EditorFieldDrawer.IsEditorFieldSupported(field))
                         EditorFieldDrawer.Draw(field, ref component);
                 }
 

@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using Darkrit.EntityModel;
 using Microsoft.Xna.Framework;
 
 namespace Darkrit.Math;
@@ -19,7 +20,7 @@ public struct Transform2D
     /// <summary>
     /// Scale of the item
     /// </summary>
-    public Vector2 Scale = Vector2.One;
+    [Linkable] public Vector2 Scale = Vector2.One;
 
     /// <summary>
     /// Rotation (in radians)

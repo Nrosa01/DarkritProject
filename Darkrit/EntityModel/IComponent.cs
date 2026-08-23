@@ -97,6 +97,14 @@ public sealed class ShowInInspectorAttribute : Attribute
 }
 
 /// <summary>
+/// Used for vectors that need to be linked together
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class LinkableAttribute : Attribute
+{
+}
+
+/// <summary>
 /// Defines all the required properties a component needs
 /// </summary>
 public interface IComponent
