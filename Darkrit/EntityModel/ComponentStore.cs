@@ -135,6 +135,26 @@ public interface IComponentStore
 }
 
 /// <summary>
+/// I cache here the activeInHierachy from the parent, because calling the
+/// entity through the component handle incurs in an indirection that for some
+/// reason is costly, even tho the damn getter is used inside the entity
+/// 
+/// Doing this cache is much faster in my benchmarks, so I will go with it
+/// </summary>
+internal struct ComponentMetadata
+{
+    internal bool _activeInHierarchy = false;
+    internal bool _initialized = false;
+
+    public readonly bool CanExecute => _activeInHierarchy && _initialized;
+
+    public ComponentMetadata()
+    {
+    }
+}
+
+
+/// <summary>
 /// Storage for components of a specific type
 /// </summary>
 /// <typeparam name="T"></typeparam>
@@ -169,6 +189,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     bool IComponentStore.IsDrawable => IsDrawable;
 
     private readonly HandleMapGrowing<T> _components = new(initialCapacity);
+    readonly GrowableArray<ComponentMetadata> _componentMetadata = new(initialCapacity);
+
     private readonly Stack<Handle<T>> nonInitializedComponents = new();
 
     /// <summary>
@@ -184,7 +206,11 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     public void InitializePendingComponents()
     {
         while (nonInitializedComponents.TryPop(out Handle<T> handle))
-            _components[handle].OnAdd();
+        {
+            _components.At(handle.Id).OnAdd();
+            _componentMetadata[handle.Id]._activeInHierarchy = _components.At(handle.Id).ActiveInHierachy;
+            _componentMetadata[handle.Id]._initialized = true;
+        }
     }
 
     /// <inheritdoc/>
@@ -192,7 +218,13 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     public ref T Add(T value)
     {
         var handle = _components.Add(value);
-        _components.At(handle.Id).OnAdd();
+
+        nonInitializedComponents.Push(handle);
+
+        if (handle.Id < _componentMetadata.Count)
+            _componentMetadata[handle.Id] = default;
+        else
+            _componentMetadata.Add(default);
 
         return ref Get(handle);
     }
@@ -217,11 +249,13 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     /// <inheritdoc/>
     public void Update(GameTime gameTime)
     {
+        InitializePendingComponents();
+        
         if (!IsUpdateable) return;
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled && handleItem.ActiveInHierachy)
+            if (handleItem.Enabled && _componentMetadata[handleItem.Handle.Id].CanExecute)
                 handleItem.Update(gameTime);
         }
     }
@@ -233,7 +267,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled && handleItem.ActiveInHierachy)
+            if (handleItem.Enabled && _componentMetadata[handleItem.Handle.Id].CanExecute)
                 handleItem.LateUpdate(gameTime);
         }
     }
@@ -245,7 +279,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled && handleItem.ActiveInHierachy)
+            if (handleItem.Enabled && _componentMetadata[handleItem.Handle.Id].CanExecute)
                 handleItem.FixedUpdate(gameTime);
         }
     }
@@ -257,7 +291,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         foreach (ref var handleItem in _components)
         {
-            if (handleItem.Enabled && handleItem.ActiveInHierachy)
+            if (handleItem.Enabled && _componentMetadata[handleItem.Handle.Id].CanExecute)
                 handleItem.Draw(gameTime);
         }
     }
@@ -286,6 +320,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     public void EntityActiveInHierarchyChanged(bool status, Handle handle)
     {
         ref var component = ref _components.At(handle.Id);
+
+        _componentMetadata[handle.Id]._activeInHierarchy = status;
 
         if (!component.Enabled) return;
 

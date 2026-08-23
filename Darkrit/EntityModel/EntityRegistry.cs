@@ -433,7 +433,6 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
             for (int i = 0; i < _componentStoresCount; i++)
             {
                 var store = _componentStores[_componentStoresOrder[i]];
-                store.InitializePendingComponents();
                 store.Update(gameTime);
             }
         }
