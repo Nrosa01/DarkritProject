@@ -472,8 +472,8 @@ public struct Entity : IHandle<Entity>
     private ulong _renderFrame;
 
     private Transform2D _previous;
-    [SerializeField] private Transform2D _current;
-    private Transform2D _renderTransform;
+    [SerializeField] private Transform2D _current= new();
+    private Transform2D _renderTransform ;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCurrentTick()

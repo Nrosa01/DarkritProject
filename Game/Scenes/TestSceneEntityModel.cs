@@ -25,14 +25,19 @@ public partial struct SpriteComponent
 {
     public AnimatedSprite Sprite;
 
-    public void OnAdd()
+    public readonly void OnAdd()
     {
-        Sprite.Scale = Vector2.One * 4;
+        Entity.Scale = Vector2.One * 4;
     }
 
-    public void FixedUpdate(GameTime gameTime) => Sprite.Update(gameTime);
+    public readonly void FixedUpdate(GameTime gameTime)
+    {
+        Sprite.Scale = Entity.Scale;
+        Sprite.Rotation = Entity.Rotation;
+        Sprite.Update(gameTime);
+    }
 
-    public void Draw(GameTime gameTime) => Sprite.Draw(Core.SpriteBatch, Entity.Position);
+    public readonly void Draw(GameTime gameTime) => Sprite.Draw(Core.SpriteBatch, Entity.Position);
 }
 
 [Component]
@@ -147,7 +152,7 @@ public partial struct SquareRenderer
         float g = pos.Y - MathF.Floor(pos.Y);
 
         var color = new Color(r, g, pos.X);
-        Core.SpriteBatch.Draw(Core.Pixel, new Rectangle((int)pos.X, (int)pos.Y, Size, Size), null, color);
+        Core.SpriteBatch.Draw(Core.Pixel, pos, null, color, Entity.Rotation, Vector2.Zero, Entity.Scale * Size, SpriteEffects.None, 0);
     }
 }
 

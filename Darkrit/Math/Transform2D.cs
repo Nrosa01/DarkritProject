@@ -19,10 +19,17 @@ public struct Transform2D
     /// <summary>
     /// Scale of the item
     /// </summary>
-    public Vector2 Scale;
+    public Vector2 Scale = Vector2.One;
 
     /// <summary>
     /// Rotation (in radians)
     /// </summary>
     public float Rotation;
+
+    /// <summary>
+    /// Default Transform
+    /// </summary>
+    public Transform2D()
+    {
+    }
 }

@@ -207,9 +207,11 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     {
         while (nonInitializedComponents.TryPop(out Handle<T> handle))
         {
-            _components.At(handle.Id).OnAdd();
+            ref var component = ref _components.At(handle.Id);
+            component.OnAdd();
             _componentMetadata[handle.Id]._activeInHierarchy = _components.At(handle.Id).ActiveInHierachy;
             _componentMetadata[handle.Id]._initialized = true;
+            component.World.GetEntity(component.EntityHandle).ResetInterpolation();
         }
     }
 
