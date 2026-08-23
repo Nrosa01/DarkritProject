@@ -585,64 +585,140 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
     }
 
+    private readonly List<(Handle<Entity> Handle, int Depth)> _editorVisibleEntities = [];
+    private readonly HashSet<int> _editorCollapsedEntities = [];
+    private readonly Dictionary<int, StringID> _editorFallbackNames = [];
+
     /// <summary>
     /// Does the debug render, still WIP
     /// </summary>
     public void EditorDraw()
     {
         ImGui.Begin("World");
+
         bool tmp = _useHierachyScheduler;
         if (ImGui.Checkbox("Use hierarchy", ref tmp))
             UseHierarchyScheduler = tmp;
-        ImGui.End();
 
-        if (_entities.Count > 50) 
-            return;
+        ImGui.End();
 
         ImGui.Begin("Entities");
 
-        void DrawEntity(Handle<Entity> handle)
+        var style = ImGui.GetStyle();
+        style.IndentSpacing = 16.0f;
+        style.TreeLinesSize = 1.0f;
+        style.TreeLinesRounding = 0.0f;
+
+        _editorVisibleEntities.Clear();
+
+        // Build a flat list of visible entities.
+        foreach (ref Entity root in this)
         {
-            var style = ImGui.GetStyle();
+            if (root._parent.Id != 0)
+                continue;
 
-            style.IndentSpacing = 16.0f;
-            style.TreeLinesSize = 1.0f;
-            style.TreeLinesRounding = 0.0f;
+            var current = root.Handle;
+            int depth = 0;
 
-            ref Entity entity = ref GetEntity(handle);
-
-            bool hasChildren = entity._firstChild.Id != 0;
-
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.SpanAvailWidth | 
-                                       ImGuiTreeNodeFlags.OpenOnArrow |
-                                       ImGuiTreeNodeFlags.DrawLinesFull;
-
-            if (hasChildren)
-                flags |= ImGuiTreeNodeFlags.DefaultOpen;
-            else
-                flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
-
-            bool open = ImGui.TreeNodeEx(entity.Name, flags);
-
-            if (ImGui.IsItemClicked())
+            while (current.Id != 0)
             {
-                // I need to think where to show components
-            }
+                ref Entity entity = ref GetEntity(current);
 
-            if (open && hasChildren)
-            {
-                foreach (var child in entity.Children)
-                    DrawEntity(child.Handle);
+                _editorVisibleEntities.Add((current, depth));
 
-                ImGui.TreePop();
+                bool hasChildren = entity._firstChild.Id != 0;
+                bool isCollapsed = _editorCollapsedEntities.Contains(current.Id);
+
+                if (hasChildren && !isCollapsed)
+                {
+                    current = entity._firstChild;
+                    depth++;
+                    continue;
+                }
+
+                while (current.Id != 0)
+                {
+                    ref Entity currentEntity = ref GetEntity(current);
+
+                    if (currentEntity._nextSibling.Id != 0)
+                    {
+                        current = currentEntity._nextSibling;
+                        break;
+                    }
+
+                    current = currentEntity._parent;
+                    depth--;
+                }
             }
         }
 
-        foreach (ref Entity item in this)
+        var clipper = new ImGuiListClipper();
+        clipper.Begin(_editorVisibleEntities.Count);
+
+        while (clipper.Step())
         {
-            if (item._parent.Id == 0)
-                DrawEntity(item.Handle);
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+            {
+                var row = _editorVisibleEntities[i];
+
+                ref Entity entity = ref GetEntity(row.Handle);
+
+                bool hasChildren = entity._firstChild.Id != 0;
+                bool isOpen = !_editorCollapsedEntities.Contains(row.Handle.Id);
+
+                ImGuiTreeNodeFlags flags =
+                    ImGuiTreeNodeFlags.SpanAvailWidth |
+                    ImGuiTreeNodeFlags.OpenOnArrow |
+                    ImGuiTreeNodeFlags.DrawLinesFull |
+                    ImGuiTreeNodeFlags.NoTreePushOnOpen;
+
+                if (!hasChildren)
+                    flags |= ImGuiTreeNodeFlags.Leaf;
+
+                if (hasChildren)
+                    ImGui.SetNextItemOpen(isOpen);
+
+                if (row.Depth > 0)
+                    ImGui.Indent(row.Depth * style.IndentSpacing);
+
+                StringID name = entity.NameID;
+
+                if (!name.IsValid)
+                {
+                    if (!_editorFallbackNames.TryGetValue(row.Handle.Id, out name))
+                    {
+                        name = new StringID($"Entity {row.Handle.Id}");
+                        _editorFallbackNames.Add(row.Handle.Id, name);
+                    }
+                }
+
+
+                // Handle.Id is the ImGui identity; Name is only the visible label.
+                ImGui.PushID(row.Handle.Id);
+
+                ImGui.TreeNodeEx(name.ToString(), flags);
+
+                if (hasChildren && ImGui.IsItemToggledOpen())
+                {
+                    if (isOpen)
+                        _editorCollapsedEntities.Add(row.Handle.Id);
+                    else
+                        _editorCollapsedEntities.Remove(row.Handle.Id);
+                }
+
+                if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
+                {
+                    // I need to think where to show components
+                }
+
+                ImGui.PopID();
+
+                if (row.Depth > 0)
+                    ImGui.Unindent(row.Depth * style.IndentSpacing);
+            }
         }
+
+        clipper.End();
 
         ImGui.End();
     }
