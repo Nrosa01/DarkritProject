@@ -690,6 +690,9 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
                 StringID name = entity.NameID;
 
+                // Names take space in memory and put pressure in GC
+                // The editor should NEVER modify entities to work properly, so I create
+                // names for unnamed entities in a cache just to display something to screen
                 if (!name.IsValid)
                 {
                     if (!_editorFallbackNames.TryGetValue(row.Handle.Id, out name))
@@ -700,7 +703,8 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
                 }
 
 
-                // Handle.Id is the ImGui identity; Name is only the visible label.
+                // Handle.Id is the ImGui identity; Name is only the visible label
+                // This way I can safely rename the entity
                 ImGui.PushID(row.Handle.Id);
 
                 ImGui.TreeNodeEx(name.ToString(), flags);
@@ -736,10 +740,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         ImGui.End();
     }
 
-    private static readonly FieldInfo TransformField =
-    typeof(Entity).GetField(
-        "_current",
-        BindingFlags.Instance | BindingFlags.NonPublic);
+    // The fields of the entity that I will be displaying
+    // I don't really need this but right now I'm based all my Editor system on reflected data, so providing FieldInfo
+    // Makes everything easier for me until I make something better
+    private static readonly FieldInfo TransformField =typeof(Entity).GetField("_current", BindingFlags.Instance | BindingFlags.NonPublic);
 
     private Handle<Entity> _inspectedEntity;
     bool _inspectorOpen = true;
@@ -768,10 +772,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
 
         bool active = entity.ActiveSelf;
-
-        ImGui.Checkbox("##Active", ref active);
-
-        if (active != entity.ActiveSelf)
+        if(ImGui.Checkbox("##Active", ref active))
             entity.ActiveSelf = active;
 
         ImGui.SameLine(0.0f, 6.0f);
@@ -779,7 +780,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
         ImGui.Separator();
 
-
+        // Transform is a bit special as it's manually "inlined"
+        // Instead of being property => value
+        // It's just value
+        // Idk how to explain it but I hope I remember what this means when I have to refactor this
         ImGui.PushID("Transform");
 
         if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
@@ -798,6 +802,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
         ImGizmo2D.SetHandleRadius(8.0f);
 
+        // This is for testing gizmos, it will be removed from here or changed in the future
         var position = entity.Position;
         var rotation = entity.RotationDegrees;
         var scale = entity.Scale;

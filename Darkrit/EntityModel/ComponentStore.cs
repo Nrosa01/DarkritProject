@@ -357,6 +357,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LateUpdateComponent(Handle handle, GameTime gameTime) => _components.At(handle.Id).LateUpdate(gameTime);
 
+    // Fields of the component that I will display, this includes auto properties by default
+    // I exclude the "Enabled" property as I handle that manually in the collapsing header
     private static readonly FieldInfo[] EditorFields = [.. typeof(T)
     .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
     .Where(field =>
@@ -366,8 +368,6 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
          field.IsDefined(typeof(ShowInInspectorAttribute)) ||
          field.IsDefined(typeof(SerializeFieldAttribute)) ||
          field.Name.Contains("k__BackingField")))];
-
-
 
     private readonly HashSet<int> _editorExpanded = [];
 

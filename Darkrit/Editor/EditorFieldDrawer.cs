@@ -44,7 +44,7 @@ public static class EditorFieldDrawer
         ImGui.TableNextRow();
 
         ImGui.TableSetColumnIndex(0);
-        if(showName)
+        if (showName)
             ImGui.Text(name);
 
         ImGui.TableSetColumnIndex(1);
@@ -158,6 +158,18 @@ public static class EditorFieldDrawer
         bool activeX;
         bool activeY;
 
+        // Helper to draw the link checkbox and modify the linked state in one go
+        static void DrawLinkCheckbox(string id, ref bool linked)
+        {
+            if (ImGui.Checkbox($"##{id}Link", ref linked))
+            {
+                if (VectorLinkStates.TryGetValue(id, out VectorLinkState state))
+                    VectorLinkStates[id] = new VectorLinkState(state.Ratio, state.XIsReference, linked);
+                else
+                    VectorLinkStates[id] = new VectorLinkState(0.0f, true, linked);
+            }
+        }
+
         if (availableWidth < minWidthForInline)
         {
             changedX = DrawVectorComponent($"{id}X", ref value.X, "X", true, out activeX);
@@ -234,50 +246,13 @@ public static class EditorFieldDrawer
 
     private static readonly Dictionary<string, VectorLinkState> VectorLinkStates = [];
 
-    private static void DrawLinkCheckbox(string id, ref bool linked)
-    {
-        if (ImGui.Checkbox($"##{id}Link", ref linked))
-        {
-            if (VectorLinkStates.TryGetValue(id, out VectorLinkState state))
-                VectorLinkStates[id] = new VectorLinkState(state.Ratio, state.XIsReference, linked);
-            else
-                VectorLinkStates[id] = new VectorLinkState(0.0f, true, linked);
-        }
-    }
-
-    private static void ApplyLinkedValue(string id, float oldX, float oldY, ref Vector2 value, bool changedX, bool changedY, bool linked)
-    {
-        if (!linked || (!changedX && !changedY))
-            return;
-
-        if (!VectorLinkStates.TryGetValue(id, out VectorLinkState state) || !state.Linked)
-        {
-            bool xIsReference = changedX;
-
-            float ratio = xIsReference
-                ? oldX != 0.0f ? oldY / oldX : 1.0f
-                : oldY != 0.0f ? oldX / oldY : 1.0f;
-
-            state = new VectorLinkState(ratio, xIsReference, linked);
-            VectorLinkStates[id] = state;
-        }
-
-        if (state.XIsReference)
-            value.Y = value.X * state.Ratio;
-        else
-            value.X = value.Y * state.Ratio;
-    }
-
     private static bool DrawVectorComponent(string id, ref float value, string label, bool isX, out bool active, float width = -1.0f)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(label);
         ImGui.SameLine(0.0f, 4.0f);
 
-        if (width > 0.0f)
-            ImGui.SetNextItemWidth(width);
-        else
-            ImGui.SetNextItemWidth(-1.0f);
+        ImGui.SetNextItemWidth(width);
 
         ImGui.PushStyleColor(
             ImGuiCol.FrameBg,
@@ -293,9 +268,22 @@ public static class EditorFieldDrawer
         return changed;
     }
 
+    /// <summary>
+    /// Gets a human-readable display name for the specified field.
+    /// </summary>
+    /// <param name="field"> The field for which the display name is generated. </param>
+    /// <returns> The field name converted to a display-friendly format. </returns>
+    public static string GetDisplayName(FieldInfo field) => ToDisplayName(GetFieldName(field));
 
-    private static string GetDisplayName(FieldInfo field) => ToDisplayName(GetFieldName(field));
-
+    /// <summary>
+    /// Gets the name of the specified field, removing the compiler-generated
+    /// backing field suffix when the field represents an auto-property.
+    /// </summary>
+    /// <param name="field"> The field whose name is retrieved. </param>
+    /// <returns>
+    /// The original field name, or the associated property name when the field
+    /// is a compiler-generated backing field.
+    /// </returns>
     public static string GetFieldName(FieldInfo field)
     {
         const string suffix = "k__BackingField";
@@ -306,7 +294,17 @@ public static class EditorFieldDrawer
         return field.Name;
     }
 
-    private static string ToDisplayName(string name)
+    /// <summary>
+    /// Converts a name written in PascalCase or camelCase into a display-friendly
+    /// name by inserting spaces before uppercase characters and capitalizing
+    /// the first character.
+    /// </summary>
+    /// <param name="name"> The name to convert. </param>
+    /// <returns>
+    /// The converted display name, or the original value when the input is
+    /// <see langword="null"/> or empty.
+    /// </returns>
+    public static string ToDisplayName(string name)
     {
         if (string.IsNullOrEmpty(name))
             return name;
