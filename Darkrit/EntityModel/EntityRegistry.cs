@@ -2,12 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
-using Darkrit.Base;
-using Darkrit.DataStructures;
-using Darkrit.DevTools.Logger;
-using Darkrit.Editor;
-using Hexa.NET.ImGui;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +9,14 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Darkrit.Base;
+using Darkrit.DataStructures;
+using Darkrit.DevTools.Logger;
+using Darkrit.Editor;
+using Darkrit.ImGuiUtils;
+using Darkrit.TinyECS;
+using Hexa.NET.ImGui;
+using Microsoft.Xna.Framework;
 
 namespace Darkrit.EntityModel;
 
@@ -793,6 +795,22 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
                 ImGui.EndTable();
             }
         }
+
+        ImGizmo2D.SetHandleRadius(8.0f);
+
+        var position = entity.Position;
+        var rotation = entity.RotationDegrees;
+        var scale = entity.Scale;
+
+        if (ImGizmo2D.Translate("EntityTranslate", ref position.X, ref position.Y))
+            entity.Position = position;
+
+        //if (ImGizmo2D.Rotate("EntityRotate", position.X, position.Y, ref rotation))
+        //    entity.RotationDegrees = rotation;
+
+        //if (ImGizmo2D.Scale("EntityScale", position.X, position.Y, ref scale.X, ref scale.Y))
+        //    entity.Scale = scale;
+
 
         ImGui.PopID();
 

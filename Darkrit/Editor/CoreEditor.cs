@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System.Diagnostics;
+using Darkrit.ImGuiUtils;
 using Darkrit.ImGuiUtils.Themes;
 using Darkrit.Utilities;
 using ExampleMonoGame;
@@ -120,12 +121,23 @@ internal class CoreEditor
 
         ViewportFocused = ImGui.IsWindowFocused();
 
+        var viewportDrawList = ImGui.GetWindowDrawList();
+
         ImGui.End();
 
         GraphicsDevice.SetRenderTarget(_sceneTarget);
 
         scene?.Draw(gameTime);
+
+        ImGizmo2D.SetDrawList(viewportDrawList);
+        ImGizmo2D.SetViewRect(viewportPos.ToNumerics(), viewportSize.ToNumerics());
+        ImGizmo2D.SetViewTransform(0, 0, 1.0f);
+        ImGizmo2D.BeginFrame();
+
         scene?.EditorDraw(gameTime);
+
+        ImGizmo2D.EndFrame();
+
         EditorOverlayInstance.Draw(gameTime);
 
         GraphicsDevice.SetRenderTarget(null);
