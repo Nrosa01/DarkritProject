@@ -2,7 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using Darkrit.DevTools.Logger;
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Darkrit.Utilities;

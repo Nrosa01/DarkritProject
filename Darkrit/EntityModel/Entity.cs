@@ -472,7 +472,7 @@ public struct Entity : IHandle<Entity>
     private ulong _renderFrame;
 
     private Transform2D _previous;
-    private Transform2D _current;
+    [SerializeField] private Transform2D _current;
     private Transform2D _renderTransform;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

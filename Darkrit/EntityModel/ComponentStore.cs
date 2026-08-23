@@ -4,6 +4,7 @@
 
 using Darkrit.Base;
 using Darkrit.DataStructures;
+using Darkrit.Editor;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using System;
@@ -322,7 +323,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
     .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
     .Where(field =>
         !field.IsStatic &&
-        GetFieldName(field) != nameof(IComponent.Enabled) &&
+        EditorFieldDrawer.GetFieldName(field) != nameof(IComponent.Enabled) &&
         (field.IsPublic ||
          field.IsDefined(typeof(ShowInInspectorAttribute)) ||
          field.IsDefined(typeof(SerializeFieldAttribute)) ||
@@ -344,7 +345,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         if (!wasEnabled)
             ImGui.PushStyleColor(ImGuiCol.Text, new System.Numerics.Vector4(0.5f, 0.5f, 0.5f, 1f));
 
-        int editorFieldCount = GetEditorFieldCount();
+        int editorFieldCount = EditorFieldDrawer.GetEditorFieldCount(EditorFields);
         bool hasFields = editorFieldCount > 0;
         bool open = hasFields && _editorExpanded.Contains(handle.Id);
 
@@ -392,10 +393,18 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         // Component fields.
         if (open)
         {
-            foreach (FieldInfo field in EditorFields)
+            if (ImGui.BeginTable("##Fields", 2))
             {
-                if (IsEditorFieldSupported(field))
-                    DrawField(field, ref component);
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 120.0f);
+                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+
+                foreach (FieldInfo field in EditorFields)
+                {
+                    if (EditorFieldDrawer.IsSupported(field))
+                        EditorFieldDrawer.Draw(field, ref component);
+                }
+
+                ImGui.EndTable();
             }
         }
 
@@ -404,72 +413,5 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
 
         ImGui.PopID();
         ImGui.PopID();
-    }
-
-    private static string GetFieldName(FieldInfo field)
-    {
-        const string suffix = "k__BackingField";
-
-        if (field.Name.StartsWith('<') && field.Name.EndsWith(suffix))
-            return field.Name[1..^(suffix.Length + 1)];
-
-        return field.Name;
-    }
-
-    private static void DrawField(FieldInfo field, ref T component)
-    {
-        string name = GetFieldName(field);
-        object value = field.GetValue(component);
-
-        if (value is int intValue)
-        {
-            if (ImGui.DragInt(name, ref intValue))
-                field.SetValueDirect(__makeref(component), intValue);
-        }
-        else if (value is float floatValue)
-        {
-            if (ImGui.DragFloat(name, ref floatValue))
-                field.SetValueDirect(__makeref(component), floatValue);
-        }
-        else if (value is bool boolValue)
-        {
-            if (ImGui.Checkbox(name, ref boolValue))
-                field.SetValueDirect(__makeref(component), boolValue);
-        }
-        else if (value is Vector2 vector2Value)
-        {
-            System.Numerics.Vector2 imguiValue = new(vector2Value.X, vector2Value.Y);
-
-            if (ImGui.DragFloat2(name, ref imguiValue))
-            {
-                vector2Value.X = imguiValue.X;
-                vector2Value.Y = imguiValue.Y;
-
-                field.SetValueDirect(__makeref(component), vector2Value);
-            }
-        }
-    }
-
-    private static bool IsEditorFieldSupported(FieldInfo field)
-    {
-        Type type = field.FieldType;
-
-        return type == typeof(int) ||
-               type == typeof(float) ||
-               type == typeof(bool) ||
-               type == typeof(Vector2);
-    }
-
-    private static int GetEditorFieldCount()
-    {
-        int count = 0;
-
-        foreach (FieldInfo field in EditorFields)
-        {
-            if (IsEditorFieldSupported(field))
-                count++;
-        }
-
-        return count;
     }
 }

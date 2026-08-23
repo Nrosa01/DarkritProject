@@ -5,11 +5,14 @@
 using Darkrit.Base;
 using Darkrit.DataStructures;
 using Darkrit.DevTools.Logger;
+using Darkrit.Editor;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -732,6 +735,11 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         ImGui.End();
     }
 
+    private static readonly FieldInfo TransformField =
+    typeof(Entity).GetField(
+        "_current",
+        BindingFlags.Instance | BindingFlags.NonPublic);
+
     private Handle<Entity> _inspectedEntity;
     bool _inspectorOpen = true;
     private void DrawInspector()
@@ -759,11 +767,35 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
         }
 
         bool active = entity.ActiveSelf;
-        if (ImGui.Checkbox("Active", ref active))
+
+        ImGui.Checkbox("##Active", ref active);
+
+        if (active != entity.ActiveSelf)
             entity.ActiveSelf = active;
 
-        ImGui.SameLine();
+        ImGui.SameLine(0.0f, 6.0f);
         ImGui.Text(name.ToString());
+
+        ImGui.Separator();
+
+
+        ImGui.PushID("Transform");
+
+        if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            if (ImGui.BeginTable("##TransformFields", 2))
+            {
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 120.0f);
+                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+
+                if (EditorFieldDrawer.Draw(TransformField, ref entity, false))
+                    entity.ResetInterpolation();
+
+                ImGui.EndTable();
+            }
+        }
+
+        ImGui.PopID();
 
         ImGui.Separator();
 
