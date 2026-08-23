@@ -67,10 +67,13 @@ public class ComponentStoreTests
     [Fact]
     public void Drawble_component_draws()
     {
-        ComponentStore<DrawableComponent> store = new(5)
-        {
-            new()
-        };
+        EntityRegistry registry = new(5);
+        registry.CreateEntity().AddComponent<DrawableComponent>();
+
+        ComponentStore<DrawableComponent> store = registry.GetStore<DrawableComponent>();
+        
+        store.InitializePendingComponents();
+
         Assert.Throws<Exception>(() => store.Draw(default));
 
         store.Update(default);
@@ -80,10 +83,13 @@ public class ComponentStoreTests
     [Fact]
     public void Updateable_component_updates()
     {
-        ComponentStore<UpdateableComponent> store = new(5)
-        {
-            new()
-        };
+        EntityRegistry registry = new(5);
+        registry.CreateEntity().AddComponent<UpdateableComponent>();
+
+        ComponentStore<UpdateableComponent> store = registry.GetStore<UpdateableComponent>();
+
+        store.InitializePendingComponents();
+
         Assert.Throws<Exception>(() => store.Update(default));
 
         store.Draw(default);
@@ -93,10 +99,13 @@ public class ComponentStoreTests
     [Fact]
     public void FixedUpdateable_component_updates()
     {
-        ComponentStore<FixedUpdateableComponent> store = new(5)
-        {
-            new()
-        };
+        EntityRegistry registry = new(5);
+        registry.CreateEntity().AddComponent<FixedUpdateableComponent>();
+
+        ComponentStore<FixedUpdateableComponent> store = registry.GetStore<FixedUpdateableComponent>();
+
+        store.InitializePendingComponents();
+
         Assert.Throws<Exception>(() => store.FixedUpdate(default));
 
         store.Draw(default);
