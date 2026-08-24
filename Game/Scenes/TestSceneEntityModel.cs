@@ -184,14 +184,14 @@ public class TestSceneEntityModel : Scene
         square.TrySetParent(player);
 
 
-        //for (var i = 0; i < 1_000; i++)
-        //{
-        //    var entity = entityWorld.CreateEntityByHandle();
-        //    ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
+        for (var i = 0; i < 10_000; i++)
+        {
+            var entity = entityWorld.CreateEntityByHandle();
+            ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
 
-        //    instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });
-        //    instanceEntity.AddComponent(new SquareRenderer { Size = 10 });
-        //}
+            instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });
+            instanceEntity.AddComponent(new SquareRenderer { Size = 10 });
+        }
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);

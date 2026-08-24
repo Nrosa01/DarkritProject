@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,7 +13,6 @@ using Darkrit.DataStructures;
 using Darkrit.DevTools.Logger;
 using Darkrit.Editor;
 using Darkrit.ImGuiUtils;
-using Darkrit.TinyECS;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 
@@ -51,6 +49,16 @@ public static class ComponentTypeId<T> where T : struct, IComponent
     public static readonly int Id = ComponentTypeId.Next();
 }
 
+internal struct EntityMetadata
+{
+    public Handle<Entity> _parent;
+    public Handle<Entity> _firstChild;
+    public Handle<Entity> _lastChild;
+    public Handle<Entity> _nextSibling;
+    public Handle<Entity> _previousSibling;
+    public int _childCount;
+}
+
 /// <summary>
 /// Class tha own entities and components and orchestrates them
 /// </summary>
@@ -60,12 +68,29 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly int[] _componentStoresOrder = new int[ComponentTypeId.Count];
     private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
+    private readonly GrowableArray<ComponentList> _entityComponents = [new()];
+    private readonly GrowableArray<EntityMetadata> _entityMetadata = [new()];
 
     private readonly GrowableArray<TypedHandle> _updateNodes = [];
     private readonly GrowableArray<TypedHandle> _fixedUpdateNodes = [];
     private readonly GrowableArray<TypedHandle> _drawNodes = [];
 
+    // Not all component stores are in use always, this number represents the number of active component stores
+    // This is because I initialize _componentStores to the number of Component types, but the store isn't created
+    // until the component is in need. Due to reflection limits I initialize stores on demand in the generic function
     private int _componentStoresCount;
+
+    // Internal getters so the entity has access to rarely used properties-
+    // Making the struct bigger, makes the simulation slower when there are many entities, so I add a bit of indirection
+    // Saving these data separately from the Entity struct. Profiling proved this to work
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal ref EntityMetadata MetadataOf(Handle<Entity> handle) => ref _entityMetadata[handle.Id];
+    
+    // I don't really need to do that for the ComponentList given it's just the size of a IntPtr32
+    // But this allows to use component lists when creating/destroying entities
+    // This is not the best way to do it, but for now it works well enough
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal ref ComponentList ComponentsOf(Handle<Entity> handle) => ref _entityComponents[handle.Id];
 
     private void AddStoreOrder(int id)
     {
@@ -243,7 +268,6 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(string name = "") => CreateEntityByHandle(new StringID(name));
 
-
     /// <summary>
     /// Creates an entity and returns a handle to it
     /// </summary>
@@ -252,7 +276,20 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Handle<Entity> CreateEntityByHandle(StringID name)
     {
-        return _entities.Add(new Entity
+        var handle = _entities.PeekNextHandle();
+
+        if (handle.Id < _entityMetadata.Count)
+        {
+            _entityMetadata[handle.Id] = default;
+            _entityComponents[handle.Id].Clear();
+        }
+        else
+        {
+            _entityMetadata.Add(default);
+            _entityComponents.Add(new());
+        }
+
+        _entities.Add(new Entity
         {
             NameID = name,
             World = this,
@@ -260,6 +297,8 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
             ActiveSelf = true,
             ActiveInHierarchy = true,
         });
+
+        return handle;
     }
 
     /// <summary>

@@ -15,76 +15,6 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Darkrit.EntityModel;
 
-struct ComponentList
-{
-    List<TypedHandle> _handles = [];
-
-    public readonly IReadOnlyList<TypedHandle> Components => _handles;
-    public ComponentList()
-    {
-        _handles = [];
-    }
-
-    public readonly void Add<T>(Handle<T> handle) where T : struct, IComponent => _handles.Add(TypedHandle.Create(handle));
-
-    public readonly Handle<T> Get<T>() where T : struct, IComponent
-    {
-        int id = ComponentTypeId<T>.Id;
-        foreach (var item in _handles)
-        {
-            if (item.type == id)
-                return new Handle<T>
-                {
-                    Id = item.handle.Id,
-                    Generation = item.handle.Generation
-                };
-        }
-
-        return Handle<T>.Default;
-    }
-
-    public readonly Handle Remove<T>() where T : struct, IComponent => Remove<T>(default, true);
-
-    public readonly Handle Remove<T>(Handle<T> handle) where T : struct, IComponent => Remove<T>(handle, false);
-
-    private readonly Handle Remove<T>(Handle<T> handle, bool onlyCheckType) where T : struct, IComponent
-    {
-        int id = ComponentTypeId<T>.Id;
-
-        int toRemove = -1;
-
-        for (int i = 0; i < _handles.Count; i++)
-        {
-            TypedHandle item = _handles[i];
-            if (item.type == id && (onlyCheckType || (item.handle.Id == handle.Id && item.handle.Generation == handle.Generation)))
-            {
-                toRemove = i;
-                break;
-            }
-        }
-
-        // Swap and remove
-        if (toRemove != -1)
-        {
-            var handleToRemove = _handles[toRemove];
-            _handles[toRemove] = _handles[_handles.Count - 1];
-            _handles.RemoveAt(_handles.Count - 1);
-
-            return handleToRemove.handle;
-        }
-
-        return Handle.Default;
-    }
-
-    internal readonly void Clear() => _handles.Clear();
-
-    internal readonly bool Has<T>(Handle<T> componentHandle) where T : struct, IComponent
-    {
-        var typed = TypedHandle.Create(componentHandle);
-        return _handles.Contains(typed);
-    }
-}
-
 /// <summary>
 /// Fundamental unit of the entity model
 /// Entities contain handles to componentes, as well as to other entities
@@ -116,22 +46,46 @@ public struct Entity : IHandle<Entity>
     /// </summary>
     public EntityRegistry World { get; init; }
 
-    readonly ComponentList _componentList = new();
+    private readonly ref ComponentList _componentList => ref World.ComponentsOf(Handle);
 
     /// <summary>
     /// Readonly list of the components this entity has
     /// </summary>
-    public readonly IReadOnlyList<TypedHandle> Components => _componentList.Components;
+    public readonly IReadOnlyList<TypedHandle> Components => World.ComponentsOf(Handle).Components;
 
     /// <inheritdoc/>
     public Handle<Entity> Handle { get; set; }
 
-    internal Handle<Entity> _parent;
-    internal Handle<Entity> _firstChild;
-    internal Handle<Entity> _lastChild;
-    internal Handle<Entity> _nextSibling;
-    internal Handle<Entity> _previousSibling;
-    private int _childCount;
+    internal readonly Handle<Entity> _parent
+    {
+        get => World.MetadataOf(Handle)._parent;
+        set => World.MetadataOf(Handle)._parent = value;
+    }
+    internal readonly Handle<Entity> _firstChild
+    {
+        get => World.MetadataOf(Handle)._firstChild;
+        set => World.MetadataOf(Handle)._firstChild = value;
+    }
+    internal readonly Handle<Entity> _lastChild
+    {
+        get => World.MetadataOf(Handle)._lastChild;
+        set => World.MetadataOf(Handle)._lastChild = value;
+    }
+    internal readonly Handle<Entity> _nextSibling
+    {
+        get => World.MetadataOf(Handle)._nextSibling;
+        set => World.MetadataOf(Handle)._nextSibling = value;
+    }
+    internal readonly Handle<Entity> _previousSibling
+    {
+        get => World.MetadataOf(Handle)._previousSibling;
+        set => World.MetadataOf(Handle)._previousSibling = value;
+    }
+    private readonly int _childCount
+    {
+        get => World.MetadataOf(Handle)._childCount;
+        set => World.MetadataOf(Handle)._childCount = value;
+    }
 
     /// <summary>
     /// Reference fo the parent entity. If the entity doesn't have
