@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Darkrit;
@@ -96,6 +96,8 @@ public partial struct PlayerController
 
         PhysicsBody.Velocity.X = MoveTowards(PhysicsBody.Velocity.X, targetSpeed, rate * gameTime.Delta);
 
+        PhysicsBody.upDirection = gravity >= 0f ? new Vector2(0f, -1f) : new Vector2(0f, 1f);
+
         if (PhysicsBody.IsOnFloor)
         {
             if (jump.WasPressedThisFrame)
@@ -188,23 +190,19 @@ public class TestSceneEntityModel : Scene
         physics.Size = sprite.Sprite.Size;
         
         ref Entity square = ref entityWorld.CreateEntity(player, "Square");
-        square.AddComponent<SquareRenderer>(new SquareRenderer
-        {
-            Size = 25
-        });
         square.Position += new Vector2(-1000, 100);
         ref var physicsSquare = ref square.AddComponent<PhysicsBody>();
         physicsSquare.Size = new Vector2(2000, 10);
-        //physicsSquare.Size = Vector2.One * 35;
 
-        //for (var i = 0; i < 10_000; i++)
-        //{
-        //    var entity = entityWorld.CreateEntityByHandle();
-        //    ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
+        square = ref entityWorld.CreateEntity(player, "Square 2");
+        square.Position += new Vector2(0, -30);
+        physicsSquare = ref square.AddComponent<PhysicsBody>();
+        physicsSquare.Size = new Vector2(200, 10);
 
-        //    instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });
-        //    instanceEntity.AddComponent(new SquareRenderer { Size = 10 });
-        //}
+        square = ref entityWorld.CreateEntity(player, "Square 3");
+        square.Position += new Vector2(-100, -30);
+        physicsSquare = ref square.AddComponent<PhysicsBody>();
+        physicsSquare.Size = new Vector2(20, 100);
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);

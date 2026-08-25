@@ -85,7 +85,7 @@ public class Core : Game
 
     public static Viewport Viewport => s_coreEditor.Viewport;
 
-    public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 5;
+    public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
     // this will be the FixedUpdate frequency in hz
     private float _fixedUpdateDelta = (int)(1000.0 / PHYSICS_TICKS_PER_SECOND);
