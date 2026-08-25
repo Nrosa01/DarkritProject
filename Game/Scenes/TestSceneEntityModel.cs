@@ -45,31 +45,20 @@ public partial struct SpriteComponent
 [InjectComponent(typeof(PhysicsBody))]
 public partial struct PlayerController
 {
-    InputAction moveUp;
-    InputAction moveDown;
     InputAction moveLeft;
     InputAction moveRight;
+    InputAction jump;
 
-    [ShowInInspector] Vector2 direction;
-    
-    [SerializeField] private readonly float speed = 5f;
+    [ShowInInspector, ReadOnly] Vector2 direction;
+
+    [SerializeField] readonly float maxSpeed = 180f;
+    [SerializeField] readonly float acceleration = 1200f;
+    [SerializeField] readonly float deceleration = 1600f;
+    [SerializeField] readonly float gravity = 3600f;
+    [SerializeField] readonly float jumpSpeed = 1000f;
 
     public void OnAdd()
     {
-        moveUp = Core.Input.CreateAction("Move Up").AddBindings([
-            new KeyboardBinding(Key.Up),
-            new KeyboardBinding(Key.W),
-            new GamepadBinding(GamepadButton.DPadUp),
-            new GamepadBinding(GamepadButton.LeftThumbstickUp),
-        ]);
-
-        moveDown = Core.Input.CreateAction("Move Down").AddBindings([
-            new KeyboardBinding(Key.Down),
-            new KeyboardBinding(Key.S),
-            new GamepadBinding(GamepadButton.DPadDown),
-            new GamepadBinding(GamepadButton.LeftThumbstickDown),
-        ]);
-
         moveLeft = Core.Input.CreateAction("Move Left").AddBindings([
             new KeyboardBinding(Key.Left),
             new KeyboardBinding(Key.A),
@@ -83,37 +72,53 @@ public partial struct PlayerController
             new GamepadBinding(GamepadButton.DPadRight),
             new GamepadBinding(GamepadButton.LeftThumbstickRight),
         ]);
+
+        jump = Core.Input.CreateAction("Jump").AddBindings([
+            new KeyboardBinding(Key.Space),
+            new KeyboardBinding(Key.Up),
+            new GamepadBinding(GamepadButton.A),
+        ]);
     }
 
     public void FixedUpdate(GameTime gameTime)
     {
-        if (moveUp.IsPressed)
-        {
-            direction.Y = -1;
-        }
-        else if (moveDown.IsPressed)
-        {
-            direction.Y = 1;
-        }
-        else
-            direction.Y = 0;
+        direction.X = 0;
 
         if (moveLeft.IsPressed)
+            direction.X -= 1;
+
+        if (moveRight.IsPressed)
+            direction.X += 1;
+
+        float targetSpeed = direction.X * maxSpeed;
+
+        float rate = direction.X == 0 ? deceleration : acceleration;
+
+        PhysicsBody.Velocity.X = MoveTowards(PhysicsBody.Velocity.X, targetSpeed, rate * gameTime.Delta);
+
+        if (PhysicsBody.IsOnFloor)
         {
-            direction.X = -1;
-        }
-        else if (moveRight.IsPressed)
-        {
-            direction.X = 1;
+            if (jump.WasPressedThisFrame)
+                PhysicsBody.Velocity.Y = -jumpSpeed;
+            else if (PhysicsBody.Velocity.Y > 0)
+                PhysicsBody.Velocity.Y = 0;
         }
         else
-            direction.X = 0;
+        {
+            PhysicsBody.Velocity.Y += gravity * gameTime.Delta;
+        }
 
-        PhysicsBody.Velocity = direction.Normalized * speed;
-        PhysicsBody.MoveAndSlide();
+        PhysicsBody.MoveAndSlide(gameTime);
+    }
+
+    static float MoveTowards(float current, float target, float maxDelta)
+    {
+        if (MathF.Abs(target - current) <= maxDelta)
+            return target;
+
+        return current + MathF.Sign(target - current) * maxDelta;
     }
 }
-
 
 [Component]
 [InjectComponent(typeof(SquareRenderer))]
