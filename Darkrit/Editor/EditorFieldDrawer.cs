@@ -276,13 +276,13 @@ public static class EditorFieldDrawer
     public static string GetDisplayName(FieldInfo field) => ToDisplayName(GetFieldName(field));
 
     /// <summary>
-    /// Gets the name of the specified field, removing the compiler-generated
-    /// backing field suffix when the field represents an auto-property.
+    /// Gets the name of the specified field, removing compiler-generated backing
+    /// field suffixes and common private field prefixes.
     /// </summary>
     /// <param name="field"> The field whose name is retrieved. </param>
     /// <returns>
-    /// The original field name, or the associated property name when the field
-    /// is a compiler-generated backing field.
+    /// The field name with compiler-generated backing field syntax and common
+    /// private field prefixes removed.
     /// </returns>
     public static string GetFieldName(FieldInfo field)
     {
@@ -291,7 +291,18 @@ public static class EditorFieldDrawer
         if (field.Name.StartsWith('<') && field.Name.EndsWith(suffix))
             return field.Name[1..^(suffix.Length + 1)];
 
-        return field.Name;
+        string name = field.Name;
+
+        if (name.StartsWith("m_", StringComparison.Ordinal) ||
+            name.StartsWith("s_", StringComparison.Ordinal))
+        {
+            return name[2..];
+        }
+
+        if (name.StartsWith('_'))
+            return name[1..];
+
+        return name;
     }
 
     /// <summary>

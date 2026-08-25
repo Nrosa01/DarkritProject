@@ -75,6 +75,10 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     private readonly GrowableArray<TypedHandle> _fixedUpdateNodes = [];
     private readonly GrowableArray<TypedHandle> _drawNodes = [];
 
+    private readonly Physics.Boxy2D.World<Handle<Entity>> _physicsWorld = new();
+
+    internal Physics.Boxy2D.World<Handle<Entity>> Physics => _physicsWorld;
+
     // Not all component stores are in use always, this number represents the number of active component stores
     // This is because I initialize _componentStores to the number of Component types, but the store isn't created
     // until the component is in need. Due to reflection limits I initialize stores on demand in the generic function

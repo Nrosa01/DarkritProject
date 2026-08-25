@@ -146,6 +146,12 @@ public interface IComponent
     }
 
     /// <summary>
+    /// Called immediately after component creation
+    /// It never gets called again
+    /// </summary>
+    void OnCreate();
+
+    /// <summary>
     /// Called when the component is added to the entity
     /// </summary>
     void OnAdd();

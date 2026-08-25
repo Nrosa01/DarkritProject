@@ -208,9 +208,13 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         while (nonInitializedComponents.TryPop(out Handle<T> handle))
         {
             ref var component = ref _components.At(handle.Id);
-            component.OnAdd();
             _componentMetadata[handle.Id]._activeInHierarchy = _components.At(handle.Id).ActiveInHierachy;
             _componentMetadata[handle.Id]._initialized = true;
+            
+            if (component.Enabled && _componentMetadata[handle.Id].CanExecute)
+                component.OnEnable();
+            
+            component.OnAdd();
             component.World.GetEntity(component.EntityHandle).ResetInterpolation();
         }
     }
@@ -228,7 +232,9 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         else
             _componentMetadata.Add(default);
 
-        return ref Get(handle);
+        ref var component = ref Get(handle);
+        component.OnCreate();
+        return ref component;
     }
 
     /// <inheritdoc/>

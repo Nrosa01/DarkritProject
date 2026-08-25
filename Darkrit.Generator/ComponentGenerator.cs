@@ -33,6 +33,7 @@ public sealed class ComponentGenerator : IIncrementalGenerator
                 using System.Runtime.InteropServices;
                 using global::Darkrit.EntityModel;
                 using global::Darkrit.Base;
+                using global::Darkrit.EntityModel.Components;
 
                 namespace {{namespaceName}};
 

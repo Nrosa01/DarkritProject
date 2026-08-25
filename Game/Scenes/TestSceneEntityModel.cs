@@ -5,6 +5,7 @@ using Darkrit;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
 using Darkrit.EntityModel;
+using Darkrit.EntityModel.Components;
 using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Bindings;
@@ -27,7 +28,7 @@ public partial struct SpriteComponent
 
     public readonly void OnAdd()
     {
-        Entity.Scale = Vector2.One * 4;
+        Entity.Scale = Vector2.One * 2;
     }
 
     public readonly void FixedUpdate(GameTime gameTime)
@@ -41,6 +42,7 @@ public partial struct SpriteComponent
 }
 
 [Component]
+[InjectComponent(typeof(PhysicsBody))]
 public partial struct PlayerController
 {
     InputAction moveUp;
@@ -50,7 +52,7 @@ public partial struct PlayerController
 
     [ShowInInspector] Vector2 direction;
     
-    [SerializeField] private readonly float speed = 500f;
+    [SerializeField] private readonly float speed = 5f;
 
     public void OnAdd()
     {
@@ -107,7 +109,8 @@ public partial struct PlayerController
         else
             direction.X = 0;
 
-        Entity.Position += direction.Normalized * speed * gameTime.Delta;
+        PhysicsBody.Velocity = direction.Normalized * speed;
+        PhysicsBody.MoveAndSlide();
     }
 }
 
@@ -168,30 +171,35 @@ public class TestSceneEntityModel : Scene
         TextureAtlas atlas = TextureAtlas.FromFile(Core.Content, "images/atlas-definition.xml");
 
         entityWorld = new(10);
-        player = entityWorld.CreateEntity().Handle;
-        ref Entity playerRef = ref entityWorld.GetEntity(player);
+        ref Entity playerRef = ref entityWorld.CreateEntity();
+        player = playerRef.Handle;
         playerRef.Name = "Player";
-        playerRef.AddComponent<SpriteComponent>(new SpriteComponent
+        ref var sprite  = ref playerRef.AddComponent<SpriteComponent>(new SpriteComponent
         {
             Sprite = atlas.CreateAnimatedSprite("slime-animation")
         });
-        playerRef.AddComponent<PlayerController>(new PlayerController());
-        ref Entity square = ref entityWorld.CreateEntity("Square");
-        square.AddComponent<SquareRenderer>();
-        ref var s = ref square.GetComponent<SquareRenderer>();
-        s.Size = 25;
-        square.Position = playerRef.Position;
-        square.TrySetParent(player);
-
-
-        for (var i = 0; i < 10_000; i++)
+        playerRef.AddComponent<PlayerController>();
+        ref var physics = ref playerRef.AddComponent<PhysicsBody>();
+        physics.Size = sprite.Sprite.Size;
+        
+        ref Entity square = ref entityWorld.CreateEntity(player, "Square");
+        square.AddComponent<SquareRenderer>(new SquareRenderer
         {
-            var entity = entityWorld.CreateEntityByHandle();
-            ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
+            Size = 25
+        });
+        square.Position += new Vector2(-1000, 100);
+        ref var physicsSquare = ref square.AddComponent<PhysicsBody>();
+        physicsSquare.Size = new Vector2(2000, 10);
+        //physicsSquare.Size = Vector2.One * 35;
 
-            instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });
-            instanceEntity.AddComponent(new SquareRenderer { Size = 10 });
-        }
+        //for (var i = 0; i < 10_000; i++)
+        //{
+        //    var entity = entityWorld.CreateEntityByHandle();
+        //    ref Entity instanceEntity = ref entityWorld.GetEntity(entity);
+
+        //    instanceEntity.AddComponent(new Mover { Velocity = new Vector2(8 + i * 0.01f, 4f + i * 0.01f) });
+        //    instanceEntity.AddComponent(new SquareRenderer { Size = 10 });
+        //}
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Darkrit.Base;
 using Darkrit.DataStructures;
+using Darkrit.EntityModel;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -52,13 +53,18 @@ public class World<T>
     /// <param name="mask">Bitmask layer this AABB checks for when moving</param>
     /// <param name="userData">Optional parameter defined by the type <typeparamref name="T"/></param>
     /// <returns>A handle to the body. Be aware that this is a non mutable copy</returns>
-    public Handle<Body<T>> Create(RectangleF rectangle, uint layer = 0, uint mask = 0, T userData = default) => _bodies.Add(new Body<T>
+    public Handle<Body<T>> Create(RectangleF rectangle, uint layer = 0, uint mask = 0, T userData = default)
     {
-        Bounds = rectangle,
-        Layer = layer,
-        Mask = mask,
-        UserData = userData
-    });
+        return _bodies.Add(new Body<T>
+        {
+            Bounds = rectangle,
+            Layer = layer,
+            Mask = mask,
+            UserData = userData
+        });
+    }
+
+    internal void Remove(Handle<Body<T>> handle) => _bodies.Remove(handle);
 
     /// <summary>
     /// Gets a reference to the stored body. Use with caution
@@ -106,6 +112,15 @@ public class World<T>
         SetMask(handle, mask);
     }
 
+    /// <summary>
+    /// Teleports a body without performing any physics checks
+    /// </summary>
+    /// <param name=""></param>
+    public void Teleport(Handle<Body<T>> handle, Vector2 targetPosition)
+    {
+        ref var body = ref Get(handle);
+        body.Bounds = body.Bounds with { Location = targetPosition };
+    }
 
     /// <summary>
     /// Attemps to move the body associated with <paramref name="handle"/> <paramref name="velocity"/> units
