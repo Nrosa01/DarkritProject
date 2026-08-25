@@ -41,6 +41,8 @@ public static class EditorFieldDrawer
         string name = GetDisplayName(field);
         object value = field.GetValue(owner);
 
+        bool readOnly = field.IsDefined(typeof(EntityModel.ReadOnlyAttribute));
+
         ImGui.TableNextRow();
 
         ImGui.TableSetColumnIndex(0);
@@ -49,6 +51,11 @@ public static class EditorFieldDrawer
 
         ImGui.TableSetColumnIndex(1);
 
+        if (readOnly)
+            ImGui.BeginDisabled();
+
+        bool changed = false;
+
         if (value is int intValue)
         {
             ImGui.SetNextItemWidth(-1);
@@ -56,7 +63,7 @@ public static class EditorFieldDrawer
             if (ImGui.DragInt($"##{field.Name}", ref intValue))
             {
                 field.SetValueDirect(__makeref(owner), intValue);
-                return true;
+                changed = true;
             }
         }
         else if (value is float floatValue)
@@ -66,7 +73,7 @@ public static class EditorFieldDrawer
             if (ImGui.DragFloat($"##{field.Name}", ref floatValue))
             {
                 field.SetValueDirect(__makeref(owner), floatValue);
-                return true;
+                changed = true;
             }
         }
         else if (value is bool boolValue)
@@ -74,7 +81,10 @@ public static class EditorFieldDrawer
             if (ImGui.Checkbox($"##{field.Name}", ref boolValue))
             {
                 field.SetValueDirect(__makeref(owner), boolValue);
-                return true;
+                changed = true;
+
+                if (readOnly)
+                    ImGui.BeginDisabled();
             }
         }
         else if (value is Vector2 vector2Value)
@@ -84,7 +94,7 @@ public static class EditorFieldDrawer
             if (DrawVector2(field.Name, ref vector2Value, linkable))
             {
                 field.SetValueDirect(__makeref(owner), vector2Value);
-                return true;
+                changed = true;
             }
         }
         else if (value is Transform2D transform)
@@ -92,11 +102,14 @@ public static class EditorFieldDrawer
             if (DrawTransform2D(field.Name, ref transform))
             {
                 field.SetValueDirect(__makeref(owner), transform);
-                return true;
+                changed = true;
             }
         }
 
-        return false;
+        if (readOnly)
+            ImGui.EndDisabled();
+
+        return changed;
     }
 
     private static bool DrawTransform2D(string id, ref Transform2D value)

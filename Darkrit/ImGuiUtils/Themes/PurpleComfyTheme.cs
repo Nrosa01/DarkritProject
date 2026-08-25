@@ -11,7 +11,7 @@ internal class PurpleComfyTheme
         var style = ImGui.GetStyle();
 
         style.Alpha = 1.0f;
-        style.DisabledAlpha = 0.1f;
+        style.DisabledAlpha = 0.6f;
         style.WindowPadding = new Vector2(8.0f, 8.0f);
         style.WindowRounding = 15.0f;
         style.WindowBorderSize = 0.0f;
