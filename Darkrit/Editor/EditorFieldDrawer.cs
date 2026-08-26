@@ -38,6 +38,11 @@ public static class EditorFieldDrawer
 
     public static bool Draw<T>(FieldInfo field, ref T owner, bool showName = true) where T : struct
     {
+        bool hideInInspector = field.IsDefined(typeof(EntityModel.HideInInspectorAttribute));
+
+        if (hideInInspector)
+            return false;
+        
         string name = GetDisplayName(field);
         object value = field.GetValue(owner);
 

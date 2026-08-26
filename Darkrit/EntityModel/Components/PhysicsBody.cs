@@ -1,4 +1,5 @@
-﻿using Darkrit.Base;
+using Darkrit.Base;
+using Darkrit.DevTools.Logger;
 using Darkrit.Physics.Boxy2D;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
@@ -36,7 +37,7 @@ public partial struct PhysicsBody
     [ShowInInspector, ReadOnly] bool _isOnLeftWall;
     [ShowInInspector, ReadOnly] bool _isOnRightWall;
 
-    bool _isOnCeiling;
+    [ShowInInspector, ReadOnly]  bool _isOnCeiling;
 
     public readonly bool IsOnFloor => _isOnFloor;
     public readonly bool IsOnLeftWall => _isOnLeftWall;

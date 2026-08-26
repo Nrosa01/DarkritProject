@@ -53,7 +53,7 @@ internal class CoreEditor
             io.Fonts.AddFontFromFileTTF("Content/fonts/JetBrainsMono-Regular.ttf", 20);
         }
         //io.Fonts.AddFontFromFileTTF("Content/fonts/FiraCode-Regular.ttf", 16);
-        ImGui.GetStyle().ScaleAllSizes(1.25f);
+        //ImGui.GetStyle().ScaleAllSizes(1.25f);
 
         PurpleComfyTheme.SetupImGuiStyle();
 

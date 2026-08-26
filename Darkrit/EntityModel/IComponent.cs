@@ -113,6 +113,14 @@ public sealed class ReadOnlyAttribute : Attribute
 }
 
 /// <summary>
+/// Used for properties you don't want to be modifiable
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class HideInInspectorAttribute : Attribute
+{
+}
+
+/// <summary>
 /// Defines all the required properties a component needs
 /// </summary>
 public interface IComponent
