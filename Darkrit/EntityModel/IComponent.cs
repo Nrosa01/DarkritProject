@@ -121,6 +121,24 @@ public sealed class HideInInspectorAttribute : Attribute
 }
 
 /// <summary>
+/// Displays a button that calls the annotated method
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+public sealed class ButtonAttribute : Attribute
+{
+    public string? Name { get; }
+
+    public ButtonAttribute()
+    {
+    }
+
+    public ButtonAttribute(string name)
+    {
+        Name = name;
+    }
+}
+
+/// <summary>
 /// Defines all the required properties a component needs
 /// </summary>
 public interface IComponent

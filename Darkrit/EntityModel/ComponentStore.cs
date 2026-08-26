@@ -375,6 +375,8 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
          field.IsDefined(typeof(SerializeFieldAttribute)) ||
          field.Name.Contains("k__BackingField")))];
 
+    private static readonly MethodInfo[] Methods = typeof(T).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
     private readonly HashSet<int> _editorExpanded = [];
 
     /// <inheritdoc/>
@@ -449,6 +451,11 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
                 }
 
                 ImGui.EndTable();
+            }
+
+            foreach (MethodInfo method in Methods)
+            {
+                EditorFieldDrawer.DrawButton(method, ref component);
             }
         }
 

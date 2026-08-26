@@ -354,4 +354,42 @@ public static class EditorFieldDrawer
 
         return builder.ToString();
     }
+
+    // Buttons
+
+    private static readonly System.Numerics.Vector4 ButtonColor = new(0.15f, 0.30f, 0.55f, 1.0f);
+
+    private static readonly System.Numerics.Vector4 ButtonHoveredColor = new(0.20f, 0.40f, 0.70f, 1.0f);
+
+    private static readonly System.Numerics.Vector4 ButtonActiveColor = new(0.10f, 0.25f, 0.45f, 1.0f);
+
+    public static bool DrawButton<T>(MethodInfo method, ref T owner) where T : struct
+    {
+        if (!method.IsDefined(typeof(ButtonAttribute)))
+            return false;
+
+        ButtonAttribute attribute = method.GetCustomAttribute<ButtonAttribute>();
+        string name = attribute?.Name ?? ToDisplayName(method.Name);
+
+        ImGui.Dummy(new System.Numerics.Vector2(0.0f, 6.0f));
+
+        ImGui.PushStyleColor(ImGuiCol.Button, ButtonColor);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, ButtonHoveredColor);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, ButtonActiveColor);
+
+        bool clicked = ImGui.Button(name, new System.Numerics.Vector2(-1.0f, 0.0f));
+
+        ImGui.PopStyleColor(3);
+
+        ImGui.Dummy(new System.Numerics.Vector2(0.0f, 6.0f));
+
+        if (!clicked)
+            return false;
+
+        object boxedOwner = owner;
+        method.Invoke(boxedOwner, null);
+        owner = (T)boxedOwner;
+
+        return true;
+    }
 }

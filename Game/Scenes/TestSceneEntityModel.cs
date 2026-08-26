@@ -54,8 +54,14 @@ public partial struct PlayerController
     [SerializeField] readonly float maxSpeed = 180f;
     [SerializeField] readonly float acceleration = 1200f;
     [SerializeField] readonly float deceleration = 1600f;
-    [SerializeField] readonly float gravity = 3600f;
+    [SerializeField] float gravity = 3600f;
     [SerializeField] readonly float jumpSpeed = 1000f;
+
+    [Button]
+    void InvertGravity()
+    {
+        gravity = gravity * -1;
+    }
 
     public void OnAdd()
     {
