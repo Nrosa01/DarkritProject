@@ -27,36 +27,51 @@ public partial struct SpriteComponent
     public AnimatedSprite Sprite;
 
     [SerializeField] Vector2 pivot = Vector2.One * 0.5f;
+    [SerializeField] Vector2 offset;
 
     public Vector2 Pivot
     {
         readonly get => pivot;
         set
         {
-            Vector2 oldPivot = pivot;
+            Vector2 delta = (value - pivot) * Sprite.Region.Size;
             pivot = value;
 
-            Vector2 delta = (pivot - oldPivot) * Sprite.Region.Size;
-            delta *= Entity.Scale;
-
-            Entity.Position += Vector2.Transform(delta, Matrix.CreateRotationZ(Entity.Rotation));
-
+            Entity.Position += TransformLocal(delta);
             UpdateOrigin();
         }
     }
 
+    public Vector2 Offset
+    {
+        readonly get => offset;
+        set
+        {
+            Vector2 delta = value - offset;
+            offset = value;
+
+            Entity.Position -= TransformLocal(delta);
+        }
+    }
+
     [Button]
-    void UpdateOrigin()
+    readonly void UpdateOrigin()
     {
         Sprite.Origin = pivot * new Vector2(Sprite.Region.Width, Sprite.Region.Height);
     }
 
-    public void OnAdd()
+    readonly Vector2 TransformLocal(Vector2 value)
+    {
+        value *= Entity.Scale;
+
+        return Vector2.Transform(value, Matrix.CreateRotationZ(Entity.Rotation));
+    }
+
+    public readonly void OnAdd()
     {
         Entity.Scale = Vector2.One * 2;
         UpdateOrigin();
     }
-
 
     public readonly void FixedUpdate(GameTime gameTime)
     {
@@ -65,9 +80,11 @@ public partial struct SpriteComponent
 
     public readonly void Draw(GameTime gameTime)
     {
+        Vector2 drawPosition = Entity.Position + TransformLocal(offset);
+
         Sprite.Draw(
             Core.SpriteBatch,
-            Entity.Position,
+            drawPosition,
             Entity.Scale,
             Entity.Rotation);
 
