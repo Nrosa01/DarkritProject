@@ -843,15 +843,15 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
             }
         }
 
-        //ImGizmo2D.SetHandleRadius(8.0f);
+        ImGizmo2D.SetHandleRadius(8.0f);
 
         // This is for testing gizmos, it will be removed from here or changed in the future
-        //var position = entity.Position;
-        //var rotation = entity.RotationDegrees;
-        //var scale = entity.Scale;
+        var position = entity.Position;
+        // var rotation = entity.RotationDegrees;
+        // var scale = entity.Scale;
 
-        //if (ImGizmo2D.Translate("EntityTranslate", ref position.X, ref position.Y))
-        //    entity.Position = position;
+        if (ImGizmo2D.Translate("EntityTranslate", ref position.X, ref position.Y))
+            entity.Position = position;
 
         //if (ImGizmo2D.Rotate("EntityRotate", position.X, position.Y, ref rotation))
         //    entity.RotationDegrees = rotation;

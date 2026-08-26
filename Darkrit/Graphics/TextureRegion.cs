@@ -32,6 +32,12 @@ public class TextureRegion
     public int Height => SourceRectangle.Height;
 
     /// <summary>
+    /// Gets the size, as a Vector2, of this TextureRegion
+    /// </summary>
+    public Vector2 Size => new(Width, Height);
+
+
+    /// <summary>
     /// Gets the top normalized texture coordinate of this region.
     /// </summary>
     public float TopTextureCoordinate => SourceRectangle.Top / (float)Texture.Height;

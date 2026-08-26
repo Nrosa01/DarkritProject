@@ -26,19 +26,64 @@ public partial struct SpriteComponent
 {
     public AnimatedSprite Sprite;
 
-    public readonly void OnAdd()
+    [SerializeField] Vector2 pivot = Vector2.One * 0.5f;
+
+    public Vector2 Pivot
+    {
+        readonly get => pivot;
+        set
+        {
+            Vector2 oldPivot = pivot;
+            pivot = value;
+
+            Vector2 delta = (pivot - oldPivot) * Sprite.Region.Size;
+            delta *= Entity.Scale;
+
+            Entity.Position += Vector2.Transform(delta, Matrix.CreateRotationZ(Entity.Rotation));
+
+            UpdateOrigin();
+        }
+    }
+
+    [Button]
+    void UpdateOrigin()
+    {
+        Sprite.Origin = pivot * new Vector2(Sprite.Region.Width, Sprite.Region.Height);
+    }
+
+    public void OnAdd()
     {
         Entity.Scale = Vector2.One * 2;
+        UpdateOrigin();
     }
+
 
     public readonly void FixedUpdate(GameTime gameTime)
     {
-        Sprite.Scale = Entity.Scale;
-        Sprite.Rotation = Entity.Rotation;
         Sprite.Update(gameTime);
     }
 
-    public readonly void Draw(GameTime gameTime) => Sprite.Draw(Core.SpriteBatch, Entity.Position);
+    public readonly void Draw(GameTime gameTime)
+    {
+        Sprite.Draw(
+            Core.SpriteBatch,
+            Entity.Position,
+            Entity.Scale,
+            Entity.Rotation);
+
+        Vector2 pivotSize = Vector2.One * 4f;
+
+        Core.SpriteBatch.Draw(
+            Core.Pixel,
+            Entity.Position - pivotSize * 0.5f,
+            null,
+            Color.Red,
+            0f,
+            Vector2.Zero,
+            pivotSize,
+            SpriteEffects.None,
+            1f);
+    }
 }
 
 [Component]
@@ -197,14 +242,14 @@ public class TestSceneEntityModel : Scene
         ref Entity playerRef = ref entityWorld.CreateEntity();
         player = playerRef.Handle;
         playerRef.Name = "Player";
-        ref var sprite  = ref playerRef.AddComponent<SpriteComponent>(new SpriteComponent
+        ref var sprite = ref playerRef.AddComponent<SpriteComponent>(new SpriteComponent
         {
             Sprite = atlas.CreateAnimatedSprite("slime-animation")
         });
         playerRef.AddComponent<PlayerController>();
         ref var physics = ref playerRef.AddComponent<PhysicsBody>();
         physics.Size = sprite.Sprite.Size;
-        
+
         ref Entity square = ref entityWorld.CreateEntity(player, "Square");
         square.Position += new Vector2(-1000, 100);
         ref var physicsSquare = ref square.AddComponent<PhysicsBody>();
