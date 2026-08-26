@@ -1,5 +1,4 @@
 using Darkrit.Base;
-using Darkrit.DevTools.Logger;
 using Darkrit.Physics.Boxy2D;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
@@ -20,6 +19,7 @@ public partial struct PhysicsBody
     Vector2 baseSize = Vector2.One * 24;
     Vector2 previousScale;
 
+    [SerializeField] Vector2 offset;
     [SerializeField] readonly float floorSnapLength = 2f;
 
     public Vector2 Velocity;
@@ -37,15 +37,23 @@ public partial struct PhysicsBody
     [ShowInInspector, ReadOnly] bool _isOnLeftWall;
     [ShowInInspector, ReadOnly] bool _isOnRightWall;
 
-    [ShowInInspector, ReadOnly]  bool _isOnCeiling;
+    [ShowInInspector, ReadOnly] bool _isOnCeiling;
 
     public readonly bool IsOnFloor => _isOnFloor;
     public readonly bool IsOnLeftWall => _isOnLeftWall;
     public readonly bool IsOnRightWall => _isOnRightWall;
-
     public readonly bool IsOnWall => _isOnLeftWall || _isOnRightWall;
-
     public readonly bool IsOnCeiling => _isOnCeiling;
+
+    public Vector2 Offset
+    {
+        readonly get => offset;
+        set
+        {
+            offset = value;
+            SyncPosition();
+        }
+    }
 
     public Vector2 Size
     {
@@ -54,6 +62,7 @@ public partial struct PhysicsBody
         {
             baseSize = value;
             Body.Bounds = Body.Bounds with { Size = value * Entity.Scale };
+            SyncPosition();
         }
     }
 
@@ -61,11 +70,13 @@ public partial struct PhysicsBody
     {
         _physicsHandle = World.Physics.Create(
             Entity.Position,
-            baseSize,
+            baseSize * Entity.Scale,
             1,
             1,
             EntityHandle
         );
+
+        SyncPosition();
     }
 
     public void Start()
@@ -79,11 +90,13 @@ public partial struct PhysicsBody
         {
             _physicsHandle = World.Physics.Create(
                 Entity.Position,
-                baseSize,
+                baseSize * Entity.Scale,
                 1,
                 1,
                 EntityHandle
             );
+
+            SyncPosition();
         }
     }
 
@@ -104,7 +117,6 @@ public partial struct PhysicsBody
         _isOnRightWall = false;
         _isOnCeiling = false;
 
-        // Keep the body attached to the floor when moving horizontally.
         if (_wasOnFloor && Vector2.Dot(Velocity, upDirection) <= 0f && floorSnapLength > 0f)
         {
             Vector2 snapMotion = -upDirection * floorSnapLength;
@@ -152,7 +164,10 @@ public partial struct PhysicsBody
         World.Physics.Move(_physicsHandle, ref motion, CollisionFilters<Handle<Entity>>.Response(CollisionResponses.Slide));
 
         Velocity = motion / gameTime.Delta;
-        Entity.Position = Body.Bounds.Location;
+
+        Entity.Position = Body.Bounds.Location
+                         + Body.Bounds.Size * 0.5f
+                         - GetWorldOffset();
 
         foreach (var collision in World.Physics.LastCollsions)
         {
@@ -167,10 +182,12 @@ public partial struct PhysicsBody
         }
     }
 
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Teleport(Vector2 position)
     {
-        World.Physics.Teleport(_physicsHandle, position);
         Entity.Position = position;
+        SyncPosition();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -182,15 +199,36 @@ public partial struct PhysicsBody
             previousScale = Entity.Scale;
         }
 
-        World.Physics.Teleport(_physicsHandle, Entity.Position);
+        SyncPosition();
     }
 
     public void Draw(GameTime gameTime)
     {
         if (_showCollider)
         {
-            var bounds = Body.Bounds with { Location = Entity.Position };
+            Vector2 center = Entity.Position + GetWorldOffset();
+
+            var bounds = Body.Bounds with
+            {
+                Location = center - Body.Bounds.Size * 0.5f
+            };
+
             Core.SpriteBatch.Draw(bounds, Color.Red, 0.5f);
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void SyncPosition()
+    {
+        Vector2 center = Entity.Position + GetWorldOffset();
+
+        World.Physics.Teleport(_physicsHandle, center - Body.Bounds.Size * 0.5f);
+    }
+
+    readonly Vector2 GetWorldOffset()
+    {
+        Vector2 scaledOffset = offset * Entity.Scale;
+
+        return Vector2.Transform(scaledOffset, Matrix.CreateRotationZ(Entity.Rotation));
     }
 }

@@ -268,7 +268,7 @@ public class TestSceneEntityModel : Scene
         physics.Size = sprite.Sprite.Size;
 
         ref Entity square = ref entityWorld.CreateEntity(player, "Square");
-        square.Position += new Vector2(-1000, 100);
+        square.Position += new Vector2(0, 100);
         ref var physicsSquare = ref square.AddComponent<PhysicsBody>();
         physicsSquare.Size = new Vector2(2000, 10);
 
@@ -278,7 +278,7 @@ public class TestSceneEntityModel : Scene
         physicsSquare.Size = new Vector2(200, 10);
 
         square = ref entityWorld.CreateEntity(player, "Square 3");
-        square.Position += new Vector2(-100, -30);
+        square.Position += new Vector2(-180, 50);
         physicsSquare = ref square.AddComponent<PhysicsBody>();
         physicsSquare.Size = new Vector2(20, 100);
     }
