@@ -54,5 +54,28 @@ internal class EditorOverlay
         _consoleWindow.Draw(gameTime);
         _sceneSwitcherWindow.Draw(gameTime);
         _inputRecorderWindow.Draw(gameTime);
+
+        // This should go into its own module in the future
+        ImGui.Begin("Darkrit Settings");
+        if (ImGui.BeginTable("##Fields", 2))
+        {
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 120.0f);
+            ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+
+            ImGui.TableNextRow();
+
+            ImGui.TableNextColumn();
+            ImGui.Text("Physics Rate");
+
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(-1);
+
+            var physicsRate = Core.PHYSICS_TICKS_PER_SECOND;
+            if (ImGui.DragInt("##PhysicsRate", ref physicsRate))
+                Core.PHYSICS_TICKS_PER_SECOND = physicsRate;
+
+            ImGui.EndTable();
+        }
+        ImGui.End();
     }
 }

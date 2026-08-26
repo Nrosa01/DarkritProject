@@ -88,7 +88,7 @@ public class Core : Game
     public static int PHYSICS_TICKS_PER_SECOND { get; set; } = 45;
 
     // this will be the FixedUpdate frequency in hz
-    private float _fixedUpdateDelta = (int)(1000.0 / PHYSICS_TICKS_PER_SECOND);
+    private static float FixedUpdateDelta => (int)(1000.0 / PHYSICS_TICKS_PER_SECOND);
 
     // helper variables for the fixed update
     private readonly int _maxFixedUpdatesPerFrame = 3;
@@ -193,24 +193,24 @@ public class Core : Game
         _accumulator += frameTime;
 
         int updatesThisFrame = 0;
-        while (_accumulator >= _fixedUpdateDelta && updatesThisFrame < _maxFixedUpdatesPerFrame)
+        while (_accumulator >= FixedUpdateDelta && updatesThisFrame < _maxFixedUpdatesPerFrame)
         {
             DoFixedUpdate(gameTime);
-            _accumulator -= _fixedUpdateDelta;
+            _accumulator -= FixedUpdateDelta;
             updatesThisFrame++;
         }
 
         // this value stores how far we are in the current frame. For example, when the 
         // value of ALPHA is 0.5, it means we are halfway between the last frame and the 
         // next upcoming frame.
-        FixedUpdateAlpha = (_accumulator / _fixedUpdateDelta);
+        FixedUpdateAlpha = (_accumulator / FixedUpdateDelta);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void DoFixedUpdate(GameTime gameTime)
         {
             _physicsGameTime.TotalGameTime = gameTime.TotalGameTime;
             _physicsGameTime.IsRunningSlowly = gameTime.IsRunningSlowly;
-            _physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(_fixedUpdateDelta);
+            _physicsGameTime.ElapsedGameTime = TimeSpan.FromMilliseconds(FixedUpdateDelta);
             
             if (InputUpdateLayer == EngineUpdateLayer.FIXED_UPDATE)
                 Input.Update(gameTime);

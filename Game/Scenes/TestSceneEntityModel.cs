@@ -80,6 +80,13 @@ public partial struct PlayerController
         ]);
     }
 
+    bool jumpRequested = false;
+
+    public void Update(GameTime gameTime)
+    {
+        jumpRequested |= jump.WasPressedThisFrame;
+    }
+
     public void FixedUpdate(GameTime gameTime)
     {
         direction.X = 0;
@@ -100,8 +107,11 @@ public partial struct PlayerController
 
         if (PhysicsBody.IsOnFloor)
         {
-            if (jump.WasPressedThisFrame)
+            if (jumpRequested)
+            {
+                jumpRequested = false;
                 PhysicsBody.Velocity.Y = -jumpSpeed;
+            }
             else if (PhysicsBody.Velocity.Y > 0)
                 PhysicsBody.Velocity.Y = 0;
         }
