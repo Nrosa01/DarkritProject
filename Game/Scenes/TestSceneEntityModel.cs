@@ -13,6 +13,7 @@ using Darkrit.Physics.Boxy2D;
 using Darkrit.Scenes;
 using Darkrit.Utilities;
 using DarkritGame.Scenes;
+using Game.Components;
 using Gum.DataTypes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -276,6 +277,7 @@ public class TestSceneEntityModel : Scene
         square.Position += new Vector2(0, -30);
         physicsSquare = ref square.AddComponent<PhysicsBody>();
         physicsSquare.Size = new Vector2(200, 10);
+        square.AddComponent<MovingPlatform>();
 
         square = ref entityWorld.CreateEntity(player, "Square 3");
         square.Position += new Vector2(-180, 50);
