@@ -18,46 +18,60 @@ public partial struct PhysicsBody
         None
     }
 
+    // Configuration
+
+    [Header("Shape")]
+    [SerializeField] Vector2 baseSize = Vector2.One * 24;
+    [SerializeField] Vector2 offset;
+
+    [Header("Movement")]
     public Vector2 upDirection = new(0, -1);
+    [SerializeField] readonly float floorSnapLength = 2f;
+
+    [Header("Platforms")]
+    [SerializeField] PlatformOnLeave platformOnLeave = PlatformOnLeave.AddVelocity;
+
+    [Header("Debug")]
+    [ShowInInspector] bool _showCollider = true;
+
+    // Runtime state
+
+    public Vector2 Velocity;
+
+    [Header("Collisions")]
+    [ShowInInspector, ReadOnly] bool _isOnFloor;
+    [ShowInInspector, ReadOnly] bool _isOnLeftWall;
+    [ShowInInspector, ReadOnly] bool _isOnRightWall;
+    [ShowInInspector, ReadOnly] bool _isOnCeiling;
+
+    // Internal state
+
+    bool _wasOnFloor;
+    bool _wasOnLeftWall;
+    bool _wasOnRightWall;
+
+    Handle<Body<Handle<Entity>>> _platformHandle;
+    Vector2 _platformPreviousPosition;
+    Vector2 previousScale;
+
+    // Dependencies
 
     Handle<Body<Handle<Entity>>> _physicsHandle;
 
-    [ShowInInspector] bool _showCollider = true;
+    // TODO: Move to World if the per-component store reference becomes unnecessary.
+    ComponentStore<PhysicsBody> PhysicsBodyStore;
 
-    Vector2 baseSize = Vector2.One * 24;
-    Vector2 previousScale;
-
-    [SerializeField] Vector2 offset;
-    [SerializeField] readonly float floorSnapLength = 2f;
-
-    public Vector2 Velocity;
+    // Public API
 
     public readonly ref Body<Handle<Entity>> Body => ref World.Physics.Get(_physicsHandle);
 
     public readonly ReadOnlySpan<CollisionHit<Body<Handle<Entity>>>> Collisions => World.Physics.LastCollsions;
-
-    bool _wasOnFloor;
-    [ShowInInspector, ReadOnly] bool _isOnFloor;
-
-    bool _wasOnLeftWall;
-    bool _wasOnRightWall;
-
-    [Header("Collisions")]
-    [ShowInInspector, ReadOnly] bool _isOnLeftWall;
-    [ShowInInspector, ReadOnly] bool _isOnRightWall;
-
-    [ShowInInspector, ReadOnly] bool _isOnCeiling;
 
     public readonly bool IsOnFloor => _isOnFloor;
     public readonly bool IsOnLeftWall => _isOnLeftWall;
     public readonly bool IsOnRightWall => _isOnRightWall;
     public readonly bool IsOnWall => _isOnLeftWall || _isOnRightWall;
     public readonly bool IsOnCeiling => _isOnCeiling;
-
-    Handle<Body<Handle<Entity>>> _platformHandle;
-    Vector2 _platformPreviousPosition;
-    // This could be in World to not have a pointer in every PhysicsBody, I have to think about it
-    ComponentStore<PhysicsBody> PhysicsBodyStore;
 
     public Vector2 Offset
     {
@@ -79,8 +93,6 @@ public partial struct PhysicsBody
             SyncPosition();
         }
     }
-
-    [SerializeField] PlatformOnLeave platformOnLeave = PlatformOnLeave.AddVelocity;
 
     public void OnCreate()
     {
