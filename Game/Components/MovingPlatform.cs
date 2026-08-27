@@ -28,7 +28,5 @@ public partial struct MovingPlatform
         {
             X = startPosition.X + MathF.Sin(timer * speed) * amplitude
         };
-
-        PhysicsBody.Teleport(Entity.Position);
     }
 }
