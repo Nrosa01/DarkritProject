@@ -42,6 +42,7 @@ public partial struct PhysicsBody
     bool _wasOnLeftWall;
     bool _wasOnRightWall;
 
+    [Header("Collisions")]
     [ShowInInspector, ReadOnly] bool _isOnLeftWall;
     [ShowInInspector, ReadOnly] bool _isOnRightWall;
 

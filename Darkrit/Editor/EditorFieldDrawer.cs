@@ -20,7 +20,8 @@ public static class EditorFieldDrawer
                type == typeof(float) ||
                type == typeof(bool) ||
                type == typeof(Vector2) ||
-               type == typeof(Transform2D);
+               type == typeof(Transform2D) ||
+               type.IsEnum;
     }
 
     public static int GetEditorFieldCount(FieldInfo[] EditorFields)
@@ -34,6 +35,40 @@ public static class EditorFieldDrawer
         }
 
         return count;
+    }
+
+    public static void DrawFields<T>(FieldInfo[] fields, ref T component) where T : struct
+    {
+        if (!ImGui.BeginTable("##Fields", 2))
+            return;
+
+        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 120.0f);
+        ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+
+        foreach (FieldInfo field in fields)
+        {
+            if (!IsEditorFieldSupported(field))
+                continue;
+
+            HeaderAttribute header = field.GetCustomAttribute<HeaderAttribute>();
+
+            if (header != null)
+            {
+                ImGui.EndTable();
+
+                ImGui.SeparatorText(header.Text);
+
+                if (!ImGui.BeginTable("##Fields", 2))
+                    return;
+
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 120.0f);
+                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+            }
+
+            Draw(field, ref component);
+        }
+
+        ImGui.EndTable();
     }
 
     public static bool Draw<T>(FieldInfo field, ref T owner, bool showName = true) where T : struct
@@ -110,9 +145,50 @@ public static class EditorFieldDrawer
                 changed = true;
             }
         }
+        else if (value is Enum enumValue)
+        {
+            if (DrawEnum(field.Name, enumValue, out Enum newValue))
+            {
+                field.SetValueDirect(__makeref(owner), newValue);
+                changed = true;
+            }
+        }
 
         if (readOnly)
             ImGui.EndDisabled();
+
+        return changed;
+    }
+
+    static bool DrawEnum(string id, Enum value, out Enum newValue)
+    {
+        newValue = value;
+
+        string preview = value.ToString();
+
+        ImGui.SetNextItemWidth(-1);
+
+        if (!ImGui.BeginCombo($"##{id}", preview))
+            return false;
+
+        bool changed = false;
+        Type enumType = value.GetType();
+
+        foreach (Enum option in Enum.GetValues(enumType))
+        {
+            bool selected = Equals(option, value);
+
+            if (ImGui.Selectable(option.ToString(), selected))
+            {
+                newValue = option;
+                changed = true;
+            }
+
+            if (selected)
+                ImGui.SetItemDefaultFocus();
+        }
+
+        ImGui.EndCombo();
 
         return changed;
     }

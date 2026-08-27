@@ -139,6 +139,16 @@ public sealed class ButtonAttribute : Attribute
 }
 
 /// <summary>
+/// Draws a separator in the ImGui widget
+/// </summary>
+/// <param name="text"></param>
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+public sealed class HeaderAttribute(string text) : Attribute
+{
+    public string Text { get; } = text;
+}
+
+/// <summary>
 /// Defines all the required properties a component needs
 /// </summary>
 public interface IComponent

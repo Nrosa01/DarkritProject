@@ -439,19 +439,7 @@ public class ComponentStore<T>(int initialCapacity) : IComponentStore, IEnumerab
         // Component fields.
         if (open)
         {
-            if (ImGui.BeginTable("##Fields", 2))
-            {
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 120.0f);
-                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
-
-                foreach (FieldInfo field in EditorFields)
-                {
-                    if (EditorFieldDrawer.IsEditorFieldSupported(field))
-                        EditorFieldDrawer.Draw(field, ref component);
-                }
-
-                ImGui.EndTable();
-            }
+            EditorFieldDrawer.DrawFields(EditorFields, ref component);
 
             foreach (MethodInfo method in Methods)
             {
