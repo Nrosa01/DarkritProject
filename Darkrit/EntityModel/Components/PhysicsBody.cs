@@ -1,4 +1,5 @@
 using Darkrit.Base;
+using Darkrit.DevTools.Logger;
 using Darkrit.Physics.Boxy2D;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
@@ -10,6 +11,13 @@ namespace Darkrit.EntityModel.Components;
 [Component]
 public partial struct PhysicsBody
 {
+    public enum PlatformOnLeave
+    {
+        AddVelocity,
+        AddUpwardVelocity,
+        None
+    }
+
     public Vector2 upDirection = new(0, -1);
 
     Handle<Body<Handle<Entity>>> _physicsHandle;
@@ -45,6 +53,11 @@ public partial struct PhysicsBody
     public readonly bool IsOnWall => _isOnLeftWall || _isOnRightWall;
     public readonly bool IsOnCeiling => _isOnCeiling;
 
+    Handle<Body<Handle<Entity>>> _platformHandle;
+    Vector2 _platformPreviousPosition;
+    // This could be in World to not have a pointer in every PhysicsBody, I have to think about it
+    ComponentStore<PhysicsBody> PhysicsBodyStore;
+
     public Vector2 Offset
     {
         readonly get => offset;
@@ -66,6 +79,8 @@ public partial struct PhysicsBody
         }
     }
 
+    [SerializeField] PlatformOnLeave platformOnLeave = PlatformOnLeave.AddVelocity;
+
     public void OnCreate()
     {
         _physicsHandle = World.Physics.Create(
@@ -77,6 +92,7 @@ public partial struct PhysicsBody
         );
 
         SyncPosition();
+        PhysicsBodyStore = World.GetStore<PhysicsBody>();
     }
 
     public void Start()
@@ -108,6 +124,9 @@ public partial struct PhysicsBody
 
     public void MoveAndSlide(GameTime gameTime)
     {
+        var previousPlatform = _platformHandle;
+        _platformHandle = default;
+
         _wasOnFloor = _isOnFloor;
         _wasOnLeftWall = _isOnLeftWall;
         _wasOnRightWall = _isOnRightWall;
@@ -128,6 +147,7 @@ public partial struct PhysicsBody
                 testOnly: true))
             {
                 _isOnFloor = true;
+                _platformHandle = previousPlatform;
             }
         }
 
@@ -169,10 +189,14 @@ public partial struct PhysicsBody
                          + Body.Bounds.Size * 0.5f
                          - GetWorldOffset();
 
-        foreach (var collision in World.Physics.LastCollsions)
+        foreach (CollisionHit<Body<Handle<Entity>>> collision in World.Physics.LastCollsions)
         {
             if (Vector2.Dot(collision.Normal, upDirection) > 0.5f)
+            {
                 _isOnFloor = true;
+                _platformHandle = collision.Handle;
+                _platformPreviousPosition = World.Physics.Get(collision.Handle).Bounds.Location;
+            }
             else if (Vector2.Dot(collision.Normal, upDirection) < -0.5f)
                 _isOnCeiling = true;
             else if (collision.Normal.X > 0.5f)
@@ -180,9 +204,46 @@ public partial struct PhysicsBody
             else if (collision.Normal.X < -0.5f)
                 _isOnRightWall = true;
         }
+
+        if (previousPlatform.Id != 0 && _platformHandle.Id == 0)
+        {
+            Vector2 platformPosition = World.Physics.Get(previousPlatform).Bounds.Location;
+            Vector2 platformVelocity = (platformPosition - _platformPreviousPosition) / gameTime.Delta;
+
+            switch (platformOnLeave)
+            {
+                case PlatformOnLeave.AddVelocity:
+                    Velocity += platformVelocity;
+                    break;
+
+                case PlatformOnLeave.AddUpwardVelocity:
+                    float upwardVelocity = Vector2.Dot(platformVelocity, upDirection);
+
+                    if (upwardVelocity > 0f)
+                        Velocity += upDirection * upwardVelocity;
+
+                    break;
+            }
+        }
     }
 
-    
+    public void FixedUpdate(GameTime gameTime)
+    {
+        if (_platformHandle.Id == 0)
+            return;
+
+        Vector2 platformPosition = World.Physics.Get(_platformHandle).Bounds.Location;
+        Vector2 platformDelta = platformPosition - _platformPreviousPosition;
+
+        if (platformDelta != Vector2.Zero)
+        {
+            Entity.Position += platformDelta;
+            SyncPosition();
+        }
+
+        _platformPreviousPosition = platformPosition;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Teleport(Vector2 position)
     {
