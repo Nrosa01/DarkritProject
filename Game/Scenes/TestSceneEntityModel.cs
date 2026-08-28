@@ -182,6 +182,11 @@ public class TestSceneEntityModel : Scene
         square.Position += new Vector2(-180, 50);
         physicsSquare = ref square.AddComponent<PhysicsBody>();
         physicsSquare.Size = new Vector2(20, 100);
+        
+        square = ref entityWorld.CreateEntity(player, "Area");
+        square.Position += new Vector2(225, 40);
+        ref var area = ref square.AddComponent<Area2D>();
+        area.Size = new Vector2(150, 100);
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);

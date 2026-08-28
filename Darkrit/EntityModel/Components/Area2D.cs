@@ -1,5 +1,4 @@
 ﻿using Darkrit.Base;
-using Darkrit.DevTools.Logger;
 using Darkrit.Physics.Boxy2D;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
@@ -66,15 +65,9 @@ public partial struct Area2D
             current.Add(handle);
 
             if (_bodiesInside.Contains(handle))
-            {
-                Log.Info($"Staying {physicsBody.Entity.Name}");
                 BodyStayed?.Invoke(handle);
-            }
             else
-            {
                 BodyEntered?.Invoke(handle);
-                Log.Info($"Entered {physicsBody.Entity.Name}");
-            }
         }
 
         foreach (Handle<Body<Handle<PhysicsBody>>> handle in _bodiesInside)
@@ -83,7 +76,6 @@ public partial struct Area2D
             { 
                 ref var body = ref World.Physics.Get(handle);
                 ref var physicsBody = ref World.PhysicsBodyStore.Get(body.UserData);
-                Log.Info($"Exited {physicsBody.Entity.Name}");
                 BodyExited?.Invoke(handle);
             }
         }
