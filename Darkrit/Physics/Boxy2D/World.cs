@@ -130,7 +130,7 @@ public class World<T>
     /// <param name="handle">Handle to the item to move</param>
     /// <param name="velocity">Motion that the body will try to move</param>
     /// <returns>True if there was a collision</returns>
-    public bool Move(Handle<Body<T>> handle, ref Vector2 velocity) => Move(handle, ref velocity, CollisionFilters<T>.Response(CollisionResponses.Stop), 1);
+    public bool Move<TContext>(Handle<Body<T>> handle, ref Vector2 velocity, TContext context) => Move<TContext>(handle, ref velocity, CollisionFilters<T, TContext>.Response(CollisionResponses.Stop), context, 1);
 
     /// <summary>
     /// Attemps to move the body associated with <paramref name="handle"/> <paramref name="velocity"/> units
@@ -142,7 +142,7 @@ public class World<T>
     /// This parameter limits the amount of iterations that can be done</param>
     /// <param name="testOnly">If <paramref name="testOnly"/> is true, the body does not move but the would-be collision information is given.</param>
     /// <returns>True if there was a collision</returns>
-    public bool Move(Handle<Body<T>> handle, ref Vector2 velocity, CollisionFilterFunction<T> collisionFilter, int maxCollisions = 5, bool testOnly = false)
+    public bool Move<TContext>(Handle<Body<T>> handle, ref Vector2 velocity, CollisionFilterFunction<T, TContext> collisionFilter, TContext context, int maxCollisions = 5, bool testOnly = false)
     {
         Debug.Assert(collisionFilter != null);
         Debug.Assert(_bodies.IsValid(handle));
@@ -188,9 +188,12 @@ public class World<T>
             }
 
             lastCollision = closestCollision;
-            _lastCollisions.Add(new(closestCollision, lastCollisionHandle));
+            CollisionResponseFunction collisionResponseFunction = collisionFilter(ref Get(handle), ref Get(lastCollisionHandle), ref velocity, lastCollision, context);
+            
+            _lastCollisions.Add(new(closestCollision, lastCollisionHandle, collisionResponseFunction));
 
-            collisionFilter(ref Get(handle), ref Get(lastCollisionHandle))(ref bounds, ref velocity, closestCollision);
+            if (!collisionResponseFunction(ref bounds, ref velocity, closestCollision))
+                break;
         }
 
         if (!testOnly)
@@ -216,7 +219,7 @@ public class World<T>
 /// <typeparam name="T"></typeparam>
 /// <param name="collisionInfo"></param>
 /// <param name="handle"></param>
-public readonly struct CollisionHit<T>(CollisionInfo collisionInfo, Handle<T> handle)
+public readonly struct CollisionHit<T>(CollisionInfo collisionInfo, Handle<T> handle, CollisionResponseFunction function)
 {
     /// <summary>
     /// Normalized time in which the collision happened in the frame
@@ -246,4 +249,9 @@ public readonly struct CollisionHit<T>(CollisionInfo collisionInfo, Handle<T> ha
     /// Whether there was a collision
     /// </summary>
     public bool HasCollision { get; init; } = collisionInfo.HasCollision;
+
+    /// <summary>
+    /// The collision response that was used to process this collision
+    /// </summary>
+    public readonly CollisionResponseFunction CollisionResponseFunction = function;
 }

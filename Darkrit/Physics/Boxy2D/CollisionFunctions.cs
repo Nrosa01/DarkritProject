@@ -5,7 +5,7 @@ using RectangleF = Darkrit.Math.RectangleF;
 
 namespace Darkrit.Physics.Boxy2D;
 
-public delegate void CollisionResponseFunction(ref RectangleF body, ref Vector2 velocity, CollisionInfo collisionResponse);
+public delegate bool CollisionResponseFunction(ref RectangleF body, ref Vector2 velocity, CollisionInfo collisionResponse);
 
 public class CollisionFunctions
 {
@@ -92,7 +92,7 @@ public class CollisionFunctions
 
 public static class CollisionResponses
 {
-    public static void Push(ref RectangleF _, ref Vector2 velocity, CollisionInfo collisionResponde)
+    public static bool Push(ref RectangleF _, ref Vector2 velocity, CollisionInfo collisionResponde)
     {
         float magnitude = MathF.Sqrt((velocity.X * velocity.X + velocity.Y * velocity.Y)) * collisionResponde.RemaininTime;
         float dotprod = velocity.X * collisionResponde.Normal.Y + velocity.Y * collisionResponde.Normal.X;
@@ -102,9 +102,11 @@ public static class CollisionResponses
 
         velocity.X = dotprod * collisionResponde.Normal.Y * magnitude;
         velocity.Y = dotprod * collisionResponde.Normal.X * magnitude;
+
+        return true;
     }
 
-    public static void Slide(ref RectangleF body, ref Vector2 velocity, CollisionInfo response)
+    public static bool Slide(ref RectangleF body, ref Vector2 velocity, CollisionInfo response)
     {
         body.X += velocity.X * response.CollisionTime;
         body.Y += velocity.Y * response.CollisionTime;
@@ -115,19 +117,24 @@ public static class CollisionResponses
 
         if (normalVelocity < 0.0f)
             velocity -= response.Normal * normalVelocity;
+
+        return true;
     }
 
-    public static void Stop(ref RectangleF r1, ref Vector2 velocity, CollisionInfo collisionResponde)
+    public static bool Stop(ref RectangleF r1, ref Vector2 velocity, CollisionInfo collisionResponde)
     {
         r1.X += velocity.X * collisionResponde.CollisionTime;
         r1.Y += velocity.Y * collisionResponde.CollisionTime;
 
         velocity = Vector2.Zero;
+        return false;
     }
 
-    public static void Cross(ref RectangleF r1, ref Vector2 velocity, CollisionInfo collisionResponde)
+    public static bool Cross(ref RectangleF body, ref Vector2 velocity, CollisionInfo collisionResponse)
     {
-        velocity = Vector2.Zero;
+        body.X += velocity.X;
+        body.Y += velocity.Y;
+        return false;
     }
 }
 

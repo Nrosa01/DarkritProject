@@ -55,8 +55,9 @@ public class Camera
 
     public Matrix GetViewMatrix(Viewport viewport)
     {
+        var rounded = Vector2.Round(Position) + Vector2.One * 0.5f;
         return
-            Matrix.CreateTranslation(-Position.X, Position.Y, 0) *
+            Matrix.CreateTranslation(-rounded.X, rounded.Y, 0) *
             Matrix.CreateRotationZ(Rotation) *
             Matrix.CreateScale(Zoom, Zoom, 1) *
             Matrix.CreateTranslation(
