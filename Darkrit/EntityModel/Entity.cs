@@ -585,7 +585,7 @@ public struct Entity : IHandle<Entity>
     {
         return new Transform2D
         {
-            Position = Vector2.Lerp(previous.Position, current.Position, alpha),
+            Position = Vector2.Round(Vector2.Lerp(previous.Position, current.Position, alpha)),
             Rotation = LerpAngle(previous.Rotation, current.Rotation, alpha),
             Scale = Vector2.Lerp(previous.Scale,current.Scale,alpha)
         };

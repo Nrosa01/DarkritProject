@@ -9,6 +9,14 @@ using Microsoft.Xna.Framework;
 
 namespace Darkrit.EntityModel.Components;
 
+public static class EntityCollisionFilters
+{
+    public static CollisionResponseFunction Platform(ref Body<Handle<Entity>> self, ref Body<Handle<Entity>> other)
+    {
+        return CollisionResponses.Slide;
+    }
+}
+
 [Component]
 public partial struct PhysicsBody
 {
@@ -120,6 +128,10 @@ public partial struct PhysicsBody
         }
     }
 
+    // Collision filtering
+
+    CollisionFilterFunction<Handle<Entity>> _collisionFilter = EntityCollisionFilters.Platform;
+
     public void OnCreate()
     {
         _physicsHandle = World.Physics.Create(
@@ -220,7 +232,7 @@ public partial struct PhysicsBody
 
         Vector2 motion = Velocity * gameTime.Delta;
 
-        World.Physics.Move(_physicsHandle, ref motion, CollisionFilters<Handle<Entity>>.Response(CollisionResponses.Slide));
+        World.Physics.Move(_physicsHandle, ref motion, _collisionFilter);
 
         Velocity = motion / gameTime.Delta;
 
