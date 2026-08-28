@@ -12,6 +12,7 @@ using Darkrit.Base;
 using Darkrit.DataStructures;
 using Darkrit.DevTools.Logger;
 using Darkrit.Editor;
+using Darkrit.EntityModel.Components;
 using Darkrit.ImGuiUtils;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
@@ -63,11 +64,12 @@ internal struct EntityMetadata
 /// Class tha own entities and components and orchestrates them
 /// </summary>
 /// <param name="initialCapacity"></param>
-public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
+public class EntityRegistry : IEnumerable<Entity>
 {
     private readonly IComponentStore[] _componentStores = new IComponentStore[ComponentTypeId.Count];
     private readonly int[] _componentStoresOrder = new int[ComponentTypeId.Count];
-    private readonly HandleMapGrowing<Entity> _entities = new(initialCapacity);
+    private readonly int _initialCapacity;
+    private readonly HandleMapGrowing<Entity> _entities;
     private readonly GrowableArray<ComponentList> _entityComponents = [new()];
     private readonly GrowableArray<EntityMetadata> _entityMetadata = [new()];
 
@@ -95,6 +97,20 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     // This is not the best way to do it, but for now it works well enough
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ref ComponentList ComponentsOf(Handle<Entity> handle) => ref _entityComponents[handle.Id];
+
+    public ComponentStore<PhysicsBody> PhysicsBodyStore { get; internal set; }
+
+    public EntityRegistry(int initialCapacity)
+    {
+        _initialCapacity = initialCapacity;
+        _entities = new(initialCapacity);
+        PhysicsBodyStore = GetStore<PhysicsBody>();
+    }
+
+    /// <summary>
+    /// Creates an entity registry with initial capacity of 1000 entities
+    /// </summary>
+    public EntityRegistry() : this(1000) { }
 
     private void AddStoreOrder(int id)
     {
@@ -238,12 +254,6 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
     public ref readonly Entity GetEntityReadonly(Handle<Entity> entityHandle) => ref _entities.GetReadonly(entityHandle);
 
     /// <summary>
-    /// Creates an entity registry with initial capacity of 1000 entities
-    /// </summary>
-    public EntityRegistry() : this(1000) { }
-
-
-    /// <summary>
     /// Gets a component of store of type T
     /// It creates the store if it didn't exist
     /// </summary>
@@ -256,7 +266,7 @@ public class EntityRegistry(int initialCapacity) : IEnumerable<Entity>
 
         if (_componentStores[id] is not ComponentStore<T> store) // Happens when is null
         {
-            store = new ComponentStore<T>(initialCapacity);
+            store = new ComponentStore<T>(_initialCapacity);
             _componentStores[id] = store;
             AddStoreOrder(id);
         }

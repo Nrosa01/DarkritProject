@@ -11,13 +11,13 @@ namespace Darkrit.EntityModel.Components;
 
 public static class EntityCollisionFilters
 {
-    public static CollisionResponseFunction Platform(ref Body<Handle<Entity>> self, ref Body<Handle<Entity>> other)
+    public static CollisionResponseFunction Platform(ref Body<Handle<Entity>> self, ref Body<Handle<Entity>> other, EntityRegistry registry)
     {
         return CollisionResponses.Slide;
     }
 }
 
-[Component]
+[Component, Priority(int.MaxValue)]
 public partial struct PhysicsBody
 {
     public enum PlatformOnLeave
@@ -67,8 +67,7 @@ public partial struct PhysicsBody
 
     Handle<Body<Handle<Entity>>> _physicsHandle;
 
-    // TODO: Move to World if the per-component store reference becomes unnecessary.
-    ComponentStore<PhysicsBody> PhysicsBodyStore;
+    readonly ComponentStore<PhysicsBody> PhysicsBodyStore => World.PhysicsBodyStore;
 
     // Public API
 
@@ -130,7 +129,7 @@ public partial struct PhysicsBody
 
     // Collision filtering
 
-    CollisionFilterFunction<Handle<Entity>> _collisionFilter = EntityCollisionFilters.Platform;
+    CollisionFilterFunction<Handle<Entity>, EntityRegistry> _collisionFilter = EntityCollisionFilters.Platform;
 
     public void OnCreate()
     {
@@ -143,7 +142,6 @@ public partial struct PhysicsBody
         );
 
         SyncPosition();
-        PhysicsBodyStore = World.GetStore<PhysicsBody>();
     }
 
     public void Start()
@@ -194,7 +192,8 @@ public partial struct PhysicsBody
             if (World.Physics.Move(
                 _physicsHandle,
                 ref snapMotion,
-                CollisionFilters<Handle<Entity>>.Response(CollisionResponses.Stop),
+                CollisionFilters<Handle<Entity>, EntityRegistry>.Response(CollisionResponses.Stop),
+                World,
                 testOnly: true))
             {
                 _isOnFloor = true;
@@ -209,7 +208,8 @@ public partial struct PhysicsBody
             if (World.Physics.Move(
                 _physicsHandle,
                 ref wallMotion,
-                CollisionFilters<Handle<Entity>>.Response(CollisionResponses.Stop),
+                CollisionFilters<Handle<Entity>, EntityRegistry>.Response(CollisionResponses.Stop),
+                World,
                 testOnly: true))
             {
                 _isOnLeftWall = true;
@@ -223,7 +223,8 @@ public partial struct PhysicsBody
             if (World.Physics.Move(
                 _physicsHandle,
                 ref wallMotion,
-                CollisionFilters<Handle<Entity>>.Response(CollisionResponses.Stop),
+                CollisionFilters<Handle<Entity>, EntityRegistry>.Response(CollisionResponses.Stop),
+                World,
                 testOnly: true))
             {
                 _isOnRightWall = true;
@@ -232,7 +233,7 @@ public partial struct PhysicsBody
 
         Vector2 motion = Velocity * gameTime.Delta;
 
-        World.Physics.Move(_physicsHandle, ref motion, _collisionFilter);
+        World.Physics.Move(_physicsHandle, ref motion, _collisionFilter, World);
 
         Velocity = motion / gameTime.Delta;
 

@@ -140,7 +140,7 @@ internal class TestManyBoxes : Scene
         //ref var r = ref world.Get(playerHandle);
         //r.Location = position;
         Vector2 motion = direction.Normalized * speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        var hasCollision = world.Move(playerHandle, ref motion, CollisionFilters<ItemType>.Slide);
+        var hasCollision = world.Move(playerHandle, ref motion, CollisionFilters<ItemType, Empty>.Slide);
         direction = motion / direction.Normalized / (float)gameTime.ElapsedGameTime.TotalSeconds;
         position = world.Get(playerHandle).Bounds.Location;
         if (hasCollision)
