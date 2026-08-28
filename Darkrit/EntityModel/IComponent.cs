@@ -149,6 +149,16 @@ public sealed class HeaderAttribute(string text) : Attribute
 }
 
 /// <summary>
+/// Util to execute some code when the editor changes a field value
+/// </summary>
+/// <param name="methodName"></param>
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class OnEditorChangeAttribute(string methodName) : Attribute
+{
+    public string MethodName { get; } = methodName;
+}
+
+/// <summary>
 /// Defines all the required properties a component needs
 /// </summary>
 public interface IComponent

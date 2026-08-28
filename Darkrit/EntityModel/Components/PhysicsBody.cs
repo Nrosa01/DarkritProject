@@ -1,10 +1,11 @@
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Darkrit.Base;
 using Darkrit.DevTools.Logger;
 using Darkrit.Physics.Boxy2D;
 using Darkrit.Utilities;
 using Microsoft.Xna.Framework;
-using System;
-using System.Runtime.CompilerServices;
 
 namespace Darkrit.EntityModel.Components;
 
@@ -72,6 +73,31 @@ public partial struct PhysicsBody
     public readonly bool IsOnRightWall => _isOnRightWall;
     public readonly bool IsOnWall => _isOnLeftWall || _isOnRightWall;
     public readonly bool IsOnCeiling => _isOnCeiling;
+
+    // These two fields are for serialization and to edit in the inspector
+    // In runtime I use the properties below, given these variables are NEVER
+    // read, I don't need ton sync them with the Body properties
+    // That's why the properties don't also set these values
+    [OnEditorChange(nameof(ApplyCollisionFilter))]
+    [SerializeField] uint _layer = 1;
+    [OnEditorChange(nameof(ApplyCollisionFilter))]
+    [SerializeField] uint _mask = 1;
+
+    readonly uint Layer
+    {
+        get => Body.Layer; set => Body.Layer = value;
+    }
+
+    readonly uint Mask
+    {
+        get => Body.Mask; set => Body.Mask = value;
+    }
+
+    void ApplyCollisionFilter()
+    {
+        Body.Layer = _layer;
+        Body.Mask = _mask;
+    }
 
     public Vector2 Offset
     {

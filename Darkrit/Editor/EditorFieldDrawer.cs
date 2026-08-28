@@ -1,4 +1,4 @@
-﻿using Darkrit.EntityModel;
+using Darkrit.EntityModel;
 using Darkrit.Math;
 using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
@@ -17,6 +17,7 @@ public static class EditorFieldDrawer
         Type type = field.FieldType;
 
         return type == typeof(int) ||
+               type == typeof(uint) ||
                type == typeof(float) ||
                type == typeof(bool) ||
                type == typeof(Vector2) ||
@@ -106,6 +107,14 @@ public static class EditorFieldDrawer
                 changed = true;
             }
         }
+        else if (value is uint uintValue)
+        {
+            if (DrawBitMask(field.Name, ref uintValue))
+            {
+                field.SetValueDirect(__makeref(owner), uintValue);
+                changed = true;
+            }
+        }
         else if (value is float floatValue)
         {
             ImGui.SetNextItemWidth(-1);
@@ -157,8 +166,69 @@ public static class EditorFieldDrawer
         if (readOnly)
             ImGui.EndDisabled();
 
+        if (changed)
+        {
+            OnEditorChangeAttribute attribute = field.GetCustomAttribute<OnEditorChangeAttribute>();
+
+            if (attribute != null)
+            {
+                MethodInfo method = typeof(T).GetMethod(attribute.MethodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                // Boxing needed because Owner sometimes is a struct and I don't
+                // want to modify a copy in method.Invoke
+                // Sadly this still creates copies
+                if (method != null)
+                {
+                    object boxedOwner = owner;
+                    method.Invoke(boxedOwner, null);
+                    owner = (T)boxedOwner;
+                }
+            }
+        }
+
         return changed;
     }
+
+    static bool DrawBitMask(string id, ref uint value)
+    {
+        const float buttonWidth = 24f;
+        const float spacing = 2f;
+
+        float availableWidth = ImGui.GetContentRegionAvail().X;
+        int columns = SMath.Clamp((int)((availableWidth + spacing) / (buttonWidth + spacing)), 1, 16);
+
+        bool changed = false;
+
+        for (int row = 0; row < 2; row++)
+        {
+            int startBit = row * 16;
+
+            for (int column = 0; column < columns; column++)
+            {
+                int bit = startBit + column;
+
+                bool enabled = (value & (1u << bit)) != 0;
+
+                if (column > 0)
+                    ImGui.SameLine(0f, spacing);
+
+                if (!enabled)
+                    ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled]);
+
+                if (ImGui.Button($"{bit + 1}##{id}_{bit}", new System.Numerics.Vector2(buttonWidth, 0)))
+                {
+                    value ^= 1u << bit;
+                    changed = true;
+                }
+
+                if (!enabled)
+                    ImGui.PopStyleColor();
+            }
+        }
+
+        return changed;
+    }
+
 
     static bool DrawEnum(string id, Enum value, out Enum newValue)
     {
