@@ -188,9 +188,12 @@ public class World<T>
             }
 
             lastCollision = closestCollision;
-            _lastCollisions.Add(new(closestCollision, lastCollisionHandle));
+            CollisionResponseFunction collisionResponseFunction = collisionFilter(ref Get(handle), ref Get(lastCollisionHandle), ref velocity, lastCollision, context);
+            
+            _lastCollisions.Add(new(closestCollision, lastCollisionHandle, collisionResponseFunction));
 
-            collisionFilter(ref Get(handle), ref Get(lastCollisionHandle), context)(ref bounds, ref velocity, closestCollision);
+            if (!collisionResponseFunction(ref bounds, ref velocity, closestCollision))
+                break;
         }
 
         if (!testOnly)
@@ -216,7 +219,7 @@ public class World<T>
 /// <typeparam name="T"></typeparam>
 /// <param name="collisionInfo"></param>
 /// <param name="handle"></param>
-public readonly struct CollisionHit<T>(CollisionInfo collisionInfo, Handle<T> handle)
+public readonly struct CollisionHit<T>(CollisionInfo collisionInfo, Handle<T> handle, CollisionResponseFunction function)
 {
     /// <summary>
     /// Normalized time in which the collision happened in the frame
@@ -246,4 +249,9 @@ public readonly struct CollisionHit<T>(CollisionInfo collisionInfo, Handle<T> ha
     /// Whether there was a collision
     /// </summary>
     public bool HasCollision { get; init; } = collisionInfo.HasCollision;
+
+    /// <summary>
+    /// The collision response that was used to process this collision
+    /// </summary>
+    public readonly CollisionResponseFunction CollisionResponseFunction = function;
 }

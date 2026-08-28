@@ -11,9 +11,14 @@ namespace Darkrit.EntityModel.Components;
 
 public static class EntityCollisionFilters
 {
-    public static CollisionResponseFunction Platform(ref Body<Handle<PhysicsBody>> self, ref Body<Handle<PhysicsBody>> other, EntityRegistry registry)
+    public static CollisionResponseFunction Platform(ref Body<Handle<PhysicsBody>> self, ref Body<Handle<PhysicsBody>> other, ref Vector2 motion, CollisionInfo collisionInfo, EntityRegistry registry)
     {
-        if (registry.PhysicsBodyStore.Get(other.UserData).IsTrigger)
+        ref PhysicsBody otherBody = ref registry.PhysicsBodyStore.Get(other.UserData);
+
+        if (otherBody.IsTrigger)
+            return CollisionResponses.Cross;
+
+        if (otherBody.IsOneWay && Vector2.Dot(motion, otherBody.upDirection) > 0f)
             return CollisionResponses.Cross;
 
         return CollisionResponses.Slide;
@@ -35,7 +40,8 @@ public partial struct PhysicsBody
     [Header("Shape")]
     [SerializeField] Vector2 baseSize = Vector2.One * 24;
     [SerializeField] Vector2 offset;
-    [SerializeField] public bool IsTrigger { get; private set; }
+    [SerializeField] public bool IsTrigger { get; set; }
+    [SerializeField] public bool IsOneWay { get; set; }
 
     [Header("Movement")]
     public Vector2 upDirection = new(0, -1);
@@ -247,6 +253,9 @@ public partial struct PhysicsBody
 
         foreach (CollisionHit<Body<Handle<PhysicsBody>>> collision in World.Physics.LastCollsions)
         {
+            if (collision.CollisionResponseFunction == CollisionResponses.Cross)
+                continue;
+
             if (Vector2.Dot(collision.Normal, upDirection) > 0.5f)
             {
                 _isOnFloor = true;

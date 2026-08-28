@@ -181,6 +181,7 @@ public class TestSceneEntityModel : Scene
         square.Position += new Vector2(-180, 50);
         physicsSquare = ref square.AddComponent<PhysicsBody>();
         physicsSquare.Size = new Vector2(20, 100);
+        physicsSquare.IsTrigger = true;
     }
 
     public override void Update(GameTime gameTime) => entityWorld.Update(gameTime);
