@@ -148,7 +148,6 @@ public class TestSceneEntityModel : Scene
 {
     EntityRegistry entityWorld;
     Handle<Entity> player;
-    Camera camera = new();
 
     public override void Initialize()
     {
@@ -198,7 +197,7 @@ public class TestSceneEntityModel : Scene
     {
         Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
-        Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
+        Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: Core.Camera.GetViewMatrix(Core.Viewport), rasterizerState: RasterizerState.CullNone);
         entityWorld.Draw(gameTime);
         Core.SpriteBatch.End();
 
@@ -208,7 +207,7 @@ public class TestSceneEntityModel : Scene
     public override void EditorDraw(GameTime gameTime)
     {
         base.EditorDraw(gameTime);
-        camera.EditorDraw();
+        Core.Camera.EditorDraw();
         entityWorld.EditorDraw();
     }
 

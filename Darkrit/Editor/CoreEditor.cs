@@ -131,7 +131,7 @@ internal class CoreEditor
 
         ImGizmo2D.SetDrawList(viewportDrawList);
         ImGizmo2D.SetViewRect(viewportPos.ToNumerics(), viewportSize.ToNumerics());
-        ImGizmo2D.SetViewTransform(0, 0, 1.0f);
+        ImGizmo2D.SetViewTransform(Core.Camera.Position.X, Core.Camera.Position.Y, Core.Camera.Zoom);
         ImGizmo2D.BeginFrame();
 
         scene?.EditorDraw(gameTime);

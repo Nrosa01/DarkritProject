@@ -4,6 +4,7 @@
 
 using Darkrit.Content;
 using Darkrit.Editor;
+using Darkrit.Graphics;
 using Darkrit.InputSystem;
 using Darkrit.InputSystem.Providers;
 using Darkrit.Scenes;
@@ -78,6 +79,12 @@ public class Core : Game
     /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
     /// </summary>
     public static bool ExitOnEscape { get; set; }
+
+    /// <summary>
+    /// Main camera of the Framework. You have to create your own virtual cameras
+    /// that wrap this one
+    /// </summary>
+    public static Camera Camera { get; internal set; }
 
     private static CoreEditor s_coreEditor;
 
@@ -168,6 +175,8 @@ public class Core : Game
         Input = new(_activatableInputProvider);
 
         InputRecorder = new(Input, _activatableInputProvider);
+
+        Camera = new();
     }
 
     /// <summary>
